@@ -8,47 +8,24 @@ This class is part of the CRANTB project and is designed to work with
 Seatable's API to fetch and filter neuron data.
 """
 
+import functools
 import logging
+from typing import (Any, Callable, Dict, Iterable, Iterator, List, Optional,
+                    Type, TypeVar, Union, cast)
+
 import numpy as np
-from crantpy.utils.seatable import (
-    get_seatable_annotations,
-    ALL_FIELDS,
-    SEARCH_EXCLUDED_FIELDS,
-)
-from crantpy.utils.utils import filter_df
+import pandas as pd
+from numpy.typing import NDArray
+
+from crantpy.utils.config import CRANT_VALID_DATASETS, inject_dataset
 from crantpy.utils.exceptions import NoMatchesError
+from crantpy.utils.seatable import (ALL_FIELDS, SEARCH_EXCLUDED_FIELDS,
+                                    get_all_seatable_annotations)
+from crantpy.utils.utils import filter_df
 
-# function to fetch annotations from Seatable
-def get_annotations(neurons, clear_cache=False):
-    """Get annotations from Seatable.
-
-    Parameters
-    ----------
-    neurons : int, str, list or NeuronCriteria
-        Neurons to fetch annotations for. Can be a single root ID, a list of root IDs,
-        or an instance of NeuronCriteria.
-    clear_cache : bool, default False
-        Whether to force reloading annotations from Seatable, bypassing the cache.
-    """
-    if isinstance(neurons, NeuronCriteria):
-        # If neurons is a NeuronCriteria instance, fetch its roots
-        neurons = neurons.get_roots()
-    elif isinstance(neurons, (int, str)):
-        # If integer convert to string
-        if isinstance(neurons, int):
-            neurons = str(neurons)
-        # If a single root ID, convert to list
-        neurons = [neurons]
-    elif not isinstance(neurons, list):
-        raise ValueError("Invalid input type. Must be int, str, or list of root IDs.")
-
-    # Fetch annotations from Seatable
-    annotations = get_seatable_annotations(clear_cache=clear_cache)
-    # Filter annotations based on the provided root IDs
-    filtered_annotations = annotations[annotations['root_id'].isin(neurons)]
-    if filtered_annotations.empty:
-        raise NoMatchesError("No matching neurons found for the provided criteria.")
-    return filtered_annotations
+# Type variables for decorator
+F = TypeVar('F', bound=Callable[..., Any])
+T = TypeVar('T')
 
 class NeuronCriteria:
     """Parses filter queries into root IDs using Seatable.
@@ -80,6 +57,8 @@ class NeuronCriteria:
         of the specified values.
     exact : bool, default True
         Whether to match values exactly. If `False`, substring matching is enabled.
+    dataset : str, optional
+        The dataset to fetch annotations from.
     **criteria : dict
         Filtering criteria where keys are column names from `NeuronCriteria.available_fields()`
         and values are the desired values or lists of values to filter by.
@@ -111,7 +90,19 @@ class NeuronCriteria:
     # >>> neuron_data = some_function(NC(cell_class='picky_neuron'))
     """
 
-    def __init__(self, *, regex=False, case=False, verbose=False, clear_cache=False, match_all=False, exact=True, **criteria):
+    @inject_dataset(allowed=CRANT_VALID_DATASETS)
+    def __init__(
+        self, 
+        *, 
+        regex: bool = False, 
+        case: bool = False, 
+        verbose: bool = False, 
+        clear_cache: bool = False, 
+        match_all: bool = False, 
+        exact: bool = True, 
+        dataset: Optional[str] = None, 
+        **criteria: Union[str, int, List[Union[str, int]]]
+    ) -> None:
         # If no criteria make sure this is intended
         if not len(criteria):
             logging.warning(
@@ -129,28 +120,54 @@ class NeuronCriteria:
                     f'"{field}" is not a searchable field.'
                     f' Available fields are: {valid_fields}.{suggestion_str}'
                 )
-
-        self.criteria = criteria
+        self.dataset = dataset
+        self.criteria: Dict[str, Union[str, int, List[Union[str, int]]]] = criteria
         self.regex = regex
         self.case = case
         self.verbose = verbose
         self.clear_cache = clear_cache
-        self.match_all = match_all # Store match_all
-        self.exact = exact # Store exact
-        self._annotations = None
-        self._roots = None
+        self.match_all = match_all  # Store match_all
+        self.exact = exact  # Store exact
+        self._annotations: Optional[pd.DataFrame] = None
+        self._roots: Optional[NDArray] = None
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Union[int, str]]:
+        """Allows iterating over the root IDs matched by this criteria.
+        
+        Returns
+        -------
+        Iterator
+            Iterator over the root IDs matched by this criteria.
+        """
         if self._roots is None:
             self._roots = self.get_roots()
         return iter(self._roots)
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Returns the number of root IDs matched by this criteria.
+        
+        Returns
+        -------
+        int
+            Number of root IDs matched by this criteria.
+        """
         if self._roots is None:
             self._roots = self.get_roots()
         return len(self._roots)
 
-    def __contains__(self, item):
+    def __contains__(self, item: Union[int, str]) -> bool:
+        """Checks if a root ID is matched by this criteria.
+        
+        Parameters
+        ----------
+        item : int or str
+            Root ID to check.
+            
+        Returns
+        -------
+        bool
+            True if the root ID is matched by this criteria, False otherwise.
+        """
         if self._roots is None:
             self._roots = self.get_roots()
         # Ensure item is compared with the correct type (roots are likely int or str)
@@ -165,28 +182,57 @@ class NeuronCriteria:
         return item in self._roots
 
     @classmethod
-    def available_fields(cls):
-        """Return all available fields for selection."""
+    def available_fields(cls) -> List[str]:
+        """Return all available fields for selection.
+        
+        Returns
+        -------
+        List[str]
+            List of field names that can be used for filtering.
+        """
         # remove fields that are not searchable from the list
         searchable_fields = [f for f in ALL_FIELDS if f not in SEARCH_EXCLUDED_FIELDS]
         # Return as a list
         return searchable_fields
 
     @property
-    def annotations(self):
-        """Return annotations table (DataFrame), loading if necessary."""
+    def annotations(self) -> pd.DataFrame:
+        """Return annotations table (DataFrame), loading if necessary.
+        
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame containing the annotations from Seatable.
+        """
         if self._annotations is None:
             # Pass clear_cache to potentially bypass cache
-            self._annotations = get_seatable_annotations(clear_cache=self.clear_cache)
+            self._annotations = get_all_seatable_annotations(clear_cache=self.clear_cache, dataset=self.dataset, proofread_only=False)
         return self._annotations
 
     @property
-    def is_empty(self):
-        """Returns True if no criteria are specified."""
+    def is_empty(self) -> bool:
+        """Returns True if no criteria are specified.
+        
+        Returns
+        -------
+        bool
+            True if no criteria are specified, False otherwise.
+        """
         return len(self.criteria) == 0
 
-    def get_roots(self):
-        """Return all root IDs matching the given criteria."""
+    def get_roots(self) -> NDArray:
+        """Return all root IDs matching the given criteria.
+        
+        Returns
+        -------
+        numpy.ndarray
+            Array of root IDs matching the given criteria.
+            
+        Raises
+        ------
+        NoMatchesError
+            If no neurons are found matching the given criteria.
+        """
         # Use the property to get annotations (handles loading/caching)
         ann = self.annotations.copy()
 
@@ -231,3 +277,107 @@ class NeuronCriteria:
 
         # Return as numpy array
         return np.asarray(roots)
+
+# decorator to handle neuron criteria in any function that takes neuron IDs
+def parse_neuroncriteria(allow_empty: bool = False) -> Callable[[F], F]:
+    """Parse all NeuronCriteria arguments into an array of root IDs.
+
+    Parameters
+    ----------
+    allow_empty : bool, default False
+        Whether to allow the NeuronCriteria to not match any neurons.
+        
+    Returns
+    -------
+    Callable
+        Decorator function that processes NeuronCriteria arguments.
+    """
+
+    def outer(func: F) -> F:
+        @functools.wraps(func)
+        def inner(*args: Any, **kwargs: Any) -> Any:
+            # Search through *args for NeuronCriteria
+            for i, nc in enumerate(args):
+                if isinstance(nc, NeuronCriteria):
+                    # First check if we're allowed to query all neurons
+                    if nc.is_empty and not allow_empty:
+                        raise ValueError(
+                            "NeuronCriteria must contain filter conditions."
+                        )
+                    args = list(args)
+                    args[i] = nc.get_roots()
+            # Search through **kwargs for NeuronCriteria
+            for key, nc in kwargs.items():
+                if isinstance(nc, NeuronCriteria):
+                    # First check if we're allowed to query all neurons
+                    if nc.is_empty and not allow_empty:
+                        raise ValueError(
+                            "NeuronCriteria must contain filter conditions."
+                        )
+                    kwargs[key] = nc.get_roots()
+            try:
+                return func(*args, **kwargs)
+            except NoMatchesError as e:
+                if allow_empty:
+                    return np.array([], dtype=np.int64)
+                else:
+                    raise e
+
+        return cast(F, inner)
+    return outer
+
+
+
+# function to fetch annotations from Seatable
+@inject_dataset(allowed=CRANT_VALID_DATASETS)
+@parse_neuroncriteria()
+def get_annotations(
+    neurons: Union[int, str, List[Union[int, str]], 'NeuronCriteria'], 
+    dataset: Optional[str] = None, 
+    clear_cache: bool = False, 
+    proofread_only: bool = False
+) -> pd.DataFrame:
+    """Get annotations from Seatable.
+
+    Parameters
+    ----------
+    neurons : int, str, list or NeuronCriteria
+        Neurons to fetch annotations for. Can be a single root ID, a list of root IDs,
+        or an instance of NeuronCriteria.
+    dataset : str, optional
+        Dataset to fetch annotations from.
+    clear_cache : bool, default False
+        Whether to force reloading annotations from Seatable, bypassing the cache.
+    proofread_only : bool, default False
+        Whether to return only annotations marked as proofread.
+        
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing the annotations for the specified neurons.
+        
+    Raises
+    ------
+    ValueError
+        If the input type is invalid.
+    NoMatchesError
+        If no matching neurons are found.
+    """
+    if isinstance(neurons, (int, str)):
+        # If integer convert to string
+        if isinstance(neurons, int):
+            neurons = str(neurons)
+        # If a single root ID, convert to list
+        neurons = [neurons]
+    elif not isinstance(neurons, (list, np.ndarray)):
+        raise ValueError("Invalid input type. Must be int, str, or list of root IDs.")
+    # Convert to string for consistency
+    neurons = [str(neuron) for neuron in neurons]
+
+    # Fetch annotations from Seatable
+    annotations = get_all_seatable_annotations(proofread_only=proofread_only, clear_cache=clear_cache, dataset=dataset)
+    # Filter annotations based on the provided root IDs
+    filtered_annotations = annotations[annotations['root_id'].isin(neurons)]
+    if filtered_annotations.empty:
+        raise NoMatchesError("No matching neurons found for the provided criteria.")
+    return filtered_annotations

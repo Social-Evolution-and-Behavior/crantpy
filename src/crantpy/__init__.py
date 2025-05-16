@@ -1,6 +1,5 @@
 import lazy_loader
 
-
 __getattr__, __dir__, __all__ = lazy_loader.attach(
     __name__,
     submodules={
@@ -33,7 +32,7 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
             'generate_cave_token',
             'get_cave_client',
             'get_current_cave_token',
-            'get_seatable_annotations',
+            'get_all_seatable_annotations',
             'get_seatable_base_object',
             'match_dtype',
             'seatable',
@@ -50,6 +49,6 @@ __all__ = ['ALL_FIELDS', 'CRANT_CAVE_SERVER_URL', 'CRANT_DATASTACK',
            'SEARCH_EXCLUDED_FIELDS', 'cave', 'create_sql_query', 'exceptions',
            'fetch_connections', 'fetch_neurons', 'filter_df',
            'generate_cave_token', 'get_annotations', 'get_cave_client',
-           'get_current_cave_token', 'get_seatable_annotations',
+           'get_current_cave_token', 'get_all_seatable_annotations',
            'get_seatable_base_object', 'match_dtype', 'queries', 'seatable',
            'set_cave_token', 'utils', 'viz']

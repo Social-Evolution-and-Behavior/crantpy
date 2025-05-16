@@ -3,17 +3,41 @@
 This module contains utility functions for crantpy.
 """
 
-import os
-import requests
 import logging
-import pandas as pd
-from typing import List, Optional, Any
+import os
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, cast
+
 import navis
+import pandas as pd
+import requests
+from pandas.api.types import pandas_dtype
+
+T = TypeVar('T')
+
 
 # Custom functions
-def create_sql_query(table_name: str, fields: List[str], condition: Optional[str] = None, limit: Optional[int] = None, start: Optional[int] = None) -> str:
+def create_sql_query(table_name: str, fields: List[str], condition: Optional[str] = None, 
+                    limit: Optional[int] = None, start: Optional[int] = None) -> str:
     """
     Creates a SQL query to get the specified fields from the specified table.
+    
+    Parameters
+    ----------
+    table_name : str
+        The name of the table to query.
+    fields : List[str]
+        The list of field names to include in the query.
+    condition : str, optional
+        The WHERE clause of the query.
+    limit : int, optional
+        The maximum number of rows to return.
+    start : int, optional
+        The number of rows to skip (OFFSET).
+        
+    Returns
+    -------
+    str
+        The constructed SQL query string.
     """
     # Create the SQL query
     sql_query = f"SELECT {', '.join(fields)} FROM {table_name}"
@@ -26,9 +50,26 @@ def create_sql_query(table_name: str, fields: List[str], condition: Optional[str
     return sql_query
 
 
-def match_dtype(value, dtype) -> Any:
+def match_dtype(value: Any, dtype: Union[str, type]) -> Any:
     """
     Match the dtype of a value to a given dtype.
+    
+    Parameters
+    ----------
+    value : Any
+        The value to convert.
+    dtype : str or type
+        The target dtype to convert to.
+        
+    Returns
+    -------
+    Any
+        The converted value.
+        
+    Raises
+    ------
+    ValueError
+        If the dtype is not supported.
     """
     if pd.api.types.is_integer_dtype(dtype):
         return int(value)
@@ -44,7 +85,22 @@ def match_dtype(value, dtype) -> Any:
 
 
 def _check_list_membership(cell_value: Any, filter_value: Any, is_filter_list: bool) -> bool:
-    """Helper function to check membership within a list cell."""
+    """Helper function to check membership within a list cell.
+    
+    Parameters
+    ----------
+    cell_value : Any
+        The value of the cell to check.
+    filter_value : Any
+        The value or values to filter by.
+    is_filter_list : bool
+        Whether filter_value is a list.
+        
+    Returns
+    -------
+    bool
+        True if the filter value(s) are found in the cell value, False otherwise.
+    """
     if not isinstance(cell_value, list):
         return False # Cell itself is not a list
     if not is_filter_list:

@@ -6,20 +6,23 @@ and manage caching of results.
 It also includes a function to create SQL queries for Seatable.
 """
 
-import os
 import json
-import requests
 import logging
-import pandas as pd
-import numpy as np
-import seatable_api
-from typing import List, Optional, Any
-from crantpy.utils.utils import create_sql_query
+import os
+from typing import Any, Dict, List, Optional, TypeVar, Union, cast
 
-CRANT_SEATABLE_SERVER_URL = "https://cloud.seatable.io/"
-CRANT_SEATABLE_WORKSPACE_ID = "62919"
-CRANT_SEATABLE_BASENAME = "CRANTb"
-CRANT_SEATABLE_ANNOTATIONS_TABLE = "CRANTb_meta"
+import numpy as np
+import pandas as pd
+import requests
+import seatable_api
+from seatable_api import Base
+
+from crantpy.utils.config import (CRANT_SEATABLE_ANNOTATIONS_TABLES,
+                                  CRANT_SEATABLE_BASENAME,
+                                  CRANT_SEATABLE_SERVER_URL,
+                                  CRANT_SEATABLE_WORKSPACE_ID,
+                                  CRANT_VALID_DATASETS, inject_dataset)
+from crantpy.utils.utils import create_sql_query
 
 # get API TOKEN from environment variable
 CRANT_SEATABLE_API_TOKEN = os.getenv('CRANTTABLE_TOKEN')
@@ -70,9 +73,14 @@ SEARCH_EXCLUDED_FIELDS = [
 # Cache for annotations to avoid repeated API calls within the same session
 _CACHED_ANNOTATIONS = None
 
-def get_seatable_base_object():
+def get_seatable_base_object() -> Base:
     """
     Uses Seatable API to get the base object for the CRANTpy project.
+    
+    Returns
+    -------
+    seatable_api.Base
+        The authenticated Seatable Base object.
     """
     # Login to seatable
     ac = seatable_api.Account(login_name=[], password=[], server_url=CRANT_SEATABLE_SERVER_URL)
@@ -83,7 +91,9 @@ def get_seatable_base_object():
     base.auth()
     return base
 
-def get_seatable_annotations(proofread_only=False, clear_cache=False):
+@inject_dataset(allowed=CRANT_VALID_DATASETS)
+def get_all_seatable_annotations(proofread_only: bool = False, clear_cache: bool = False,
+                            dataset: Optional[str] = None) -> pd.DataFrame:
     """
     Uses Seatable API to get the table object for the CRANTb project.
     Handles pagination to retrieve all rows even if exceeding the API limit.
@@ -91,10 +101,12 @@ def get_seatable_annotations(proofread_only=False, clear_cache=False):
 
     Parameters
     ----------
-    proofread_only : bool, optional
-        If True, only retrieve annotations marked as proofread. Defaults to False.
-    clear_cache : bool, optional
-        If True, bypass the cache and fetch fresh data from Seatable. Defaults to False.
+    proofread_only : bool, default False
+        If True, only retrieve annotations marked as proofread.
+    clear_cache : bool, default False
+        If True, bypass the cache and fetch fresh data from Seatable.
+    dataset : str, optional
+        The dataset to use. If not provided, uses the default dataset from the environment variable.
 
     Returns
     -------
@@ -115,7 +127,7 @@ def get_seatable_annotations(proofread_only=False, clear_cache=False):
         while True:
             logging.info(f"Fetching rows from {start} to {start + limit}...")
             sql_query = create_sql_query(
-                table_name=CRANT_SEATABLE_ANNOTATIONS_TABLE,
+                table_name=CRANT_SEATABLE_ANNOTATIONS_TABLES[dataset],
                 fields=ALL_FIELDS,
                 start=start,
                 limit=limit
