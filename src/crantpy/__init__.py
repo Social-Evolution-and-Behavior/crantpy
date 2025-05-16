@@ -1,5 +1,6 @@
 import lazy_loader
 
+
 __getattr__, __dir__, __all__ = lazy_loader.attach(
     __name__,
     submodules={
@@ -9,31 +10,40 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
     },
     submod_attrs={
         'queries': [
+            'F',
             'NeuronCriteria',
+            'T',
             'fetch_connections',
             'fetch_neurons',
             'get_annotations',
+            'parse_neuroncriteria',
         ],
         'utils': [
             'ALL_FIELDS',
+            'CRANT_CAVE_DATASTACKS',
             'CRANT_CAVE_SERVER_URL',
-            'CRANT_DATASTACK',
-            'CRANT_SEATABLE_ANNOTATIONS_TABLE',
+            'CRANT_DEFAULT_DATASET',
+            'CRANT_SEATABLE_ANNOTATIONS_TABLES',
             'CRANT_SEATABLE_API_TOKEN',
             'CRANT_SEATABLE_BASENAME',
             'CRANT_SEATABLE_SERVER_URL',
             'CRANT_SEATABLE_WORKSPACE_ID',
+            'CRANT_VALID_DATASETS',
+            'F',
             'NoMatchesError',
             'SEARCH_EXCLUDED_FIELDS',
+            'T',
             'cave',
+            'config',
             'create_sql_query',
             'exceptions',
             'filter_df',
             'generate_cave_token',
+            'get_all_seatable_annotations',
             'get_cave_client',
             'get_current_cave_token',
-            'get_all_seatable_annotations',
             'get_seatable_base_object',
+            'inject_dataset',
             'match_dtype',
             'seatable',
             'set_cave_token',
@@ -42,13 +52,15 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
     },
 )
 
-__all__ = ['ALL_FIELDS', 'CRANT_CAVE_SERVER_URL', 'CRANT_DATASTACK',
-           'CRANT_SEATABLE_ANNOTATIONS_TABLE', 'CRANT_SEATABLE_API_TOKEN',
-           'CRANT_SEATABLE_BASENAME', 'CRANT_SEATABLE_SERVER_URL',
-           'CRANT_SEATABLE_WORKSPACE_ID', 'NeuronCriteria', 'NoMatchesError',
-           'SEARCH_EXCLUDED_FIELDS', 'cave', 'create_sql_query', 'exceptions',
-           'fetch_connections', 'fetch_neurons', 'filter_df',
-           'generate_cave_token', 'get_annotations', 'get_cave_client',
-           'get_current_cave_token', 'get_all_seatable_annotations',
-           'get_seatable_base_object', 'match_dtype', 'queries', 'seatable',
-           'set_cave_token', 'utils', 'viz']
+__all__ = ['ALL_FIELDS', 'CRANT_CAVE_DATASTACKS', 'CRANT_CAVE_SERVER_URL',
+           'CRANT_DEFAULT_DATASET', 'CRANT_SEATABLE_ANNOTATIONS_TABLES',
+           'CRANT_SEATABLE_API_TOKEN', 'CRANT_SEATABLE_BASENAME',
+           'CRANT_SEATABLE_SERVER_URL', 'CRANT_SEATABLE_WORKSPACE_ID',
+           'CRANT_VALID_DATASETS', 'F', 'NeuronCriteria', 'NoMatchesError',
+           'SEARCH_EXCLUDED_FIELDS', 'T', 'cave', 'config', 'create_sql_query',
+           'exceptions', 'fetch_connections', 'fetch_neurons', 'filter_df',
+           'generate_cave_token', 'get_all_seatable_annotations',
+           'get_annotations', 'get_cave_client', 'get_current_cave_token',
+           'get_seatable_base_object', 'inject_dataset', 'match_dtype',
+           'parse_neuroncriteria', 'queries', 'seatable', 'set_cave_token',
+           'utils', 'viz']
