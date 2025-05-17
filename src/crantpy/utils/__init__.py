@@ -47,6 +47,7 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
             'parse_neuroncriteria',
         ],
         'exceptions': [
+            'FilteringError',
             'NoMatchesError',
         ],
         'seatable': [
@@ -69,7 +70,7 @@ __all__ = ['ALL_ANNOTATION_FIELDS', 'CRANT_CAVE_DATASTACKS',
            'CRANT_SEATABLE_ANNOTATIONS_TABLES', 'CRANT_SEATABLE_API_TOKEN',
            'CRANT_SEATABLE_BASENAME', 'CRANT_SEATABLE_SERVER_URL',
            'CRANT_SEATABLE_WORKSPACE_ID', 'CRANT_VALID_DATASETS', 'F',
-           'MAXIMUM_CACHE_DURATION', 'NoMatchesError',
+           'FilteringError', 'MAXIMUM_CACHE_DURATION', 'NoMatchesError',
            'SEARCH_EXCLUDED_ANNOTATION_FIELDS', 'T', 'cached_result', 'cave',
            'clear_cave_client_cache', 'clear_cloudvolume_cache',
            'clear_global_cache', 'config', 'create_sql_query', 'decorators',
