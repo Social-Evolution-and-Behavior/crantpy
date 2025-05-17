@@ -4,11 +4,11 @@ import lazy_loader
 __getattr__, __dir__, __all__ = lazy_loader.attach(
     __name__,
     submodules={
-        'fetch_connections',
-        'fetch_neurons',
+        'connections',
+        'neurons',
     },
     submod_attrs={
-        'fetch_neurons': [
+        'neurons': [
             'F',
             'NeuronCriteria',
             'T',
@@ -17,5 +17,5 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
     },
 )
 
-__all__ = ['F', 'NeuronCriteria', 'T', 'fetch_connections', 'fetch_neurons',
-           'get_annotations']
+__all__ = ['F', 'NeuronCriteria', 'T', 'connections', 'get_annotations',
+           'neurons']

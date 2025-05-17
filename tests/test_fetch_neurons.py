@@ -6,8 +6,8 @@ import pandas as pd
 import pytest
 from numpy.typing import NDArray
 
-from crantpy.queries.fetch_neurons import (NeuronCriteria, get_annotations,
-                                           parse_neuroncriteria)
+from crantpy.queries.neurons import (NeuronCriteria, get_annotations,
+                                     parse_neuroncriteria)
 from crantpy.utils.exceptions import NoMatchesError
 
 
@@ -41,7 +41,7 @@ def dummy_get_all_seatable_annotations(clear_cache: bool = False, dataset: Optio
         'side': ['L', 'R', 'L', 'R']
     })
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_neuroncriteria_exact(mock_ann: MagicMock) -> None:
     """Test exact matching in NeuronCriteria.
     
@@ -54,7 +54,7 @@ def test_neuroncriteria_exact(mock_ann: MagicMock) -> None:
     assert set(roots) == {'1'}  # Only neuron '1' has cell_class exactly 'foo'
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_neuroncriteria_substring(mock_ann: MagicMock) -> None:
     """Test substring matching in NeuronCriteria.
     
@@ -67,7 +67,7 @@ def test_neuroncriteria_substring(mock_ann: MagicMock) -> None:
     assert set(roots) == {'1', '3'}  # Both 'foo' and 'foobar' contain 'foo'
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_neuroncriteria_list_column_any(mock_ann: MagicMock) -> None:
     """Test list column filtering with any matching in NeuronCriteria.
     
@@ -81,7 +81,7 @@ def test_neuroncriteria_list_column_any(mock_ann: MagicMock) -> None:
     assert set(roots) == {'1', '3'}  # Both neurons have 'A' in their status lists
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_neuroncriteria_list_column_match_all(mock_ann: MagicMock) -> None:
     """Test list column filtering with all matching in NeuronCriteria.
     
@@ -95,7 +95,7 @@ def test_neuroncriteria_list_column_match_all(mock_ann: MagicMock) -> None:
     assert set(roots) == {'1'}  # Only neuron '1' has both 'A' and 'B' in its status list
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_neuroncriteria_side_and_status(mock_ann: MagicMock) -> None:
     """Test multiple criteria filtering in NeuronCriteria.
     
@@ -109,7 +109,7 @@ def test_neuroncriteria_side_and_status(mock_ann: MagicMock) -> None:
     assert set(roots) == {'1', '3'}  # Both neurons are on the left side and have status 'A'
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_neuroncriteria_no_criteria(mock_ann: MagicMock) -> None:
     """Test NeuronCriteria with no criteria specified.
     
@@ -122,7 +122,7 @@ def test_neuroncriteria_no_criteria(mock_ann: MagicMock) -> None:
     assert set(roots) == {'1', '2', '3', '4'}  # All neurons should be returned
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_neuroncriteria_invalidfield(mock_ann: MagicMock) -> None:
     """Test NeuronCriteria with invalid field.
     
@@ -136,7 +136,7 @@ def test_neuroncriteria_invalidfield(mock_ann: MagicMock) -> None:
     assert "not a searchable field" in str(excinfo.value)
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_neuroncriteria_iter(mock_ann: MagicMock) -> None:
     """Test iteration over NeuronCriteria.
     
@@ -149,7 +149,7 @@ def test_neuroncriteria_iter(mock_ann: MagicMock) -> None:
     assert set(roots) == {'1', '3'}  # Can iterate over the filtered root IDs
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_neuroncriteria_contains(mock_ann: MagicMock) -> None:
     """Test contains operator for NeuronCriteria.
     
@@ -164,7 +164,7 @@ def test_neuroncriteria_contains(mock_ann: MagicMock) -> None:
     assert '4' not in nc  # Root ID '4' should not be in the filtered results
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_neuroncriteria_len(mock_ann: MagicMock) -> None:
     """Test len operator for NeuronCriteria.
     
@@ -177,7 +177,7 @@ def test_neuroncriteria_len(mock_ann: MagicMock) -> None:
     assert len(nc) == 2  # There should be 2 neurons with side='L'
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_neuroncriteria_is_empty(mock_ann: MagicMock) -> None:
     """Test is_empty property for NeuronCriteria.
     
@@ -193,7 +193,7 @@ def test_neuroncriteria_is_empty(mock_ann: MagicMock) -> None:
     assert nc2.is_empty is False  # Criteria specified
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_neuroncriteria_available_fields(mock_ann: MagicMock) -> None:
     """Test available_fields classmethod for NeuronCriteria.
     
@@ -208,7 +208,7 @@ def test_neuroncriteria_available_fields(mock_ann: MagicMock) -> None:
     # but we ensure the method returns a list of strings
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_neuroncriteria_no_matches(mock_ann: MagicMock) -> None:
     """Test NeuronCriteria with no matches.
     
@@ -222,7 +222,7 @@ def test_neuroncriteria_no_matches(mock_ann: MagicMock) -> None:
         nc.get_roots()
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_parse_neuroncriteria_decorator(mock_ann: MagicMock) -> None:
     """Test parse_neuroncriteria decorator.
     
@@ -246,7 +246,7 @@ def test_parse_neuroncriteria_decorator(mock_ann: MagicMock) -> None:
     assert set(result) == {'1', '2', '3'}
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_parse_neuroncriteria_disallow_empty(mock_ann: MagicMock) -> None:
     """Test parse_neuroncriteria decorator with allow_empty=False.
     
@@ -267,7 +267,7 @@ def test_parse_neuroncriteria_disallow_empty(mock_ann: MagicMock) -> None:
     assert "NeuronCriteria must contain filter conditions" in str(excinfo.value)
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_parse_neuroncriteria_allow_empty(mock_ann: MagicMock) -> None:
     """Test parse_neuroncriteria decorator with allow_empty=True.
     
@@ -287,7 +287,7 @@ def test_parse_neuroncriteria_allow_empty(mock_ann: MagicMock) -> None:
     assert set(result) == {'1', '2', '3', '4'}  # Should return all neurons
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_parse_neuroncriteria_with_no_matches_error(mock_ann: MagicMock) -> None:
     """Test parse_neuroncriteria decorator with NoMatchesError.
     
@@ -310,7 +310,7 @@ def test_parse_neuroncriteria_with_no_matches_error(mock_ann: MagicMock) -> None
         dummy_function(nc)
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_get_annotations_with_single_id(mock_ann: MagicMock) -> None:
     """Test get_annotations with a single ID.
     
@@ -324,7 +324,7 @@ def test_get_annotations_with_single_id(mock_ann: MagicMock) -> None:
     assert result.iloc[0]['root_id'] == '1'
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_get_annotations_with_id_list(mock_ann: MagicMock) -> None:
     """Test get_annotations with a list of IDs.
     
@@ -338,7 +338,7 @@ def test_get_annotations_with_id_list(mock_ann: MagicMock) -> None:
     assert set(result['root_id']) == {'1', '2'}
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_get_annotations_with_str_id(mock_ann: MagicMock) -> None:
     """Test get_annotations with a string ID.
     
@@ -352,7 +352,7 @@ def test_get_annotations_with_str_id(mock_ann: MagicMock) -> None:
     assert result.iloc[0]['root_id'] == '1'
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_get_annotations_with_neuroncriteria(mock_ann: MagicMock) -> None:
     """Test get_annotations with NeuronCriteria.
     
@@ -368,7 +368,7 @@ def test_get_annotations_with_neuroncriteria(mock_ann: MagicMock) -> None:
     assert result.iloc[0]['root_id'] == '1'
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_get_annotations_invalid_input(mock_ann: MagicMock) -> None:
     """Test get_annotations with invalid input.
     
@@ -382,7 +382,7 @@ def test_get_annotations_invalid_input(mock_ann: MagicMock) -> None:
     assert "Invalid input type" in str(excinfo.value)
 
 
-@patch('crantpy.queries.fetch_neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
+@patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
 def test_get_annotations_no_matches(mock_ann: MagicMock) -> None:
     """Test get_annotations with no matches.
     
