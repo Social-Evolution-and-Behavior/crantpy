@@ -32,6 +32,8 @@ CRANT_SEATABLE_ANNOTATIONS_TABLES = {
     'sandbox': 'CRANTb_meta',
 }
 
+MAXIMUM_CACHE_DURATION = 30 * 60 # 30 minutes
+
 # decorators to inject dataset and parse neuron criteria
 def inject_dataset(allowed: Optional[Union[List[str], str]] = None,
                    disallowed: Optional[Union[List[str], str]] = None) -> Callable[[F], F]:

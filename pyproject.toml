@@ -14,6 +14,10 @@ seatable-api = "^3.0.0"
 navis = {extras = ["all"], version = "^1.10.0"}
 mkinit = "^1.1.0"
 lazy-loader = "^0.4"
+pcg-skel = "^1.3.1"
+cloud-volume = "^12.2.0"
+neuroglancer = "^2.40.1"
+nglui = "^3.8.2"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"

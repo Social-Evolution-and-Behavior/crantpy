@@ -6,6 +6,7 @@ and manage caching of results.
 It also includes a function to create SQL queries for Seatable.
 """
 
+import datetime as dt
 import json
 import logging
 import os
@@ -13,6 +14,7 @@ from typing import Any, Dict, List, Optional, TypeVar, Union, cast
 
 import numpy as np
 import pandas as pd
+import pytz
 import requests
 import seatable_api
 from seatable_api import Base
@@ -21,7 +23,8 @@ from crantpy.utils.config import (CRANT_SEATABLE_ANNOTATIONS_TABLES,
                                   CRANT_SEATABLE_BASENAME,
                                   CRANT_SEATABLE_SERVER_URL,
                                   CRANT_SEATABLE_WORKSPACE_ID,
-                                  CRANT_VALID_DATASETS, inject_dataset)
+                                  CRANT_VALID_DATASETS, MAXIMUM_CACHE_DURATION,
+                                  inject_dataset)
 from crantpy.utils.utils import create_sql_query
 
 # get API TOKEN from environment variable
@@ -71,7 +74,7 @@ SEARCH_EXCLUDED_FIELDS = [
 ]
 
 # Cache for annotations to avoid repeated API calls within the same session
-_CACHED_ANNOTATIONS = None
+_CACHED_ANNOTATIONS = {}
 
 def get_seatable_base_object() -> Base:
     """
@@ -92,8 +95,12 @@ def get_seatable_base_object() -> Base:
     return base
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
-def get_all_seatable_annotations(proofread_only: bool = False, clear_cache: bool = False,
-                            dataset: Optional[str] = None) -> pd.DataFrame:
+def get_all_seatable_annotations(
+        proofread_only: bool = False, 
+        clear_cache: bool = False,
+        check_stale: bool = True,
+        dataset: Optional[str] = None
+    ) -> pd.DataFrame:
     """
     Uses Seatable API to get the table object for the CRANTb project.
     Handles pagination to retrieve all rows even if exceeding the API limit.
@@ -105,6 +112,8 @@ def get_all_seatable_annotations(proofread_only: bool = False, clear_cache: bool
         If True, only retrieve annotations marked as proofread.
     clear_cache : bool, default False
         If True, bypass the cache and fetch fresh data from Seatable.
+    check_stale : bool, default True
+        If True, check if the cache is stale before using it based on the maximum cache duration.
     dataset : str, optional
         The dataset to use. If not provided, uses the default dataset from the environment variable.
 
@@ -114,57 +123,75 @@ def get_all_seatable_annotations(proofread_only: bool = False, clear_cache: bool
         DataFrame containing the annotations.
     """
     global _CACHED_ANNOTATIONS
-    if not clear_cache and _CACHED_ANNOTATIONS is not None:
-        logging.info("Using cached annotations.")
-        df = _CACHED_ANNOTATIONS
-    else:
-        logging.info("Fetching annotations from Seatable...")
-        base = get_seatable_base_object()
-        all_results = []
-        start = 0
-        limit = 10000  # Seatable API limit per query
+    # Check if cache is enabled
+    if not clear_cache and _CACHED_ANNOTATIONS.get(dataset) is not None and hasattr(_CACHED_ANNOTATIONS[dataset], '_created_at'):
+        # Check if the cache is still valid
+        if check_stale:
+            current_time = pytz.UTC.localize(dt.datetime.utcnow())
+            elapsed_time = (current_time - _CACHED_ANNOTATIONS[dataset]._created_at).total_seconds()
 
-        while True:
-            logging.info(f"Fetching rows from {start} to {start + limit}...")
-            sql_query = create_sql_query(
-                table_name=CRANT_SEATABLE_ANNOTATIONS_TABLES[dataset],
-                fields=ALL_FIELDS,
-                start=start,
-                limit=limit
-            )
-            try:
-                results = base.query(sql_query)
-            except Exception as e:
-                 logging.error(f"Error querying Seatable: {e}")
-                 # Decide how to handle errors: break, retry, raise?
-                 # For now, break the loop if an error occurs.
-                 break
-
-            if not results:
-                logging.info("No more results found.")
-                break # Exit loop if no results are returned
-
-            all_results.extend(results)
-            logging.info(f"Retrieved {len(results)} rows in this batch.")
-
-            if len(results) < limit:
-                logging.info("Fetched all rows.")
-                break # Exit loop if fewer than 'limit' rows were returned
-
-            start += limit # Prepare for the next batch
-
-        logging.info(f"Retrieved a total of {len(all_results)} rows.")
-        # Convert the results to a pandas DataFrame
-        if all_results:
-            df = pd.DataFrame(all_results)
+            # The cache is valid if the elapsed time is less than the maximum cache duration
+            if elapsed_time < MAXIMUM_CACHE_DURATION:
+                # Cache is still valid
+                logging.info("Using cached annotations.")
+                return _CACHED_ANNOTATIONS[dataset]
+            else:
+                # Cache is stale, remove it
+                logging.info("Cached annotations are stale.")
+                del _CACHED_ANNOTATIONS[dataset]
         else:
-            # Return an empty DataFrame with expected columns if no results
-            df = pd.DataFrame(columns=ALL_FIELDS)
+            logging.info("Using cached annotations.")
+            return _CACHED_ANNOTATIONS[dataset]
 
-        _CACHED_ANNOTATIONS = df # Cache the complete result
+    logging.info("Fetching annotations from Seatable...")
+    base = get_seatable_base_object()
+    all_results = []
+    start = 0
+    limit = 10000  # Seatable API limit per query
+
+    while True:
+        logging.info(f"Fetching rows from {start} to {start + limit}...")
+        sql_query = create_sql_query(
+            table_name=CRANT_SEATABLE_ANNOTATIONS_TABLES[dataset],
+            fields=ALL_FIELDS,
+            start=start,
+            limit=limit
+        )
+        try:
+            results = base.query(sql_query)
+        except Exception as e:
+                logging.error(f"Error querying Seatable: {e}")
+                # Decide how to handle errors: break, retry, raise?
+                # For now, break the loop if an error occurs.
+                break
+
+        if not results:
+            logging.info("No more results found.")
+            break # Exit loop if no results are returned
+
+        all_results.extend(results)
+        logging.info(f"Retrieved {len(results)} rows in this batch.")
+
+        if len(results) < limit:
+            logging.info("Fetched all rows.")
+            break # Exit loop if fewer than 'limit' rows were returned
+
+        start += limit # Prepare for the next batch
+
+    logging.info(f"Retrieved a total of {len(all_results)} rows.")
+    # Convert the results to a pandas DataFrame
+    if all_results:
+        df = pd.DataFrame(all_results)
+    else:
+        # Return an empty DataFrame with expected columns if no results
+        df = pd.DataFrame(columns=ALL_FIELDS)
+
+    _CACHED_ANNOTATIONS[dataset] = df # Cache the complete result
+    _CACHED_ANNOTATIONS[dataset]._created_at = pytz.UTC.localize(dt.datetime.utcnow()) # Store creation time for cache validation
 
     # Apply proofread filter if requested (post-fetch)
     if proofread_only:
+        df = _CACHED_ANNOTATIONS[dataset].copy() # Create a copy to avoid modifying the cached DataFrame
         if 'proofread' in df.columns:
             # Ensure boolean comparison works correctly, handle potential non-boolean values
             try:
@@ -173,6 +200,5 @@ def get_all_seatable_annotations(proofread_only: bool = False, clear_cache: bool
                  logging.warning(f"Could not apply 'proofread' filter due to data type issue: {e}")
         else:
             logging.warning("'proofread' column not found in annotations, cannot filter.")
-
-    return df
-
+    else:
+        return _CACHED_ANNOTATIONS[dataset]
