@@ -19,62 +19,20 @@ import requests
 import seatable_api
 from seatable_api import Base
 
-from crantpy.utils.config import (CRANT_SEATABLE_ANNOTATIONS_TABLES,
+from crantpy.utils.config import (ALL_ANNOTATION_FIELDS,
+                                  CRANT_SEATABLE_ANNOTATIONS_TABLES,
                                   CRANT_SEATABLE_BASENAME,
                                   CRANT_SEATABLE_SERVER_URL,
                                   CRANT_SEATABLE_WORKSPACE_ID,
                                   CRANT_VALID_DATASETS, MAXIMUM_CACHE_DURATION,
-                                  inject_dataset)
+                                  SEARCH_EXCLUDED_ANNOTATION_FIELDS)
+from crantpy.utils.decorators import cached_result, inject_dataset
 from crantpy.utils.utils import create_sql_query
 
 # get API TOKEN from environment variable
 CRANT_SEATABLE_API_TOKEN = os.getenv('CRANTTABLE_TOKEN')
 if CRANT_SEATABLE_API_TOKEN is None:
     raise ValueError("CRANTTABLE_TOKEN environment variable not set. Please set it to your Seatable API token.")
-
-ALL_FIELDS = [
-    "root_id",
-    "root_id_processed",
-    "supervoxel_id",
-    "position",
-    "nucleus_id",
-    "nucleus_position",
-    "root_position",
-    "cave_table",
-    "proofread",
-    "status",
-    "region",
-    "proofreader_notes",
-    "side",
-    "nerve",
-    "tract",
-    "hemilineage",
-    "flow",
-    "super_class",
-    "cell_class",
-    "cell_type",
-    "cell_subtype",
-    "cell_instance",
-    "known_nt",
-    "known_nt_source",
-    "alternative_names",
-    "annotator_notes",
-    "user_annotator",
-    "user_proofreader",
-    "ngl_link",
-    "date_proofread",
-]
-
-SEARCH_EXCLUDED_FIELDS = [
-    "root_id_processed",
-    "supervoxel_id",
-    "position",
-    "nucleus_position",
-    "root_position",
-]
-
-# Cache for annotations to avoid repeated API calls within the same session
-_CACHED_ANNOTATIONS = {}
 
 def get_seatable_base_object() -> Base:
     """
@@ -94,12 +52,24 @@ def get_seatable_base_object() -> Base:
     base.auth()
     return base
 
+def get_seatable_cache_name(*args, **kwargs) -> str:
+    """
+    Returns the name of the Seatable cache based on the dataset and proofread_only status.
+    """
+    dataset = args[0] if args else kwargs['dataset']
+    proofread_only = args[1] if len(args) > 1 else kwargs['proofread_only']
+    return f"{dataset}{'_proofread' if proofread_only else ''}"
+
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
+@cached_result(
+    cache_name="seatable_annotations", 
+    key_fn=get_seatable_cache_name,
+)
 def get_all_seatable_annotations(
+        dataset: Optional[str] = None,
         proofread_only: bool = False, 
         clear_cache: bool = False,
         check_stale: bool = True,
-        dataset: Optional[str] = None
     ) -> pd.DataFrame:
     """
     Uses Seatable API to get the table object for the CRANTb project.
@@ -122,28 +92,6 @@ def get_all_seatable_annotations(
     pd.DataFrame
         DataFrame containing the annotations.
     """
-    global _CACHED_ANNOTATIONS
-    # Check if cache is enabled
-    if not clear_cache and _CACHED_ANNOTATIONS.get(dataset) is not None and hasattr(_CACHED_ANNOTATIONS[dataset], '_created_at'):
-        # Check if the cache is still valid
-        if check_stale:
-            current_time = pytz.UTC.localize(dt.datetime.utcnow())
-            elapsed_time = (current_time - _CACHED_ANNOTATIONS[dataset]._created_at).total_seconds()
-
-            # The cache is valid if the elapsed time is less than the maximum cache duration
-            if elapsed_time < MAXIMUM_CACHE_DURATION:
-                # Cache is still valid
-                logging.info("Using cached annotations.")
-                return _CACHED_ANNOTATIONS[dataset]
-            else:
-                # Cache is stale, remove it
-                logging.info("Cached annotations are stale.")
-                del _CACHED_ANNOTATIONS[dataset]
-        else:
-            logging.info("Using cached annotations.")
-            return _CACHED_ANNOTATIONS[dataset]
-
-    logging.info("Fetching annotations from Seatable...")
     base = get_seatable_base_object()
     all_results = []
     start = 0
@@ -153,7 +101,7 @@ def get_all_seatable_annotations(
         logging.info(f"Fetching rows from {start} to {start + limit}...")
         sql_query = create_sql_query(
             table_name=CRANT_SEATABLE_ANNOTATIONS_TABLES[dataset],
-            fields=ALL_FIELDS,
+            fields=ALL_ANNOTATION_FIELDS,
             start=start,
             limit=limit
         )
@@ -161,8 +109,6 @@ def get_all_seatable_annotations(
             results = base.query(sql_query)
         except Exception as e:
                 logging.error(f"Error querying Seatable: {e}")
-                # Decide how to handle errors: break, retry, raise?
-                # For now, break the loop if an error occurs.
                 break
 
         if not results:
@@ -180,25 +126,13 @@ def get_all_seatable_annotations(
 
     logging.info(f"Retrieved a total of {len(all_results)} rows.")
     # Convert the results to a pandas DataFrame
-    if all_results:
-        df = pd.DataFrame(all_results)
-    else:
-        # Return an empty DataFrame with expected columns if no results
-        df = pd.DataFrame(columns=ALL_FIELDS)
-
-    _CACHED_ANNOTATIONS[dataset] = df # Cache the complete result
-    _CACHED_ANNOTATIONS[dataset]._created_at = pytz.UTC.localize(dt.datetime.utcnow()) # Store creation time for cache validation
+    df = pd.DataFrame(all_results) if all_results else pd.DataFrame(columns=ALL_ANNOTATION_FIELDS)
 
     # Apply proofread filter if requested (post-fetch)
-    if proofread_only:
-        df = _CACHED_ANNOTATIONS[dataset].copy() # Create a copy to avoid modifying the cached DataFrame
-        if 'proofread' in df.columns:
-            # Ensure boolean comparison works correctly, handle potential non-boolean values
-            try:
-                df = df[df['proofread'].astype(bool) == True]
-            except Exception as e:
-                 logging.warning(f"Could not apply 'proofread' filter due to data type issue: {e}")
-        else:
-            logging.warning("'proofread' column not found in annotations, cannot filter.")
-    else:
-        return _CACHED_ANNOTATIONS[dataset]
+    if proofread_only and 'proofread' in df.columns:
+        try:
+            return df[df['proofread'].astype(bool) == True]
+        except Exception as e:
+            logging.warning(f"Could not apply 'proofread' filter due to data type issue: {e}")
+    
+    return df

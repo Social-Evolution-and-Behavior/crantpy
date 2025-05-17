@@ -17,10 +17,11 @@ import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
-from crantpy.utils.config import CRANT_VALID_DATASETS, inject_dataset
+from crantpy.utils.config import (ALL_ANNOTATION_FIELDS, CRANT_VALID_DATASETS,
+                                  SEARCH_EXCLUDED_ANNOTATION_FIELDS)
+from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.utils.exceptions import NoMatchesError
-from crantpy.utils.seatable import (ALL_FIELDS, SEARCH_EXCLUDED_FIELDS,
-                                    get_all_seatable_annotations)
+from crantpy.utils.seatable import get_all_seatable_annotations
 from crantpy.utils.utils import filter_df
 
 # Type variables for decorator
@@ -191,7 +192,7 @@ class NeuronCriteria:
             List of field names that can be used for filtering.
         """
         # remove fields that are not searchable from the list
-        searchable_fields = [f for f in ALL_FIELDS if f not in SEARCH_EXCLUDED_FIELDS]
+        searchable_fields = [f for f in ALL_ANNOTATION_FIELDS if f not in SEARCH_EXCLUDED_ANNOTATION_FIELDS]
         # Return as a list
         return searchable_fields
 
@@ -277,56 +278,6 @@ class NeuronCriteria:
 
         # Return as numpy array
         return np.asarray(roots)
-
-# decorator to handle neuron criteria in any function that takes neuron IDs
-def parse_neuroncriteria(allow_empty: bool = False) -> Callable[[F], F]:
-    """Parse all NeuronCriteria arguments into an array of root IDs.
-
-    Parameters
-    ----------
-    allow_empty : bool, default False
-        Whether to allow the NeuronCriteria to not match any neurons.
-        
-    Returns
-    -------
-    Callable
-        Decorator function that processes NeuronCriteria arguments.
-    """
-
-    def outer(func: F) -> F:
-        @functools.wraps(func)
-        def inner(*args: Any, **kwargs: Any) -> Any:
-            # Search through *args for NeuronCriteria
-            for i, nc in enumerate(args):
-                if isinstance(nc, NeuronCriteria):
-                    # First check if we're allowed to query all neurons
-                    if nc.is_empty and not allow_empty:
-                        raise ValueError(
-                            "NeuronCriteria must contain filter conditions."
-                        )
-                    args = list(args)
-                    args[i] = nc.get_roots()
-            # Search through **kwargs for NeuronCriteria
-            for key, nc in kwargs.items():
-                if isinstance(nc, NeuronCriteria):
-                    # First check if we're allowed to query all neurons
-                    if nc.is_empty and not allow_empty:
-                        raise ValueError(
-                            "NeuronCriteria must contain filter conditions."
-                        )
-                    kwargs[key] = nc.get_roots()
-            try:
-                return func(*args, **kwargs)
-            except NoMatchesError as e:
-                if allow_empty:
-                    return np.array([], dtype=np.int64)
-                else:
-                    raise e
-
-        return cast(F, inner)
-    return outer
-
-
 
 # function to fetch annotations from Seatable
 @inject_dataset(allowed=CRANT_VALID_DATASETS)

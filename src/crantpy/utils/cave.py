@@ -10,14 +10,14 @@ import os
 from getpass import getpass
 from typing import Optional
 
+import cloudvolume as cv
 import pytz
 from caveclient import CAVEclient
 
 from crantpy.utils.config import (CRANT_CAVE_DATASTACKS, CRANT_CAVE_SERVER_URL,
-                                  CRANT_VALID_DATASETS, MAXIMUM_CACHE_DURATION,
-                                  inject_dataset)
+                                  CRANT_VALID_DATASETS, MAXIMUM_CACHE_DURATION)
+from crantpy.utils.decorators import cached_result, inject_dataset
 
-_CACHED_CAVE_CLIENTS = {}
 _CACHED_CLOUDVOLUMES = {}
 
 def get_current_cave_token() -> str:
@@ -95,11 +95,28 @@ def get_datastack_segmentation_source(datastack) -> str:
     """Get segmentation source for given CAVE datastack."""
     return CAVEclient(server_address=CRANT_CAVE_SERVER_URL).info.get_datastack_info(datastack_name=datastack)['segmentation_source']
 
+# Define a validation function for CAVE client cache
+def validate_cave_client(client, *args, **kwargs):
+    """Validate if a cached CAVE client is still valid."""
+    try:
+        current_time = pytz.UTC.localize(dt.datetime.utcnow())
+        mds = client.materialize.get_versions_metadata()
+        expired = [version for version in mds if version['expires_on'] <= current_time]
+        return len(expired) == 0
+    except Exception as e:
+        logging.warning(f"Error validating CAVE client: {e}")
+        return False
+
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
+@cached_result(
+    cache_name="cave_clients",
+    key_fn=lambda *args, **kwargs: args[0] if args else kwargs['dataset'],
+    validate_cache_fn=validate_cave_client
+)
 def get_cave_client(
+    dataset: Optional[str] = None,
     clear_cache: bool = False,
     check_stale: bool = True,
-    dataset: Optional[str] = None,
     ) -> CAVEclient:
     """
     Returns a CAVE client instance.
@@ -127,41 +144,7 @@ def get_cave_client(
     """
     # verify the dataset
     if CRANT_CAVE_DATASTACKS[dataset] not in get_cave_datastacks():
-        raise ValueError(f"Invalid dataset: {dataset}")
-
-    global _CACHED_CAVE_CLIENTS
-    # Check if the client is already cached
-    if not clear_cache and _CACHED_CAVE_CLIENTS.get(dataset) is not None and hasattr(_CACHED_CAVE_CLIENTS[dataset], '_created_at'):
-        
-        # Check if the cached client is still valid
-        if check_stale:
-
-            current_time = pytz.UTC.localize(dt.datetime.utcnow())
-
-            # Get the expired materialization versions
-            client = _CACHED_CAVE_CLIENTS[dataset]
-            mds = client.materialize.get_versions_metadata()
-            expired = [version for version in mds if version['expires_on'] <= current_time]
-
-            # Get the elapsed time since the client was created
-            elapsed_time = (current_time - client._created_at).total_seconds()
-
-            # The cache is valid if the elapsed time is less than the maximum cache duration and there are no expired versions
-            if elapsed_time < MAXIMUM_CACHE_DURATION and not expired:
-                # Cache is still valid
-                logging.info("Using cached CAVE client.")
-                return client
-            else:
-                logging.info("Cached CAVE client is stale.")
-                # Cache is stale, remove it
-                del _CACHED_CAVE_CLIENTS[dataset]
-        
-        else:
-        
-            logging.info("Using cached CAVE client.")
-            return _CACHED_CAVE_CLIENTS[dataset]
-
-    logging.info("Fetching new CAVE client...")
+        raise ValueError(f"Invalid dataset: {CRANT_CAVE_DATASTACKS[dataset]}. Available datastacks: {get_cave_datastacks()}")
 
     # Create a CAVE client instance
     client = CAVEclient(
@@ -170,13 +153,7 @@ def get_cave_client(
     )
 
     # Check if a token is already set
-    if client.auth.token:
-        # Cache the client
-        _CACHED_CAVE_CLIENTS[dataset] = client
-        # Set the created_at attribute to the current time
-        _CACHED_CAVE_CLIENTS[dataset]._created_at = pytz.UTC.localize(dt.datetime.utcnow())
-        return _CACHED_CAVE_CLIENTS[dataset]
-    else:
+    if not client.auth.token:
         # TODO: get token from cloudvolume?
         generate_cave_token(save=True)
         # Regenerate the client with the new token
@@ -187,59 +164,27 @@ def get_cave_client(
         # check if the token is set
         if not client.auth.token:
             raise ValueError("No token found. Please generate a new token using generate_cave_token().")
-        
-        # Cache the client
-        _CACHED_CAVE_CLIENTS[dataset] = client
-        # Set the created_at attribute to the current time
-        _CACHED_CAVE_CLIENTS[dataset]._created_at = pytz.UTC.localize(dt.datetime.utcnow())
-        return _CACHED_CAVE_CLIENTS[dataset]
+    
+    return client
 
 def clear_cave_client_cache() -> None:
-    """
-    Clears the CAVE client cache.
-    """
-    global _CACHED_CAVE_CLIENTS
-    _CACHED_CAVE_CLIENTS = {}
-    logging.info("CAVE client cache cleared.")
-
+    """Clears the CAVE client cache."""
+    get_cave_client.clear_cache()
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
+@cached_result(
+    cache_name="cloudvolumes",
+    key_fn=lambda *args, **kwargs: args[0] if args else kwargs['dataset'],
+)
 def get_cloudvolume(
+    dataset: Optional[str] = None,
     clear_cache: bool = False,
     check_stale: bool = True,
-    dataset: Optional[str] = None,
     **kwargs
     ) -> CAVEclient:
     """
     Returns a cloudvolume instance.
     """
-    global _CACHED_CLOUDVOLUMES
-    # Check if the client is already cached
-    if not clear_cache and _CACHED_CLOUDVOLUMES.get(dataset) is not None and hasattr(_CACHED_CLOUDVOLUMES[dataset], '_created_at'):
-        
-        # Check if the cached client is still valid
-        if check_stale:
-
-            current_time = pytz.UTC.localize(dt.datetime.utcnow())
-
-            # Get the elapsed time since the client was created
-            elapsed_time = (current_time - _CACHED_CLOUDVOLUMES[dataset]._created_at).total_seconds()
-
-            # The cache is valid if the elapsed time is less than the maximum cache duration and there are no expired versions
-            if elapsed_time < MAXIMUM_CACHE_DURATION and not expired:
-                # Cache is still valid
-                logging.info("Using cached cloudvolume.")
-                return _CACHED_CLOUDVOLUMES[dataset]
-            else:
-                logging.info("Cached cloudvolume is stale.")
-                # Cache is stale, remove it
-                del _CACHED_CLOUDVOLUMES[dataset]
-        else:
-            logging.info("Using cached cloudvolume.")
-            return _CACHED_CLOUDVOLUMES[dataset]
-
-    logging.info("Fetching new cloudvolume...")
-
     defaults = dict(mip=0,
                     fill_missing=True,
                     cache=False,
@@ -257,19 +202,9 @@ def get_cloudvolume(
 
     # get the cloudvolume
     vol = cv.CloudVolume(seg_source, **defaults)
-
-    # Cache the volume
-    _CACHED_CLOUDVOLUMES[dataset] = vol
-    # Set the created_at attribute to the current time
-    _CACHED_CLOUDVOLUMES[dataset]._created_at = pytz.UTC.localize(dt.datetime.utcnow())
-    # Set the path attribute to the segmentation source
-    _CACHED_CLOUDVOLUMES[dataset].path = seg_source
-    return _CACHED_CLOUDVOLUMES[dataset]
+    vol.path = seg_source
+    return vol
 
 def clear_cloudvolume_cache() -> None:
-    """
-    Clears the cloudvolume cache.
-    """
-    global _CACHED_CLOUDVOLUMES
-    _CACHED_CLOUDVOLUMES = {}
-    logging.info("Cloudvolume cache cleared.")
+    """Clears the cloudvolume cache."""
+    get_cloudvolume.clear_cache()
