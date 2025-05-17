@@ -20,7 +20,7 @@ from numpy.typing import NDArray
 from crantpy.utils.config import (ALL_ANNOTATION_FIELDS, CRANT_VALID_DATASETS,
                                   SEARCH_EXCLUDED_ANNOTATION_FIELDS)
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
-from crantpy.utils.exceptions import NoMatchesError
+from crantpy.utils.exceptions import FilteringError, NoMatchesError
 from crantpy.utils.seatable import get_all_seatable_annotations
 from crantpy.utils.utils import filter_df
 
@@ -258,9 +258,8 @@ class NeuronCriteria:
             except ValueError as e:
                  # Catch potential errors from filter_df (e.g., dtype mismatch)
                  logging.error(f"Error filtering field '{field}' with value '{value}': {e}")
-                 # Depending on desired behavior, you might want to raise the error,
-                 # skip this filter, or return an empty result. Here, we'll skip.
-                 continue
+                 # Raise a custom FilteringError with additional context
+                 raise FilteringError(f"Error filtering field '{field}' with value '{value}': {e}") from e
             except KeyError:
                  # This shouldn't happen due to the check above, but as a safeguard:
                  logging.warning(f"Field '{field}' caused a KeyError during filtering. Skipping filter.")

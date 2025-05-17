@@ -60,9 +60,24 @@ def cached_result(
 ) -> Callable[[F], F]:
     """Decorator for caching function results.
 
+    WARNING: This decorator is not thread-safe. It is recommended to use
+    threading.Lock() to ensure thread safety when using this decorator
+    in a multi-threaded environment.
+
     This decorator provides a flexible caching mechanism for function results.
     It supports custom cache keys, validation, and conditional caching, making
     it suitable for a variety of use cases.
+
+    The cache stores entries in a dictionary structure:
+    {
+        'result': original_function_result,
+        'metadata': {
+            '_created_at': timestamp
+        }
+    }
+
+    This approach avoids modifying the original result objects directly,
+    ensuring compatibility with immutable types.
 
     Parameters
     ----------
@@ -145,35 +160,37 @@ def cached_result(
             
             # Check for cached result
             if not clear_cache and cache_key in cache:
-                cached_obj = cache[cache_key]
+                cached_entry = cache[cache_key]
                 
-                # Basic validity check - has _created_at attribute
-                if hasattr(cached_obj, '_created_at'):
-                    # Skip staleness checks if check_stale is False
-                    if not check_stale:
-                        logging.info(f"Using cached {cache_name}.")
-                        return cached_obj
-                    
-                    # Get current time for age check
-                    current_time = pytz.UTC.localize(dt.datetime.utcnow())
-                    elapsed_time = (current_time - cached_obj._created_at).total_seconds()
-                    
-                    # Check if cache is valid based on age and custom validation
-                    age_valid = elapsed_time < max_age
-                    validation_valid = True
-                    
-                    # Run custom validation if provided
-                    if validate_cache_fn:
-                        validation_valid = validate_cache_fn(cached_obj, *args, **kwargs)
-                    
-                    # If cache is valid, return it
-                    if age_valid and validation_valid:
-                        logging.info(f"Using cached {cache_name}.")
-                        return cached_obj
-                    else:
-                        logging.info(f"Cached {cache_name} is stale.")
-                        # Remove stale cache entry
-                        del cache[cache_key]
+                # Extract the actual result and metadata
+                cached_result = cached_entry['result']
+                metadata = cached_entry['metadata']
+                
+                # Skip staleness checks if check_stale is False
+                if not check_stale:
+                    logging.info(f"Using cached {cache_name}.")
+                    return cached_result
+                
+                # Get current time for age check
+                current_time = pytz.UTC.localize(dt.datetime.utcnow())
+                elapsed_time = (current_time - metadata['_created_at']).total_seconds()
+                
+                # Check if cache is valid based on age and custom validation
+                age_valid = elapsed_time < max_age
+                validation_valid = True
+                
+                # Run custom validation if provided
+                if validate_cache_fn:
+                    validation_valid = validate_cache_fn(cached_result, *args, **kwargs)
+                
+                # If cache is valid, return it
+                if age_valid and validation_valid:
+                    logging.info(f"Using cached {cache_name}.")
+                    return cached_result
+                else:
+                    logging.info(f"Cached {cache_name} is stale.")
+                    # Remove stale cache entry
+                    del cache[cache_key]
             
             # Cache miss or forced refresh
             logging.info(f"Fetching new {cache_name}...")
@@ -186,9 +203,12 @@ def cached_result(
             
             # Cache the result if needed
             if should_cache:
-                cache[cache_key] = result
-                # Add creation timestamp for age validation
-                setattr(result, '_created_at', pytz.UTC.localize(dt.datetime.utcnow()))
+                cache[cache_key] = {
+                    'result': result,
+                    'metadata': {
+                        '_created_at': pytz.UTC.localize(dt.datetime.utcnow())
+                    }
+                }
                 
             return result
         

@@ -17,3 +17,16 @@ class NoMatchesError(ValueError):
     def __init__(self, message: Optional[str] = None) -> None:
         self.message = message if message else "No matches found"
         super().__init__(self.message)
+
+class FilteringError(ValueError):
+    """Raised if a filtering operation fails.
+
+    Parameters
+    ----------
+    message : str, optional
+        The error message.
+    """
+
+    def __init__(self, message: Optional[str] = None) -> None:
+        self.message = message if message else "Filtering operation failed"
+        super().__init__(self.message)
