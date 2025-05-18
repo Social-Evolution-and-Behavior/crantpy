@@ -18,7 +18,6 @@ from crantpy.utils.config import (CRANT_CAVE_DATASTACKS, CRANT_CAVE_SERVER_URL,
                                   CRANT_VALID_DATASETS, MAXIMUM_CACHE_DURATION)
 from crantpy.utils.decorators import cached_result, inject_dataset
 
-_CACHED_CLOUDVOLUMES = {}
 
 def get_current_cave_token() -> str:
     """

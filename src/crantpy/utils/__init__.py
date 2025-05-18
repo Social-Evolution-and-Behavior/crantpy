@@ -61,6 +61,7 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
             'create_sql_query',
             'filter_df',
             'match_dtype',
+            'set_logging_level',
         ],
     },
 )
@@ -80,4 +81,5 @@ __all__ = ['ALL_ANNOTATION_FIELDS', 'CRANT_CAVE_DATASTACKS',
            'get_datastack_segmentation_source', 'get_global_cache',
            'get_seatable_base_object', 'get_seatable_cache_name',
            'inject_dataset', 'match_dtype', 'parse_neuroncriteria', 'seatable',
-           'set_cave_token', 'utils', 'validate_cave_client']
+           'set_cave_token', 'set_logging_level', 'utils',
+           'validate_cave_client']

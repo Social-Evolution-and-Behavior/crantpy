@@ -14,6 +14,31 @@ from pandas.api.types import pandas_dtype
 
 T = TypeVar('T')
 
+# set up logging and options to change logging level
+logging.basicConfig(level=logging.WARNING,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+def set_logging_level(level: str) -> None:
+    """
+    Sets the logging level for the logger.
+    
+    Parameters
+    ----------
+    level : str
+        The logging level to set. Options are 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'.
+    """
+    logging_levels = {
+        'DEBUG': logging.DEBUG,
+        'INFO': logging.INFO,
+        'WARNING': logging.WARNING,
+        'ERROR': logging.ERROR,
+        'CRITICAL': logging.CRITICAL
+    }
+    if level in logging_levels:
+        logging.getLogger().setLevel(logging_levels[level])
+    else:
+        raise ValueError(f"Invalid logging level: {level}. Choose from {list(logging_levels.keys())}.")
+
 
 # Custom functions
 def create_sql_query(table_name: str, fields: List[str], condition: Optional[str] = None, 
