@@ -5,14 +5,16 @@ This module contains utility functions for crantpy.
 
 import logging
 import os
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, cast
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, cast, Set
 
 import navis
 import pandas as pd
 import requests
-from pandas.api.types import pandas_dtype
+import numpy as np
+from collections.abc import Iterable
 
-T = TypeVar('T')
+from crantpy.utils.types import T, F, Neurons
+from crantpy.utils.decorators import parse_neuroncriteria
 
 # set up logging and options to change logging level
 logging.basicConfig(level=logging.WARNING,
@@ -140,7 +142,8 @@ def filter_df(df: pd.DataFrame, column: str, value: Any, regex: bool = False, ca
     This function filters a df based on a column and a value.
     It can handle string, numeric, and list-containing columns.
 
-    Args:
+    Parameters
+    ----------
         df (pd.DataFrame): The df to filter.
         column (str): The column to filter on.
         value (Any): The value(s) to filter by (can be single item or list).
@@ -152,7 +155,8 @@ def filter_df(df: pd.DataFrame, column: str, value: Any, regex: bool = False, ca
                           Defaults to False.
         exact (bool): For string columns, if False, use substring (contains) matching instead of exact match.
 
-    Returns:
+    Returns
+    -------
         pd.DataFrame: The filtered df.
     """
     if column not in df.columns:
@@ -234,3 +238,64 @@ def filter_df(df: pd.DataFrame, column: str, value: Any, regex: bool = False, ca
                  # Standard equality check
                  df_filtered = df_filtered[df_filtered[column] == value]
         return df_filtered
+
+def make_iterable(x: Any, force_type: Optional[type] = None) -> np.ndarray:
+    """
+    Convert input to an numpy array.
+
+    Parameters
+    ----------
+    x : Any
+        The input to convert.
+
+    force_type : Optional[type]
+        If specified, the input will be cast to this type.
+
+    Returns
+    -------
+    np.ndarray
+        The converted numpy array.
+    """
+    if not isinstance(x, Iterable):
+        x = [x]
+    if isinstance(x, (set, dict, pd.Series)):
+        x = list(x)
+
+    if force_type is not None:
+        try:
+            arr = np.array(x, dtype=force_type)
+        except Exception as e:
+            raise ValueError(f"Cannot convert {x} of type {type(x)} to {force_type}.")
+    return arr
+
+@parse_neuroncriteria()
+def parse_root_ids(x: Neurons) -> np.ndarray:
+    """
+    Parse root IDs from various input formats to a list of np.int64.
+
+    Parameters
+    ----------
+    x : Neurons = str | int | np.int64 | navis.BaseNeuron | Iterables of previous types | navis.NeuronList | NeuronCriteria
+        The input to parse. Can be a single ID, a list of IDs, or a navis neuron object.
+
+    Returns
+    -------
+    np.ndarray
+        A numpy array of root IDs as np.int64.
+    """
+    print(f"parse_root_ids: {x} {type(x)}")
+    # process NeuronList
+    if isinstance(x, navis.NeuronList):
+        x = x.id
+
+    # process neuron objects (single)
+    if isinstance(x, navis.BaseNeuron):
+        x = x.id
+    elif isinstance(x, Iterable):
+        # process neuron objects (iterable)
+        x = [i.id if isinstance(i, navis.BaseNeuron) else i for i in x]
+
+    # make iterable
+    x = make_iterable(x, force_type=np.int64)
+
+    return x.astype(np.int64) if len(x) > 0 else np.array([], dtype=np.int64)

@@ -9,8 +9,13 @@ import logging
 import os
 from getpass import getpass
 from typing import Optional
+from importlib import reload
 
+import navis
 import cloudvolume as cv
+# monkeypatch cloudvolume to use the navis version of the cloudvolume
+navis.patch_cloudvolume()
+
 import pytz
 from caveclient import CAVEclient
 
@@ -35,14 +40,18 @@ def get_current_cave_token() -> str:
     """
     # Create a CAVE client instance
     client = CAVEclient(server_address=CRANT_CAVE_SERVER_URL)
-    # Get the current authentication 
-    auth = client.auth 
 
-    if auth.token:
+    if client.auth.token:
         # If a token is already set, return it
-        return auth.token
-    else:
-        raise ValueError("No token found. Please generate a new token using generate_cave_token().")
+        return client.auth.token
+
+    # If no token is set, try to find it in the cloudvolume secrets
+    token = cv.secrets.cave_credentials(CRANT_CAVE_SERVER_URL).get('token', None)
+
+    if token:
+        return token
+
+    raise ValueError("No token found. Please generate a new token using generate_cave_token().")
 
 def set_cave_token(token: str) -> None:
     """
@@ -61,6 +70,13 @@ def set_cave_token(token: str) -> None:
     auth = client.auth
     # Save the token
     auth.save_token(token, overwrite=True)
+
+    # reload cloudvolume secrets
+    # This is a workaround to ensure the token is saved in the cloudvolume secrets
+    # file. The cloudvolume library does not provide a direct way to do this.
+
+    reload(cv.secrets)
+    reload(cv)
 
 def generate_cave_token(save: bool = False) -> None:
     """

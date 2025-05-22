@@ -26,7 +26,7 @@ from crantpy.utils.config import (ALL_ANNOTATION_FIELDS,
                                   CRANT_SEATABLE_WORKSPACE_ID,
                                   CRANT_VALID_DATASETS, MAXIMUM_CACHE_DURATION,
                                   SEARCH_EXCLUDED_ANNOTATION_FIELDS)
-from crantpy.utils.decorators import cached_result, inject_dataset
+from crantpy.utils.decorators import cached_result, inject_dataset, parse_neuroncriteria
 from crantpy.utils.utils import create_sql_query
 
 # get API TOKEN from environment variable

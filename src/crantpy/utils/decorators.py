@@ -14,9 +14,7 @@ import pytz
 
 from crantpy.utils.config import CRANT_DEFAULT_DATASET, MAXIMUM_CACHE_DURATION
 from crantpy.utils.exceptions import NoMatchesError
-
-T = TypeVar('T')
-F = TypeVar('F', bound=Callable[..., Any])
+from crantpy.utils.types import T, F
 
 _GLOBAL_CACHES: Dict[str, Dict[Any, Any]] = {}
 
@@ -138,7 +136,7 @@ def cached_result(
     - The `check_stale` parameter can be used to skip staleness checks when
       calling the decorated function.
     """
-    def decorator(func: F) -> F:
+    def outer(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Get the cache dictionary
@@ -217,7 +215,7 @@ def cached_result(
         
         return cast(F, wrapper)
     
-    return decorator
+    return outer
 
 
 # decorator to inject dataset
