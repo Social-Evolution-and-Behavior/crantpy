@@ -19,6 +19,7 @@ cloud-volume = "^12.2.0"
 neuroglancer = "^2.40.1"
 nglui = "^3.8.2"
 pytest-cov = "^6.1.1"
+diskcache = "^5.6.3"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"

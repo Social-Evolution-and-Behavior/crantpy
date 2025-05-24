@@ -27,7 +27,7 @@ from crantpy.utils.config import (ALL_ANNOTATION_FIELDS,
                                   CRANT_VALID_DATASETS, MAXIMUM_CACHE_DURATION,
                                   SEARCH_EXCLUDED_ANNOTATION_FIELDS)
 from crantpy.utils.decorators import cached_result, inject_dataset, parse_neuroncriteria
-from crantpy.utils.utils import create_sql_query
+from crantpy.utils.helpers import create_sql_query
 
 # get API TOKEN from environment variable
 CRANT_SEATABLE_API_TOKEN = os.getenv('CRANTTABLE_TOKEN')

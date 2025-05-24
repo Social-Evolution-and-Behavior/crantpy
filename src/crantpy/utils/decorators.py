@@ -319,4 +319,34 @@ def parse_neuroncriteria(allow_empty: bool = False) -> Callable[[F], F]:
         return cast(F, inner)
     return outer
 
-
+def retry_func(retries=5, cooldown=2):
+    """
+    Retry decorator for functions on HTTPError.
+    This also suppresses UserWarnings (commonly raised by l2 cache requests)
+    Parameters
+    ----------
+    cooldown :  int | float
+                Cooldown period in seconds between attempts.
+    retries :   int
+                Number of retries before we give up. Every subsequent retry
+                will delay by an additional `retry`.
+    """
+    def outer(func: F) -> F:
+        @functools.wraps(func)
+        def inner(*args: Any, **kwargs: Any) -> Any:
+            for i in range(1, retries + 1):
+                logging.debug(f"Attempt {i} of {retries} for {func.__name__}")
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    try:
+                        return func(*args, **kwargs)
+                    except KeyboardInterrupt:
+                        raise
+                    except requests.RequestException:
+                        if i >= retries:
+                            raise
+                    except BaseException:
+                        raise
+                    time.sleep(cooldown * i)
+        return cast(F, inner)
+    return outer

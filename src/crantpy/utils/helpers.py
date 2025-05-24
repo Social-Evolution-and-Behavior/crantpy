@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This module contains utility functions for crantpy.
+This module contains helper functions for crantpy.
 """
 
 import logging
@@ -13,7 +13,7 @@ import requests
 import numpy as np
 from collections.abc import Iterable
 
-from crantpy.utils.types import T, F, Neurons
+from crantpy.utils.types import T, F, Neurons, IDs, Timestamp
 from crantpy.utils.decorators import parse_neuroncriteria
 
 # set up logging and options to change logging level
@@ -268,34 +268,64 @@ def make_iterable(x: Any, force_type: Optional[type] = None) -> np.ndarray:
             raise ValueError(f"Cannot convert {x} of type {type(x)} to {force_type}.")
     return arr
 
-@parse_neuroncriteria()
-def parse_root_ids(x: Neurons) -> np.ndarray:
+def parse_timestamp(x: Timestamp) -> str:
     """
-    Parse root IDs from various input formats to a list of np.int64.
+    Parse a timestamp string to Unix timestamp.
 
     Parameters
     ----------
-    x : Neurons = str | int | np.int64 | navis.BaseNeuron | Iterables of previous types | navis.NeuronList | NeuronCriteria
-        The input to parse. Can be a single ID, a list of IDs, or a navis neuron object.
+    x : Timestamp
+        The timestamp string to parse. Int must be unix timestamp. String must be ISO 8601 - e.g. '2021-11-15'. datetime, np.datetime64, pd.Timestamp are also accepted.
 
     Returns
     -------
-    np.ndarray
-        A numpy array of root IDs as np.int64.
+    str
+        The Unix timestamp.
     """
-    print(f"parse_root_ids: {x} {type(x)}")
-    # process NeuronList
-    if isinstance(x, navis.NeuronList):
-        x = x.id
+    if isinstance(x, str):
+        try:
+            # Convert to datetime and then to Unix timestamp
+            dt = pd.to_datetime(x)
+            return str(int(dt.timestamp()))
+        except ValueError:
+            raise ValueError(f"Invalid timestamp format: {x}. String must be ISO 8601 format.")
+    elif isinstance(x, (int, np.int64)):
+        return str(int(x))
+    else:
+        try:
+            dt = pd.to_datetime(x)
+            return str(int(dt.timestamp()))
+        except ValueError:
+            raise ValueError(f"Invalid timestamp format: {x}. Input must be a valid datetime-like object.")
 
-    # process neuron objects (single)
-    if isinstance(x, navis.BaseNeuron):
-        x = x.id
-    elif isinstance(x, Iterable):
-        # process neuron objects (iterable)
-        x = [i.id if isinstance(i, navis.BaseNeuron) else i for i in x]
 
-    # make iterable
-    x = make_iterable(x, force_type=np.int64)
+def retry(func, retries=5, cooldown=2):
+    """
+    Retry function on HTTPError.
 
-    return x.astype(np.int64) if len(x) > 0 else np.array([], dtype=np.int64)
+    This also suppresses UserWarnings (commonly raised by l2 cache requests)
+
+    Parameters
+    ----------
+    cooldown :  int | float
+                Cooldown period in seconds between attempts.
+    retries :   int
+                Number of retries before we give up. Every subsequent retry
+                will delay by an additional `retry`.
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        for i in range(1, retries + 1):
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                try:
+                    return func(*args, **kwargs)
+                except KeyboardInterrupt:
+                    raise
+                except requests.RequestException:
+                    if i >= retries:
+                        raise
+                except BaseException:
+                    raise
+                time.sleep(cooldown * i)
+    return wrapper

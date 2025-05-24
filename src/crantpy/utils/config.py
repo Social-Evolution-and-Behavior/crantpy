@@ -12,11 +12,21 @@ if CRANT_DEFAULT_DATASET not in CRANT_VALID_DATASETS:
     raise ValueError(f"Invalid CRANT_DEFAULT_DATASET: {CRANT_DEFAULT_DATASET}. "
                      f"Accepted values are: {CRANT_VALID_DATASETS}")
 
+# function to forcefully set the default dataset to a specific value
+def set_default_dataset(dataset: str):
+    global CRANT_DEFAULT_DATASET
+    # Check if the dataset is valid
+    if dataset not in CRANT_VALID_DATASETS:
+        raise ValueError(f"Invalid CRANT_DEFAULT_DATASET: {dataset}. "
+                         f"Accepted values are: {CRANT_VALID_DATASETS}")
+    CRANT_DEFAULT_DATASET = dataset
+    return CRANT_DEFAULT_DATASET
+
 
 CRANT_CAVE_SERVER_URL = "https://proofreading.zetta.ai"
 CRANT_CAVE_DATASTACKS = {
     'latest': 'kronauer_ant',
-    'sandbox': 'kronauer_ant_clone_x1',
+    'sandbox': 'kronauer_ant_sandbox',
 }
 
 CRANT_SEATABLE_SERVER_URL = "https://cloud.seatable.io/"
@@ -28,6 +38,8 @@ CRANT_SEATABLE_ANNOTATIONS_TABLES = {
     'sandbox': 'CRANTb_meta',
 }
 
+
+CRANT_CACHE_DIR = os.path.join(os.path.expanduser("~"), ".crantpy")
 MAXIMUM_CACHE_DURATION = 30 * 60 # 30 minutes
 
 ALL_ANNOTATION_FIELDS = [
