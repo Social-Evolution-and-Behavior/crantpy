@@ -135,3 +135,39 @@ def get_all_seatable_annotations(
             logging.warning(f"Could not apply 'proofread' filter due to data type issue: {e}")
     
     return df
+
+# function to check if neurons are proofread
+@inject_dataset(allowed=CRANT_VALID_DATASETS)
+@cached_result(
+    cache_name="proofread_neurons",
+    key_fn=lambda *args, **kwargs: args[0] if args else kwargs['dataset'],
+)
+def get_proofread_neurons(
+    dataset: Optional[str] = None,
+    clear_cache: bool = False,
+):
+    """
+    Get the root IDs of neurons that are proofread.
+
+    Parameters
+    ----------
+    dataset : str, optional
+        Dataset to fetch annotations from.
+    clear_cache : bool, default False
+        Whether to force reloading annotations from Seatable, bypassing the cache.
+
+    Returns
+    -------
+    numpy.ndarray
+        Array of root IDs of proofread neurons.
+    """
+    # Fetch all annotations
+    annotations = get_all_seatable_annotations(proofread_only=True, clear_cache=clear_cache, dataset=dataset)
+
+    # Check if the 'root_id' column exists
+    if 'root_id' not in annotations.columns:
+        logging.warning("No 'root_id' column found in annotations. Returning empty array.")
+        return np.array([])
+
+    # Return unique root IDs as numpy array
+    return annotations['root_id'].unique().astype(np.int64)

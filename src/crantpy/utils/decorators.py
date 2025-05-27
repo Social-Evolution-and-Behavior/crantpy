@@ -5,6 +5,7 @@ This module provides decorators for caching and other utilities.
 
 import datetime as dt
 import functools
+import inspect
 import logging
 from typing import (Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union,
                     cast)
@@ -51,6 +52,20 @@ def clear_global_cache(cache_name: str) -> None:
     if cache_name in _GLOBAL_CACHES:
         _GLOBAL_CACHES[cache_name] = {}
         logging.info(f"{cache_name} cache cleared.")
+
+def _generate_default_cache_key(func, *args, **kwargs):
+    """Generate a default cache key for a function call."""
+    sig = inspect.signature(func)
+    bound_args = sig.bind_partial(*args, **kwargs)
+    bound_args.apply_defaults()
+    
+    # Try to get dataset from bound arguments
+    if 'dataset' in bound_args.arguments:
+        return bound_args.arguments['dataset']
+    elif args:
+        return args[0]
+    else:
+        return 'latest'
 
 def cached_result(
     cache_name: str,
@@ -151,16 +166,22 @@ def cached_result(
             
             # Generate cache key
             if key_fn is not None:
-                cache_key = key_fn(*args, **kwargs)
+                try:
+                    cache_key = key_fn(*args, **kwargs)
+                    logging.debug(f"Generated cache key: {cache_key} for {cache_name}")
+                except (KeyError, IndexError):
+                    logging.debug("Key function failed, falling back to default cache key generation.")
+                    # If key_fn fails, fall back to default behavior
+                    cache_key = _generate_default_cache_key(func, *args, **kwargs)
             else:
-                # Default: use first arg or dataset kwarg
-                cache_key = args[0] if args else kwargs['dataset']
+                cache_key = _generate_default_cache_key(func, *args, **kwargs)
             
             if cache_key is None:
                 raise ValueError("Cache key function returned None.")
             
             # Check for cached result
             if not clear_cache and cache_key in cache:
+                logging.debug(f"Cache hit for {cache_name} with key: {cache_key}")
                 cached_entry = cache[cache_key]
                 
                 # Extract the actual result and metadata
@@ -248,16 +269,29 @@ def inject_dataset(allowed: Optional[Union[List[str], str]] = None,
     def outer(func: F) -> F:
         @functools.wraps(func)
         def inner(*args: Any, **kwargs: Any) -> Any:
-            # Check if dataset is already provided in kwargs or as a positional argument
-            if param_name not in kwargs and len(args) < func.__code__.co_argcount:
-                param_idx = func.__code__.co_varnames.index(param_name) if param_name in func.__code__.co_varnames else -1
-                
-                # If param_name is not a parameter or not provided in args, inject it
-                if param_idx < 0 or param_idx >= len(args):
-                    kwargs[param_name] = CRANT_DEFAULT_DATASET
-
-            # Get the dataset value from kwargs if it exists, otherwise use default
-            ds = kwargs.get(param_name, CRANT_DEFAULT_DATASET)
+            # Get function signature
+            sig = inspect.signature(func)
+            param_names = list(sig.parameters.keys())
+            
+            # Check if dataset parameter exists in function signature
+            if param_name not in param_names:
+                # If parameter doesn't exist, just call the function
+                return func(*args, **kwargs)
+            
+            param_idx = param_names.index(param_name)
+            
+            # Check if dataset is already provided
+            if param_name not in kwargs and len(args) <= param_idx:
+                # Inject default dataset
+                kwargs[param_name] = CRANT_DEFAULT_DATASET
+            
+            # Get the dataset value for validation
+            if param_name in kwargs:
+                ds = kwargs[param_name]
+            elif len(args) > param_idx:
+                ds = args[param_idx]
+            else:
+                ds = CRANT_DEFAULT_DATASET
             
             # Validate dataset
             if allowed and ds not in allowed:
