@@ -9,6 +9,9 @@ import logging
 from typing import (Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union,
                     cast)
 
+import warnings
+import requests
+import time
 import numpy as np
 import pytz
 
@@ -166,7 +169,7 @@ def cached_result(
                 
                 # Skip staleness checks if check_stale is False
                 if not check_stale:
-                    logging.info(f"Using cached {cache_name}.")
+                    logging.debug(f"Using cached {cache_name}.")
                     return cached_result
                 
                 # Get current time for age check
@@ -183,7 +186,7 @@ def cached_result(
                 
                 # If cache is valid, return it
                 if age_valid and validation_valid:
-                    logging.info(f"Using cached {cache_name}.")
+                    logging.debug(f"Using cached {cache_name}.")
                     return cached_result
                 else:
                     logging.info(f"Cached {cache_name} is stale.")
@@ -191,7 +194,7 @@ def cached_result(
                     del cache[cache_key]
             
             # Cache miss or forced refresh
-            logging.info(f"Fetching new {cache_name}...")
+            logging.debug(f"Fetching new {cache_name}...")
             result = func(*args, **kwargs)
             
             # Determine if result should be cached
@@ -220,7 +223,8 @@ def cached_result(
 
 # decorator to inject dataset
 def inject_dataset(allowed: Optional[Union[List[str], str]] = None,
-                   disallowed: Optional[Union[List[str], str]] = None) -> Callable[[F], F]:
+                  disallowed: Optional[Union[List[str], str]] = None,
+                  param_name: str = 'dataset') -> Callable[[F], F]:
     """Inject current default dataset.
     
     Parameters
@@ -229,6 +233,8 @@ def inject_dataset(allowed: Optional[Union[List[str], str]] = None,
         List of allowed datasets or a single allowed dataset.
     disallowed : List[str] or str, optional
         List of disallowed datasets or a single disallowed dataset.
+    param_name : str, default 'dataset'
+        Name of the parameter to inject the dataset into.
         
     Returns
     -------
@@ -242,15 +248,24 @@ def inject_dataset(allowed: Optional[Union[List[str], str]] = None,
     def outer(func: F) -> F:
         @functools.wraps(func)
         def inner(*args: Any, **kwargs: Any) -> Any:
-            if kwargs.get('dataset', None) is None:
-                kwargs['dataset'] = CRANT_DEFAULT_DATASET
+            # Check if dataset is already provided in kwargs or as a positional argument
+            if param_name not in kwargs and len(args) < func.__code__.co_argcount:
+                param_idx = func.__code__.co_varnames.index(param_name) if param_name in func.__code__.co_varnames else -1
+                
+                # If param_name is not a parameter or not provided in args, inject it
+                if param_idx < 0 or param_idx >= len(args):
+                    kwargs[param_name] = CRANT_DEFAULT_DATASET
 
-            ds = kwargs['dataset']
+            # Get the dataset value from kwargs if it exists, otherwise use default
+            ds = kwargs.get(param_name, CRANT_DEFAULT_DATASET)
+            
+            # Validate dataset
             if allowed and ds not in allowed:
-                raise ValueError(f'Dataset "{ds}" not allowed for function {func}. '
-                                 f'Accepted datasets: {allowed}')
+                raise ValueError(f'Dataset "{ds}" not allowed for function {func.__name__}. '
+                                f'Accepted datasets: {allowed}')
             if disallowed and ds in disallowed:
-                raise ValueError(f'Dataset "{ds}" not allowed for function {func}.')
+                raise ValueError(f'Dataset "{ds}" not allowed for function {func.__name__}.')
+            
             return func(*args, **kwargs)
         return cast(F, inner)
     return outer

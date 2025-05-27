@@ -26,7 +26,6 @@ def parse_root_ids(x: Neurons) -> np.ndarray:
     np.ndarray
         A numpy array of root IDs as np.int64.
     """
-    print(f"parse_root_ids: {x} {type(x)}")
     # process NeuronList
     if isinstance(x, navis.NeuronList):
         x = x.id
@@ -42,19 +41,3 @@ def parse_root_ids(x: Neurons) -> np.ndarray:
     x = make_iterable(x, force_type=np.int64)
 
     return x.astype(np.int64) if len(x) > 0 else np.array([], dtype=np.int64)
-
-def parse_timestamp(x: str) -> str:
-    """
-    Parse a timestamp string to a specific format.
-
-    Parameters
-    ----------
-    x : str
-        The input timestamp string.
-
-    Returns
-    -------
-    str
-        The parsed timestamp string in the format 'YYYY-MM-DD HH:MM:SS'.
-    """
-    return x.split('.')[0] if '.' in x else x

@@ -28,7 +28,6 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
             'helpers',
             'load',
             'parse_root_ids',
-            'parse_timestamp',
             'roots_to_supervoxels',
             'segmentation',
             'set_cave_token',

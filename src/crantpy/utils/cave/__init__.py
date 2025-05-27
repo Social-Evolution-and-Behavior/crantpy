@@ -17,7 +17,6 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
         ],
         'helpers': [
             'parse_root_ids',
-            'parse_timestamp',
         ],
         'load': [
             'clear_all_caches',
@@ -42,6 +41,5 @@ __all__ = ['auth', 'clear_all_caches', 'clear_cave_client_cache',
            'get_cave_datastacks', 'get_cloudvolume', 'get_current_cave_token',
            'get_dataset_segmentation_source',
            'get_datastack_segmentation_source', 'helpers', 'load',
-           'parse_root_ids', 'parse_timestamp', 'roots_to_supervoxels',
-           'segmentation', 'set_cave_token', 'supervoxels_to_roots',
-           'validate_cave_client']
+           'parse_root_ids', 'roots_to_supervoxels', 'segmentation',
+           'set_cave_token', 'supervoxels_to_roots', 'validate_cave_client']

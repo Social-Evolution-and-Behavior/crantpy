@@ -3,6 +3,7 @@
 This module provides utility functions for cave-related segmentation operations.
 """
 import os
+import time
 import numpy as np
 from diskcache import Cache
 from typing import Optional, Union
@@ -18,7 +19,7 @@ from crantpy.utils.config import (
 from crantpy.utils.decorators import (
     inject_dataset,
 )
-from crantpy.utils.cave.load import get_cloudvolume
+from crantpy.utils.cave.load import get_cloudvolume, get_cave_client
 from crantpy.utils.cave.helpers import parse_root_ids
 from crantpy.utils.helpers import retry, make_iterable, parse_timestamp
 from crantpy.utils.types import IDs, Neurons, Timestamp
@@ -27,7 +28,6 @@ from crantpy.utils.types import IDs, Neurons, Timestamp
 def roots_to_supervoxels(
     neurons: Neurons,
     clear_cache: bool = False,
-    check_stale: bool = True,
     progress: bool = True,
     *,
     dataset: Optional[str] = None
@@ -39,8 +39,6 @@ def roots_to_supervoxels(
     neurons :      Neurons = str | int | np.int64 | navis.BaseNeuron | Iterables of previous types | navis.NeuronList | NeuronCriteria
     clear_cache :  bool
                    If True, bypasses the cache and fetches a new volume.
-    check_stale :  bool
-                   If True, checks if the cached volume is stale based on materialization and maximum cache duration.
     progress :     bool
                    If True, show progress bar.
     dataset :      str
@@ -68,7 +66,7 @@ def roots_to_supervoxels(
         progress = False
 
     # Get the volume
-    vol = get_cloudvolume(dataset=dataset, clear_cache=clear_cache, check_stale=check_stale)
+    vol = get_cloudvolume(dataset, clear_cache=clear_cache, check_stale=True)
 
     svoxels = {}
     # See what we can get from cache
@@ -118,8 +116,9 @@ def roots_to_supervoxels(
 def supervoxels_to_roots(
     ids: IDs,
     timestamp: Optional[Union[str, Timestamp]] = "mat",
+    clear_cache: bool = False,
     batch_size: int = 10_000,
-    stop_layer: int = 10,
+    stop_layer: int = 8,
     retry: bool = True,
     progress: bool = True,
     *,
@@ -135,6 +134,8 @@ def supervoxels_to_roots(
                     Get roots at given date (and time). Int must be unix timestamp. String must be ISO 8601 - e.g. '2021-11-15'.
                     "mat" will use the timestamp of the most recent materialization. You can also use e.g. "mat_<version>" to get the
                     root ID at a specific materialization.
+    clear_cache :   bool
+                    If True, bypasses the cache and fetches a new volume.
     batch_size :    int
                     Max number of supervoxel IDs per query. Reduce batch size if you experience time outs.
     stop_layer :    int
@@ -162,7 +163,7 @@ def supervoxels_to_roots(
     ids = make_iterable(ids, force_type=np.int64)
 
     # Parse the volume
-    vol = get_cloudvolume(dataset)
+    vol = get_cloudvolume(dataset, clear_cache=clear_cache, check_stale=True)
 
     # Prepare results array
     roots = np.zeros(ids.shape, dtype=np.int64)
@@ -178,15 +179,15 @@ def supervoxels_to_roots(
     else:
         timestamp = parse_timestamp(timestamp)
 
-    with tqdm(
+    with navis.config.tqdm(
         desc="Fetching roots",
         leave=False,
         total=len(ids),
         disable=not progress or len(ids) < batch_size,
     ) as pbar:
-        for i in range(0, len(x), int(batch_size)):
+        for i in range(0, len(ids), int(batch_size)):
             # This batch
-            batch = x[i : i + batch_size]
+            batch = ids[i : i + batch_size]
 
             # get_roots() doesn't like to be asked for zeros - causes server error
             not_zero = batch != 0

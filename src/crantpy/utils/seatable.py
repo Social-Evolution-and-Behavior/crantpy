@@ -15,7 +15,6 @@ from typing import Any, Dict, List, Optional, TypeVar, Union, cast
 import numpy as np
 import pandas as pd
 import pytz
-import requests
 import seatable_api
 from seatable_api import Base
 
@@ -98,7 +97,7 @@ def get_all_seatable_annotations(
     limit = 10000  # Seatable API limit per query
 
     while True:
-        logging.info(f"Fetching rows from {start} to {start + limit}...")
+        logging.debug(f"Fetching rows from {start} to {start + limit}...")
         sql_query = create_sql_query(
             table_name=CRANT_SEATABLE_ANNOTATIONS_TABLES[dataset],
             fields=ALL_ANNOTATION_FIELDS,
@@ -112,19 +111,19 @@ def get_all_seatable_annotations(
                 break
 
         if not results:
-            logging.info("No more results found.")
+            logging.debug("No more results found.")
             break # Exit loop if no results are returned
 
         all_results.extend(results)
-        logging.info(f"Retrieved {len(results)} rows in this batch.")
+        logging.debug(f"Retrieved {len(results)} rows in this batch.")
 
         if len(results) < limit:
-            logging.info("Fetched all rows.")
+            logging.debug("Fetched all rows.")
             break # Exit loop if fewer than 'limit' rows were returned
 
         start += limit # Prepare for the next batch
 
-    logging.info(f"Retrieved a total of {len(all_results)} rows.")
+    logging.debug(f"Retrieved a total of {len(all_results)} rows.")
     # Convert the results to a pandas DataFrame
     df = pd.DataFrame(all_results) if all_results else pd.DataFrame(columns=ALL_ANNOTATION_FIELDS)
 

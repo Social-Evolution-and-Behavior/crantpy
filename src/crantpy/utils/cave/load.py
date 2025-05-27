@@ -13,8 +13,6 @@ from caveclient import CAVEclient
 
 import navis
 import cloudvolume as cv
-# monkeypatch cloudvolume to use the navis version of the cloudvolume
-navis.patch_cloudvolume()
 
 from crantpy.utils.config import (
     CRANT_CAVE_SERVER_URL,
