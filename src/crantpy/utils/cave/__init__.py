@@ -35,6 +35,7 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
         'segmentation': [
             'roots_to_supervoxels',
             'supervoxels_to_roots',
+            'update_ids',
         ],
     },
 )
@@ -46,4 +47,4 @@ __all__ = ['auth', 'clear_all_caches', 'clear_cave_client_cache',
            'get_datastack_segmentation_source', 'helpers', 'is_latest_roots',
            'is_valid_root', 'is_valid_supervoxel', 'load', 'parse_root_ids',
            'roots_to_supervoxels', 'segmentation', 'set_cave_token',
-           'supervoxels_to_roots', 'validate_cave_client']
+           'supervoxels_to_roots', 'update_ids', 'validate_cave_client']

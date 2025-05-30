@@ -82,6 +82,7 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
             'set_logging_level',
             'supervoxels_to_roots',
             'types',
+            'update_ids',
             'validate_cave_client',
         ],
     },
@@ -111,5 +112,5 @@ __all__ = ['ALL_ANNOTATION_FIELDS', 'CRANT_CACHE_DIR', 'CRANT_CAVE_DATASTACKS',
            'parse_timestamp', 'queries', 'retry', 'retry_func',
            'roots_to_supervoxels', 'seatable', 'segmentation',
            'set_cave_token', 'set_default_dataset', 'set_logging_level',
-           'supervoxels_to_roots', 'types', 'utils', 'validate_cave_client',
-           'viz']
+           'supervoxels_to_roots', 'types', 'update_ids', 'utils',
+           'validate_cave_client', 'viz']
