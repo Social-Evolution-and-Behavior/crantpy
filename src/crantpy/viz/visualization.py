@@ -54,6 +54,9 @@ def get_l2_info(
     -------
     pandas.DataFrame
         DataFrame with basic L2 information for the given neuron(s). 
+        - `length_um` is the underestimated sum of the max diameter across all L2 chunks 
+        - `bounds_nm` is the rough bounding box based on the representative coordinates of the L2 chunks 
+        - `chunks_missing` is the number of L2 chunks not present in the L2 cache.
     """
     # Convert neurons to root_ids (np.ndarray) using NeuronCriteria if needed
     if hasattr(neurons, 'get_roots'):
@@ -102,7 +105,7 @@ def get_l2_info(
     row = [root_ids[0], len(l2_ids), n_miss]
     info_df = pd.DataFrame([row], columns=["root_id", "l2_chunks", "chunks_missing"])
 
-    # Sum the attributes across all L2 chunks and convert units to micrometers
+    # Convert attributes to micrometers and sum them up
     for at in attributes:
         if at in ("rep_coord_nm",):
             continue
