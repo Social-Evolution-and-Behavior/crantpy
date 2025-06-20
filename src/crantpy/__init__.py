@@ -63,6 +63,10 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
             'utils',
             'validate_cave_client',
         ],
+        'viz': [
+            'get_l2_info',
+            'visualization',
+        ],
     },
 )
 
@@ -80,7 +84,8 @@ __all__ = ['ALL_ANNOTATION_FIELDS', 'CRANT_CAVE_DATASTACKS',
            'get_annotations', 'get_cave_client', 'get_cave_datastacks',
            'get_cloudvolume', 'get_current_cave_token',
            'get_datastack_segmentation_source', 'get_global_cache',
-           'get_seatable_base_object', 'get_seatable_cache_name',
-           'inject_dataset', 'match_dtype', 'neurons', 'parse_neuroncriteria',
-           'queries', 'seatable', 'set_cave_token', 'set_logging_level',
-           'utils', 'validate_cave_client', 'viz']
+           'get_l2_info', 'get_seatable_base_object',
+           'get_seatable_cache_name', 'inject_dataset', 'match_dtype',
+           'neurons', 'parse_neuroncriteria', 'queries', 'seatable',
+           'set_cave_token', 'set_logging_level', 'utils',
+           'validate_cave_client', 'visualization', 'viz']

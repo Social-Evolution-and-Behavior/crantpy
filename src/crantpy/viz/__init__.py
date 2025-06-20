@@ -3,8 +3,14 @@ import lazy_loader
 
 __getattr__, __dir__, __all__ = lazy_loader.attach(
     __name__,
-    submodules={},
-    submod_attrs={},
+    submodules={
+        'visualization',
+    },
+    submod_attrs={
+        'visualization': [
+            'get_l2_info',
+        ],
+    },
 )
 
-__all__ = []
+__all__ = ['get_l2_info', 'visualization']
