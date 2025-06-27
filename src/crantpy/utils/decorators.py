@@ -190,7 +190,7 @@ def cached_result(
                 else:
                     logging.info(f"Cached {cache_name} is stale.")
                     # Remove stale cache entry
-                    del cache[cache_key]
+                    cache.pop(cache_key, None) # GG update: Use pop to avoid KeyError if not found
             
             # Cache miss or forced refresh
             logging.info(f"Fetching new {cache_name}...")
