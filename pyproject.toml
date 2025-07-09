@@ -8,7 +8,7 @@ readme = "README.md"
 packages = [{include = "crantpy", from = "src"}]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
+python = ">=3.10,<3.14"
 caveclient = "^7.7.1"
 seatable-api = "^3.0.0"
 navis = {extras = ["all"], version = "^1.10.0"}
