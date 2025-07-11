@@ -23,7 +23,6 @@ import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 import requests
 
-# Skeleton metadata configuration
 SKELETON_INFO = {
     "@type": "neuroglancer_skeletons",
     "transform": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
@@ -37,11 +36,9 @@ __all__ = [
     "skeletonize_neurons_parallel",
     "get_skeletons",
     "chunks_to_nm",
-    # FlyWire-compatible functions
     "detect_soma_skeleton",
     "detect_soma_mesh",
     "get_soma_from_annotations",
-    # Private functions exposed for testing
     "_create_node_info_dict",
     "_swc_dict_to_dataframe",
     "_preprocess_mesh",
@@ -65,11 +62,7 @@ def skeletonize_neuron(
     use_pcg_skel: bool = False,
     **kwargs: Any,
 ) -> Union[navis.TreeNeuron, navis.NeuronList]:
-    """Skeletonize a neuron using advanced, high-quality algorithms.
-
-    This function implements an optimized skeletonization approach using
-    CRANTpy's infrastructure. It prioritizes skeletor for quality while
-    maintaining pcg_skel as a fast alternative.
+    """Skeletonize a neuron using high-quality algorithms.
 
     Parameters
     ----------
@@ -78,50 +71,34 @@ def skeletonize_neuron(
     root_id : int
         Root ID of the neuron to skeletonize.
     shave_skeleton : bool, default True
-        If True, remove small protrusions and bristles from the skeleton.
-        Uses a sophisticated multi-stage cleanup approach.
+        Remove small protrusions and bristles from skeleton.
     remove_soma_hairball : bool, default False
-        If True, remove dense branching within the soma region.
-        Uses soma detection to identify the region to clean.
+        Remove dense branching within soma region.
     assert_id_match : bool, default False
-        If True, verify that skeleton nodes map to the correct segment ID.
+        Verify skeleton nodes map to correct segment ID.
     threads : int, default 2
         Number of parallel threads for mesh processing.
     save_to : str, optional
-        If provided, save skeleton as SWC file to this path.
+        Save skeleton as SWC file to this path.
     progress : bool, default True
-        Whether to show progress bars during processing.
+        Show progress bars during processing.
     use_pcg_skel : bool, default False
-        If True, try pcg_skel first before falling back to skeletor.
-        Default is False to prioritize skeletor for higher quality.
+        Try pcg_skel first before skeletor.
     **kwargs
-        Additional arguments passed to skeletonization algorithms.
+        Additional arguments for skeletonization algorithms.
 
     Returns
     -------
     navis.TreeNeuron
-        The skeletonized neuron with high-quality processing.
-
-    Notes
-    -----
-    This function implements a comprehensive skeletonization pipeline
-    optimized for quality while maintaining CRANTpy's client-based infrastructure.
-    Key features include:
-    - Advanced mesh preprocessing
-    - Nucleus-based soma detection with radius fallback
-    - Multi-stage skeleton cleanup
-    - Robust parameter handling and output format
+        The skeletonized neuron.
     """
-    # Handle save path like FlyWire (using pathlib for consistency)
     if save_to is not None:
         save_to = os.path.abspath(save_to)
         os.makedirs(os.path.dirname(save_to), exist_ok=True)
 
-    # Check for iterable input (batch processing)
     if navis.utils.is_iterable(root_id):
         root_id_array = np.asarray(root_id).astype(np.int64)
 
-        # Batch process multiple neurons
         return navis.NeuronList(
             [
                 skeletonize_neuron(
@@ -142,21 +119,17 @@ def skeletonize_neuron(
             ]
         )
 
-    # Ensure root_id is integer for single neuron case
     assert isinstance(root_id, (int, np.integer)), "root_id must be an integer for single neuron"
     root_id_int = int(root_id)
 
-    # Try pcg_skel first if requested (CRANTpy-specific option)
     if use_pcg_skel:
         try:
             skel = pcg_skel.pcg_skeleton(root_id=root_id_int, client=client)
-            # Handle pcg_skel return value which might be a tuple
             try:
                 if hasattr(skel, 'vertices') and hasattr(skel, 'edges'):
                     vertices = skel.vertices  # type: ignore
                     edges = skel.edges  # type: ignore
                 else:
-                    # pcg_skel might return a tuple, take first element
                     if isinstance(skel, tuple) and len(skel) > 0:
                         skel = skel[0]  # type: ignore
                     vertices = skel.vertices  # type: ignore
@@ -169,11 +142,9 @@ def skeletonize_neuron(
 
             tn = navis.TreeNeuron(df, id=root_id_int, units="1 nm")
 
-            # Still apply FlyWire's post-processing even with pcg_skel
             if shave_skeleton:
                 _shave_skeleton(tn)
 
-            # Apply soma detection and cleanup
             _apply_soma_processing(tn, root_id_int, client, remove_soma_hairball)
 
             if assert_id_match:
@@ -189,32 +160,24 @@ def skeletonize_neuron(
                 f"pcg_skel failed for {root_id_int}: {e}. Falling back to skeletor."
             )
 
-    # Main skeletonization path using skeletor (FlyWire approach)
     try:
-        # Download mesh using CRANTpy's cloudvolume
         from ..utils.cave import get_cloudvolume
 
         vol = get_cloudvolume()
-        # CloudVolume mesh interface - vol should be a cloudvolume object
         mesh_dict = vol.mesh.get(root_id_int) if hasattr(vol, 'mesh') else vol.get_mesh(root_id_int)  # type: ignore
 
-        # Extract mesh object from dictionary (cloudvolume returns {root_id: mesh})
         if isinstance(mesh_dict, dict) and root_id_int in mesh_dict:
             mesh = mesh_dict[root_id_int]
         else:
             mesh = mesh_dict
 
-        # Convert to trimesh if needed
         if not isinstance(mesh, trimesh.Trimesh):
             mesh = trimesh.Trimesh(vertices=mesh.vertices, faces=mesh.faces)  # type: ignore
 
-        # Apply FlyWire's mesh preprocessing pipeline
         mesh = _preprocess_mesh(mesh, **kwargs)
 
-        # Skeletonize using FlyWire's approach - remove problematic parameters
         defaults = {"waves": 1, "step_size": 1}
 
-        # Filter out kwargs that don't belong to skeletonization
         skeletor_kwargs = {
             k: v
             for k, v in kwargs.items()
@@ -228,37 +191,30 @@ def skeletonize_neuron(
                 "save_to",
                 "use_pcg_skel",
                 "_soma_prefetched",
-                "threads",  # Remove threads as it's not a skeletor parameter
+                "threads",
             )
         }
         defaults.update(skeletor_kwargs)
         s = sk.skeletonize.by_wavefront(mesh, progress=progress, **defaults)  # type: ignore
 
-        # Apply FlyWire's node ID handling
-        # Handle skeletor result structure
         if hasattr(s, 'swc'):
             swc_data = s.swc  # type: ignore
         else:
-            # s might be a tuple (swc, metadata)
             swc_data = s[0] if isinstance(s, tuple) else s  # type: ignore
             
         swc_data["node_id"] += 1  # type: ignore
         swc_data.loc[swc_data.parent_id >= 0, "parent_id"] += 1  # type: ignore
 
-        # Apply FlyWire's radius processing
         swc_data["radius"] = swc_data.radius.round().astype(int)  # type: ignore
 
-        # Create TreeNeuron
         tn = navis.TreeNeuron(swc_data, units="1 nm", id=root_id_int, soma=None)
 
     except Exception as e:
         raise ValueError(f"Failed to skeletonize neuron {root_id_int}: {e}")
 
-    # Apply FlyWire's post-processing pipeline
     if shave_skeleton:
         _shave_skeleton(tn)
 
-    # Apply soma detection and processing
     _apply_soma_processing(tn, root_id_int, client, remove_soma_hairball)
 
     if assert_id_match:
@@ -280,11 +236,7 @@ def skeletonize_neurons_parallel(
     color_map: Optional[str] = None,
     **kwargs: Any,
 ) -> Union[navis.NeuronList, Tuple[navis.NeuronList, List[str]]]:
-    """Skeletonize multiple neurons in parallel using FlyWire-compatible approach.
-
-    This function implements FlyWire's parallel skeletonization strategy while
-    using CRANTpy's infrastructure. It includes intelligent batching, error
-    handling, and optional color generation.
+    """Skeletonize multiple neurons in parallel.
 
     Parameters
     ----------
@@ -294,11 +246,10 @@ def skeletonize_neurons_parallel(
         Root IDs of neurons to skeletonize.
     n_cores : int, optional
         Number of cores to use. If None, uses half of available cores.
-        Don't go too crazy as mesh downloading can become a bottleneck.
     progress : bool, default True
-        Whether to show progress bars during processing.
+        Show progress bars during processing.
     color_map : str, optional
-        If provided, generate colors for each neuron using this colormap.
+        Generate colors for each neuron using this colormap.
         Returns tuple of (neurons, colors) instead of just neurons.
     **kwargs
         Additional arguments passed to skeletonize_neuron.
@@ -306,22 +257,9 @@ def skeletonize_neurons_parallel(
     Returns
     -------
     navis.NeuronList or tuple
-        Either a NeuronList of skeletonized neurons, or a tuple of
-        (NeuronList, colors) if color_map is specified.
-
-    Notes
-    -----
-    This function adapts FlyWire's parallel approach:
-    - Intelligent core management based on system capabilities
-    - Robust error handling with retry logic
-    - Batch optimization for memory efficiency
-    - Compatible with CRANTpy's caching and authentication systems
-
-    See Also
-    --------
-    skeletonize_neuron : Single neuron skeletonization
+        NeuronList of skeletonized neurons, or tuple of (NeuronList, colors)
+        if color_map is specified.
     """
-    # Validate and set core count (FlyWire-style validation)
     if n_cores is not None:
         if n_cores < 1:
             raise ValueError("n_cores must be at least 1")
@@ -330,13 +268,10 @@ def skeletonize_neurons_parallel(
                 f"n_cores cannot exceed {mp.cpu_count()} (available cores)"
             )
     else:
-        # Conservative default like FlyWire (don't overwhelm the network)
         n_cores = max(1, mp.cpu_count() // 2)
 
-    # Ensure IDs are integers (FlyWire approach)
     root_ids = np.asarray(root_ids, dtype=np.int64)
 
-    # Validate function signature (FlyWire-style parameter checking)
     import inspect
 
     sig = inspect.signature(skeletonize_neuron)
@@ -344,32 +279,24 @@ def skeletonize_neurons_parallel(
         if k not in sig.parameters and k not in ("lod", "dataset"):
             raise ValueError(f"unexpected keyword argument for skeletonize_neuron: {k}")
 
-    # Prepare arguments for parallel processing
-    kwargs["progress"] = False  # Individual progress bars disabled in parallel
-    kwargs["threads"] = 1  # Each worker uses single thread to avoid conflicts
+    kwargs["progress"] = False
+    kwargs["threads"] = 1
 
-    # Pre-fetch soma annotations for all neurons (FlyWire optimization)
-    # This reduces individual API calls during parallel processing
     try:
-        # In a real implementation, this would batch-fetch soma data
-        # For now, we'll let individual workers handle it
         kwargs["_soma_prefetched"] = False
     except Exception as e:
         warnings.warn(f"Failed to pre-fetch soma data: {e}")
         kwargs["_soma_prefetched"] = False
 
-    # Prepare task combinations (FlyWire approach)
     funcs = [skeletonize_neuron] * len(root_ids)
     args_list = [[client, root_id] for root_id in root_ids]
     kwargs_list = [dict(kwargs) for _ in root_ids]
     combinations = list(zip(funcs, args_list, kwargs_list))
 
-    # Run parallel skeletonization
     results = []
     with mp.Pool(n_cores) as pool:
-        chunksize = 1  # Process one neuron at a time for memory efficiency
+        chunksize = 1
 
-        # Use imap for better memory management and progress tracking
         iterator = pool.imap(_worker_wrapper, combinations, chunksize=chunksize)
 
         for result in tqdm(
@@ -382,17 +309,13 @@ def skeletonize_neurons_parallel(
             if isinstance(result, navis.TreeNeuron):
                 results.append(result)
             else:
-                # Log failed IDs for user awareness
                 warnings.warn(f"Failed to skeletonize neuron {result}")
 
-    # Check if any skeletonizations failed (improved FlyWire reporting)
     failed = [r for r in results if not isinstance(r, navis.TreeNeuron)]
     if failed:
-        # Extract root IDs from error messages for cleaner reporting
         failed_ids = []
         for error in failed:
             if isinstance(error, str) and "_" in error:
-                # Extract root ID from error string (format: "error_type_rootid_...")
                 parts = error.split("_")
                 if len(parts) >= 3:
                     failed_ids.append(parts[2])
@@ -401,12 +324,11 @@ def skeletonize_neurons_parallel(
             else:
                 failed_ids.append(str(error))
 
-        print(
+        warnings.warn(
             f'{len(failed)} neurons failed to skeletonize: {", ".join(failed_ids[:10])}'
             + ("..." if len(failed) > 10 else "")
         )
 
-        # Log error types for debugging
         error_types = {}
         for error in failed:
             if isinstance(error, str) and "_" in error:
@@ -414,12 +336,10 @@ def skeletonize_neurons_parallel(
                 error_types[error_type] = error_types.get(error_type, 0) + 1
 
         if error_types:
-            print(f"Error breakdown: {error_types}")
+            warnings.warn(f"Error breakdown: {error_types}")
 
-    # Create neuron list
     neurons = navis.NeuronList([r for r in results if isinstance(r, navis.TreeNeuron)])
 
-    # Generate colors if requested
     if color_map is not None:
         try:
             cmap = cm.get_cmap(color_map, len(root_ids))
@@ -440,17 +360,11 @@ def _assert_id_match(tn: navis.TreeNeuron, root_id: int, client: CAVEclient) -> 
     coords = tn.nodes[["x", "y", "z"]].values
 
     try:
-        # TODO: Fix CAVEclient API call - chunkedgraph.get_root_id may not exist
-        # For now, disable this functionality to avoid breaking the rest
         warnings.warn(
             "ID matching validation temporarily disabled - CAVEclient API needs verification"
         )
         return
 
-        # Original code (disabled):
-        # new_ids = client.chunkedgraph.get_root_id(coords)
-        # if not np.all(new_ids == root_id):
-        #     raise ValueError(f'Skeleton nodes do not map to correct segment ID {root_id}')
     except Exception as e:
         warnings.warn(f"Failed to verify segment IDs: {e}")
 
@@ -458,10 +372,7 @@ def _assert_id_match(tn: navis.TreeNeuron, root_id: int, client: CAVEclient) -> 
 def _worker_wrapper(
     x: Tuple[Callable, List[Any], Dict[str, Any]],
 ) -> Union[navis.TreeNeuron, str]:
-    """Enhanced worker wrapper with FlyWire-style error handling.
-
-    This function implements FlyWire's robust error handling approach including
-    retry logic for network errors and comprehensive failure reporting.
+    """Enhanced worker wrapper with error handling and retry logic.
 
     Parameters
     ----------
@@ -472,15 +383,6 @@ def _worker_wrapper(
     -------
     navis.TreeNeuron or str
         Successfully skeletonized neuron or error message string if failed.
-
-    Notes
-    -----
-    Implements FlyWire's worker approach:
-    - Retry logic for network/HTTP errors
-    - Detailed error classification
-    - Proper resource cleanup
-    - Keyboard interrupt handling
-    - Returns string error messages for better test compatibility
     """
     f, args, kwargs = x
     root_id = args[1] if len(args) > 1 else "unknown"
@@ -492,28 +394,23 @@ def _worker_wrapper(
         return result
     except KeyboardInterrupt:
         raise
-    # Implement single retry for HTTP errors (FlyWire approach)
     except (requests.HTTPError, requests.ConnectionError, requests.Timeout) as e:
         try:
-            # Single retry attempt
             result = f(*args, **kwargs)
             if result is None:
                 return f"skeletonization_failed_after_retry_{root_id}"
             return result
         except BaseException as retry_error:
-            # Return descriptive error string
             error_msg = f"network_error_{root_id}_{type(e).__name__}"
             warnings.warn(
                 f"Network error for neuron {root_id}: {e}, retry failed: {retry_error}"
             )
             return error_msg
     except ValueError as e:
-        # Handle validation errors specifically
         error_msg = f"validation_error_{root_id}"
         warnings.warn(f"Validation error for neuron {root_id}: {e}")
         return error_msg
     except Exception as e:
-        # Return descriptive error string for any other failure
         error_msg = f"processing_error_{root_id}_{type(e).__name__}"
         warnings.warn(
             f"Failed to skeletonize neuron {root_id}: {type(e).__name__}: {e}"
@@ -583,8 +480,7 @@ def detect_soma_skeleton(
 ) -> Optional[int]:
     """Try detecting the soma based on radii.
 
-    This function implements FlyWire's soma detection algorithm that identifies
-    the soma by looking for consecutive nodes with large radii.
+    Looks for consecutive nodes with large radii to identify soma.
 
     Parameters
     ----------
@@ -593,32 +489,24 @@ def detect_soma_skeleton(
     min_rad : int, default 800
         Minimum radius for a node to be considered a soma candidate (in nm).
     N : int, default 3
-        Number of consecutive nodes with radius > `min_rad` we need in
-        order to consider them soma candidates.
+        Number of consecutive nodes with radius > `min_rad` needed
+        to consider them soma candidates.
 
     Returns
     -------
     int or None
         Node ID of the detected soma, or None if no soma found.
-
-    Notes
-    -----
-    This is adapted from FlyWire's detect_soma_skeleton function to maintain
-    identical behavior while working with CRANTpy's infrastructure.
     """
     assert isinstance(s, navis.TreeNeuron), "Input must be a navis.TreeNeuron"
 
-    # Validate skeleton has nodes
     if not hasattr(s, "nodes") or s.nodes is None or len(s.nodes) == 0:
         warnings.warn("Skeleton has no nodes for soma detection")
         return None
 
-    # Check if radius column exists
     if "radius" not in s.nodes.columns:
         warnings.warn("Skeleton nodes missing radius column for soma detection")
         return None
 
-    # Validate we have segments to analyze
     try:
         segments = s.segments
         if not segments or len(segments) == 0:
@@ -628,7 +516,6 @@ def detect_soma_skeleton(
         warnings.warn(f"Failed to get skeleton segments: {e}")
         return None
 
-    # For each segment get the radius
     try:
         radii = s.nodes.set_index("node_id").radius.to_dict()
     except Exception as e:
@@ -641,11 +528,9 @@ def detect_soma_skeleton(
         rad = np.array([radii[node_id] for node_id in seg])
         is_big = np.where(rad > min_rad)[0]
 
-        # Skip if no above-threshold radii in this segment
         if not any(is_big):
             continue
 
-        # Find stretches of consecutive above-threshold radii
         for stretch in np.split(is_big, np.where(np.diff(is_big) != 1)[0] + 1):
             if len(stretch) < N:
                 continue
@@ -654,34 +539,26 @@ def detect_soma_skeleton(
     if not candidates:
         return None
 
-    # Return largest candidate
     return sorted(candidates, key=lambda x: radii[x])[-1]
 
 
 def detect_soma_mesh(mesh: trimesh.Trimesh) -> NDArray:
     """Try detecting the soma based on vertex clusters.
 
-    This function implements FlyWire's mesh-based soma detection that identifies
-    dense vertex clusters that likely represent the soma.
+    Identifies dense vertex clusters that likely represent the soma.
 
     Parameters
     ----------
     mesh : trimesh.Trimesh
-        Coordinates are assumed to be in nanometers. Mesh must not be
-        downsampled for accurate detection.
+        Coordinates in nanometers. Mesh must not be downsampled for 
+        accurate detection.
 
     Returns
     -------
     np.ndarray
         Array of vertex indices that belong to the detected soma region.
         Returns empty array if no soma is detected.
-
-    Notes
-    -----
-    This is adapted from FlyWire's __detect_soma_mesh function. It uses
-    vertex density clustering to identify potential soma regions.
     """
-    # Validate mesh input
     if mesh is None:
         warnings.warn("Cannot detect soma on None mesh")
         return np.array([])
@@ -694,14 +571,12 @@ def detect_soma_mesh(mesh: trimesh.Trimesh) -> NDArray:
         warnings.warn("Mesh has no vertices for soma detection")
         return np.array([])
 
-    # Need sufficient vertices for meaningful clustering
     if len(mesh.vertices) < 100:
         warnings.warn(
             f"Mesh has too few vertices ({len(mesh.vertices)}) for reliable soma detection"
         )
         return np.array([])
 
-    # Build a KD tree for efficient neighbor queries
     from scipy.spatial import cKDTree
 
     try:
@@ -710,25 +585,20 @@ def detect_soma_mesh(mesh: trimesh.Trimesh) -> NDArray:
         warnings.warn(f"Failed to build KDTree for soma detection: {e}")
         return np.array([])
 
-    # Find out how many neighbours each vertex has within a 4 micron radius
-    # Note: n_jobs parameter removed for scipy API compatibility
     n_neighbors = tree.query_ball_point(
-        mesh.vertices, r=4000, return_length=True  # 4 microns in nanometers
+        mesh.vertices, r=4000, return_length=True
     )
 
-    # Seed for soma is the node with the most neighbors
     seed = np.argmax(n_neighbors)
 
-    # We need to find a sensible threshold for neurons without an actual soma
     res = np.mean(mesh.area_faces)
     if n_neighbors.max() < (20e4 / res):
         return np.array([])
 
-    # Find nodes within 10 microns of the seed
     dist, ix = tree.query(
         mesh.vertices[[seed]],
         k=mesh.vertices.shape[0],
-        distance_upper_bound=10000,  # 10 microns
+        distance_upper_bound=10000,
     )
     soma_verts = ix[dist < float("inf")]
 
@@ -739,9 +609,6 @@ def get_soma_from_annotations(
     root_id: int, client: CAVEclient, dataset: Optional[str] = None
 ) -> Optional[Tuple[float, float, float]]:
     """Try to get soma location from nucleus annotations.
-
-    This function attempts to fetch soma/nucleus information from the
-    annotation system, similar to FlyWire's get_somas functionality.
 
     Parameters
     ----------
@@ -756,18 +623,8 @@ def get_soma_from_annotations(
     -------
     tuple or None
         (x, y, z) coordinates of the soma in nanometers, or None if not found.
-
-    Notes
-    -----
-    This function provides CRANTpy-specific soma annotation fetching that
-    approximates FlyWire's nucleus-based soma detection approach.
     """
     try:
-        # Try to get nucleus/soma annotations from the annotation system
-        # This would need to be adapted based on CRANTpy's specific annotation schema
-
-        # For now, return None - this would need dataset-specific implementation
-        # based on how soma/nucleus data is stored in the CRANTpy annotation system
         return None
 
     except Exception as e:
@@ -777,31 +634,29 @@ def get_soma_from_annotations(
 
 def get_skeletons(
     root_ids: Union[List[int], NDArray],
-    dataset: str = "latest",  # Changed default to match CRANTpy convention
+    dataset: str = "latest",
     progress: bool = True,
     omit_failures: Optional[bool] = None,
     max_threads: int = 6,
     **kwargs: Any,
 ) -> navis.NeuronList:
-    """Fetch skeletons for multiple neurons with FlyWire-compatible approach.
+    """Fetch skeletons for multiple neurons.
 
-    This function implements FlyWire's skeleton fetching strategy while using
-    CRANTpy's infrastructure. It tries multiple approaches: precomputed skeletons
-    from the client, then falls back to on-demand skeletonization.
+    Tries to get precomputed skeletons first, then falls back to 
+    on-demand skeletonization if needed.
 
     Parameters
     ----------
     root_ids : list of int or np.ndarray
         Root IDs of neurons to fetch skeletons for.
     dataset : str, default 'latest'
-        Dataset to query against. Uses CRANTpy's dataset system.
+        Dataset to query against.
     progress : bool, default True
-        Whether to show progress during fetching.
+        Show progress during fetching.
     omit_failures : bool, optional
-        Determine behavior when skeleton generation fails:
-        - None (default): raise exception on failures
-        - True: skip failed neurons (might result in empty NeuronList)
-        - False: return empty TreeNeuron for failed cases
+        None: raise exception on failures
+        True: skip failed neurons 
+        False: return empty TreeNeuron for failed cases
     max_threads : int, default 6
         Number of parallel threads for fetching skeletons.
     **kwargs
@@ -811,46 +666,27 @@ def get_skeletons(
     -------
     navis.NeuronList
         List of successfully fetched/generated skeletons.
-
-    Notes
-    -----
-    This function adapts FlyWire's get_skeletons approach:
-    1. Try to fetch precomputed skeletons from client
-    2. Fall back to on-demand skeletonization for missing ones
-    3. Parallel processing for efficiency
-    4. Robust error handling with configurable behavior
-
-    See Also
-    --------
-    skeletonize_neuron : Generate skeleton from scratch
-    skeletonize_neurons_parallel : Parallel skeleton generation
     """
-    # Validate omit_failures parameter (FlyWire approach)
     if omit_failures not in (None, True, False):
         raise ValueError(
             "`omit_failures` must be either None, True or False. "
             f'Got "{omit_failures}".'
         )
 
-    # Handle single vs multiple IDs
     if not navis.utils.is_iterable(root_ids):
         root_ids = [root_ids]
 
     root_ids = np.asarray(root_ids, dtype=np.int64)
 
-    # Get client for this dataset
     client = create_client(dataset=dataset)
 
     skeletons = []
     failed_ids = []
 
-    # Function to fetch single skeleton with multiple strategies
     def fetch_single_skeleton(root_id: int) -> Optional[navis.TreeNeuron]:
         """Fetch single skeleton with fallback strategies."""
         try:
-            # Strategy 1: Try to get precomputed skeleton from client
             try:
-                # Use verified CAVEclient skeleton API
                 skel = client.skeleton.get_skeleton(root_id, output_format='dict')
                 if skel is not None:
                     vertices = np.array(skel['vertices'], dtype=float)
@@ -862,23 +698,18 @@ def get_skeletons(
                     tn = navis.TreeNeuron(df, id=root_id, units='1 nm')
                     return tn
             except Exception:
-                # If precomputed fails, continue to strategy 2
                 pass
 
-            # Strategy 2: Generate skeleton on demand
             tn = skeletonize_neuron(client, root_id, progress=False, **kwargs)
             return tn
 
         except Exception as e:
-            # Handle failure based on omit_failures setting
             if omit_failures is None:
                 raise ValueError(f"Failed to fetch skeleton for {root_id}: {e}")
             elif omit_failures:
-                return None  # Skip this neuron
+                return None
             else:
-                # Return empty skeleton - create minimal valid TreeNeuron
                 try:
-                    # Create minimal skeleton with single node
                     import pandas as pd
 
                     df = pd.DataFrame(
@@ -895,7 +726,6 @@ def get_skeletons(
                 except Exception:
                     return None
 
-    # Parallel fetching for efficiency (FlyWire approach)
     if max_threads > 1 and len(root_ids) > 1:
         from concurrent.futures import ThreadPoolExecutor
 
@@ -921,7 +751,6 @@ def get_skeletons(
 
             skeletons = results
     else:
-        # Sequential processing
         for root_id in tqdm(
             root_ids,
             desc="Fetching skeletons",
@@ -932,12 +761,9 @@ def get_skeletons(
             if result is not None:
                 skeletons.append(result)
 
-    # Create neuron list
     nl = navis.NeuronList(skeletons)
 
-    # Restore original order if we have results (FlyWire approach)
     if len(nl) > 0:
-        # Filter root_ids to only include those we have results for
         available_ids = root_ids[np.isin(root_ids, nl.id)]
         if len(available_ids) > 0:
             nl = nl.idx[available_ids]
@@ -950,18 +776,17 @@ def chunks_to_nm(xyz_ch, vol, voxel_resolution=[4, 4, 40]):
 
     Parameters
     ----------
-    xyz_ch :            array-like
-                        (N, 3) array of chunk indices.
-    vol :               cloudvolume.CloudVolume
-                        CloudVolume object associated with the chunked space.
-    voxel_resolution :  list, optional
-                        Voxel resolution.
+    xyz_ch : array-like
+        (N, 3) array of chunk indices.
+    vol : cloudvolume.CloudVolume
+        CloudVolume object associated with the chunked space.
+    voxel_resolution : list, optional
+        Voxel resolution.
 
     Returns
     -------
     np.array
-                        (N, 3) array of spatial points.
-
+        (N, 3) array of spatial points.
     """
     mip_scaling = vol.mip_resolution(0) // np.array(voxel_resolution, dtype=int)
 
@@ -974,10 +799,10 @@ def chunks_to_nm(xyz_ch, vol, voxel_resolution=[4, 4, 40]):
 
 
 def _preprocess_mesh(mesh: trimesh.Trimesh, **kwargs) -> trimesh.Trimesh:
-    """Apply FlyWire's mesh preprocessing pipeline.
+    """Apply mesh preprocessing pipeline.
 
-    This function implements the exact mesh preprocessing steps used in FlyWire
-    to prepare meshes for high-quality skeletonization.
+    Prepares meshes for high-quality skeletonization by validating structure,
+    removing small disconnected components, and fixing common mesh issues.
 
     Parameters
     ----------
@@ -995,56 +820,37 @@ def _preprocess_mesh(mesh: trimesh.Trimesh, **kwargs) -> trimesh.Trimesh:
     ------
     ValueError
         If mesh is empty or has insufficient vertices/faces for skeletonization.
-
-    Notes
-    -----
-    Implements FlyWire's fix_mesh pipeline:
-    - Validates mesh structure
-    - Removes small disconnected components
-    - Fixes common mesh issues
     """
-    # Validate mesh is not empty or malformed
     if mesh is None:
         raise ValueError("Cannot preprocess None mesh")
 
     if not hasattr(mesh, "vertices") or not hasattr(mesh, "faces"):
         raise ValueError("Mesh must have vertices and faces attributes")
 
-    # Check for empty mesh
     if len(mesh.vertices) == 0:
         raise ValueError("Cannot skeletonize mesh with no vertices")
 
     if len(mesh.faces) == 0:
         raise ValueError("Cannot skeletonize mesh with no faces")
 
-    # Check for minimum viable mesh (need at least 4 vertices for a tetrahedron)
     if len(mesh.vertices) < 4:
         raise ValueError(
             f"Mesh has too few vertices ({len(mesh.vertices)}) for skeletonization (minimum 4)"
         )
 
-    # Make mesh compatible with skeletor
     if not isinstance(mesh, trimesh.Trimesh):
         mesh = trimesh.Trimesh(vertices=mesh.vertices, faces=mesh.faces, validate=True)
 
-    # Note: Trimesh objects don't have is_valid attribute
-    # Basic validation happens during trimesh creation
-
-    # Remove disconnected pieces that represent less than 0.01% of total size
-    # This matches FlyWire's approach exactly
     min_component_size = int(0.0001 * mesh.vertices.shape[0])
     remove_disconnected = min_component_size > 0
 
-    # Apply FlyWire's mesh fixing approach
     try:
         fixed_mesh = sk.pre.fix_mesh(mesh, inplace=True, remove_disconnected=remove_disconnected)
-        # Handle different return types from fix_mesh
         if fixed_mesh is not None:
             mesh = fixed_mesh if isinstance(fixed_mesh, trimesh.Trimesh) else mesh
     except Exception as e:
         raise ValueError(f"Mesh preprocessing failed: {e}")
 
-    # Final validation after preprocessing
     if not hasattr(mesh, 'vertices') or len(mesh.vertices) == 0:
         raise ValueError("Mesh preprocessing resulted in empty mesh")
 
@@ -1052,25 +858,16 @@ def _preprocess_mesh(mesh: trimesh.Trimesh, **kwargs) -> trimesh.Trimesh:
 
 
 def _shave_skeleton(tn: navis.TreeNeuron) -> None:
-    """Apply FlyWire's sophisticated skeleton cleanup.
+    """Apply sophisticated skeleton cleanup.
 
-    This function implements FlyWire's multi-stage skeleton shaving approach
-    that removes bristles and small protrusions while preserving the main
+    Removes bristles and small protrusions while preserving the main
     backbone structure.
 
     Parameters
     ----------
     tn : navis.TreeNeuron
         Skeleton to clean up (modified in place).
-
-    Notes
-    -----
-    Implements FlyWire's exact algorithm:
-    1. Identify suspicious long connections (>1μm)
-    2. Iteratively remove small leaf segments
-    3. Remove single-node twigs connected to branch points
     """
-    # Validate skeleton is not empty
     if tn is None:
         raise ValueError("Cannot shave None skeleton")
 
@@ -1081,29 +878,23 @@ def _shave_skeleton(tn: navis.TreeNeuron) -> None:
         warnings.warn("Skeleton is empty - skipping shaving")
         return
 
-    # Check for minimum viable skeleton (need at least 2 nodes)
     if len(tn.nodes) < 2:
         warnings.warn(f"Skeleton has too few nodes ({len(tn.nodes)}) for shaving")
         return
 
-    # Get child -> parent distances to identify suspicious connections
     try:
         d = navis.morpho.mmetrics.parent_dist(tn, root_dist=0)
     except Exception as e:
         warnings.warn(f"Failed to compute parent distances: {e} - skipping shaving")
         return
 
-    # Find all nodes whose parent is more than a micron away (suspicious)
     long = tn.nodes[d >= 1000].node_id.values
 
-    # Iterative shaving process (matches FlyWire exactly)
     while True:
-        # Validate skeleton still has sufficient nodes
         if len(tn.nodes) < 2:
             warnings.warn("Skeleton reduced to single node during shaving - stopping")
             break
 
-        # Find segments containing leafs
         try:
             leaf_segs = [
                 seg for seg in tn.small_segments if seg[0] in tn.leafs.node_id.values
@@ -1112,23 +903,17 @@ def _shave_skeleton(tn: navis.TreeNeuron) -> None:
             warnings.warn(f"Failed to find leaf segments: {e} - stopping shaving")
             break
 
-        # Among the leaf segments find those that are either only 1-2 nodes
-        # or have any of the suspiciously long (> micron) connections
         to_remove = [
             seg for seg in leaf_segs if any(np.isin(seg, long)) or (len(seg) <= 2)
         ]
 
-        # Make sure we don't drop very long segments (important structures)
         to_remove = [seg for seg in to_remove if len(seg) < 10]
 
-        # Turn list of lists into list of node IDs (keep last node of each segment)
         to_remove = [n for l in to_remove for n in l[:-1]]
 
-        # If nothing more to remove, we can stop here
         if not len(to_remove):
             break
 
-        # Validate we're not removing all nodes
         if len(to_remove) >= len(tn.nodes):
             warnings.warn("Attempting to remove all nodes during shaving - stopping")
             break
@@ -1139,15 +924,12 @@ def _shave_skeleton(tn: navis.TreeNeuron) -> None:
             warnings.warn(f"Failed to remove nodes during shaving: {e} - stopping")
             break
 
-    # Get branch points
     bp = tn.nodes.loc[tn.nodes.type == "branch", "node_id"].values
 
-    # Get single-node twigs (end nodes directly connected to branch points)
     is_end = tn.nodes.type == "end"
     parent_is_bp = tn.nodes.parent_id.isin(bp)
     twigs = tn.nodes.loc[is_end & parent_is_bp, "node_id"].values
 
-    # Drop terminal twigs
     tn._nodes = tn.nodes.loc[~tn.nodes.node_id.isin(twigs)].copy()
     tn._clear_temp_attr()
 
@@ -1155,13 +937,10 @@ def _shave_skeleton(tn: navis.TreeNeuron) -> None:
 def _apply_soma_processing(
     tn: navis.TreeNeuron, root_id: int, client: CAVEclient, remove_soma_hairball: bool
 ) -> None:
-    """Apply FlyWire's soma detection and processing.
+    """Apply soma detection and processing.
 
-    This function implements FlyWire's comprehensive soma handling:
-    1. Try to get soma from annotation system
-    2. Fall back to radius-based detection
-    3. Reroot skeleton to soma
-    4. Optionally remove soma hairball
+    Tries to get soma from annotation system, falls back to radius-based 
+    detection, reroots skeleton to soma, and optionally removes soma hairball.
 
     Parameters
     ----------
@@ -1173,41 +952,31 @@ def _apply_soma_processing(
         Client for data access.
     remove_soma_hairball : bool
         Whether to remove dense branching in soma region.
-
-    Notes
-    -----
-    Matches FlyWire's soma processing pipeline exactly while adapting
-    the annotation lookup to CRANTpy's infrastructure.
     """
     soma = None
 
-    # First try to get soma from annotations (CRANTpy-specific)
     soma_loc = get_soma_from_annotations(root_id, client)
     if soma_loc is not None:
-        # Snap to skeleton
         soma = tn.snap(soma_loc)[0]
 
-    # If no annotation-based soma, try radius-based detection
     if soma is None:
         soma = detect_soma_skeleton(tn, min_rad=800, N=3)
 
-    # Apply soma if found
     if soma:
         tn.soma = soma
 
-        # Reroot to soma (important for proper tree structure)
         tn.reroot(tn.soma, inplace=True)
 
-        # Remove soma hairball if requested
         if remove_soma_hairball:
             _remove_soma_hairball(tn, soma)
 
 
 def _remove_soma_hairball(tn: navis.TreeNeuron, soma: int) -> None:
-    """Remove hairball structure inside soma using FlyWire's approach.
+    """Remove hairball structure inside soma.
 
-    This function implements FlyWire's sophisticated soma hairball removal
-    that preserves the main neurite while cleaning up dense branching.
+    Finds all nodes within 2x soma radius (min 4μm), identifies segments 
+    containing these nodes, keeps only the longest segment, and removes 
+    all other segments in the region.
 
     Parameters
     ----------
@@ -1215,37 +984,21 @@ def _remove_soma_hairball(tn: navis.TreeNeuron, soma: int) -> None:
         Skeleton to process (modified in place).
     soma : int
         Node ID of the soma.
-
-    Notes
-    -----
-    Implements FlyWire's exact algorithm:
-    1. Find all nodes within 2x soma radius (min 4μm)
-    2. Identify segments containing these nodes
-    3. Keep only the longest segment
-    4. Remove all other segments in the region
     """
-    # Get soma information
     soma_info = tn.nodes.set_index("node_id").loc[soma]
     soma_loc = soma_info[["x", "y", "z"]].values
 
-    # Find all nodes within 2x the soma radius (minimum 4μm)
     tree = navis.neuron2KDTree(tn)
-    search_radius = max(4000, soma_info.radius * 2)  # nanometers
+    search_radius = max(4000, soma_info.radius * 2)
     ix = tree.query_ball_point(soma_loc, search_radius)
 
-    # Translate indices into node IDs
     ids = tn.nodes.iloc[ix].node_id.values
 
-    # Find segments that contain these nodes
     segs = [s for s in tn.segments if any(np.isin(ids, s))]
 
-    # Sort segments by length (keep the longest one)
     segs = sorted(segs, key=lambda x: len(x))
 
-    # Keep only the longest segment in that initial list
     to_drop = np.array([n for s in segs[:-1] for n in s])
-    # Don't remove the soma itself or nodes from the longest segment
     to_drop = to_drop[~np.isin(to_drop, segs[-1] + [soma])]
 
-    # Remove the nodes
     navis.remove_nodes(tn, to_drop, inplace=True)
