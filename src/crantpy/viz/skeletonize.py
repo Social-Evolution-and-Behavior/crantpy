@@ -15,6 +15,7 @@ from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from numpy.typing import NDArray
 from tqdm import tqdm
+from scipy.spatial import cKDTree
 
 from caveclient import CAVEclient
 from ..utils.decorators import parse_neuroncriteria, inject_dataset
