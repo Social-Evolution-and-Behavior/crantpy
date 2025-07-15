@@ -63,7 +63,7 @@ def skeletonize_neuron(
     use_pcg_skel: bool = False,
     **kwargs: Any,
 ) -> Union[navis.TreeNeuron, navis.NeuronList]:
-    """Skeletonize a neuron using high-quality algorithms.
+    """Skeletonize a neuron the main function.
 
     Parameters
     ----------
@@ -72,9 +72,9 @@ def skeletonize_neuron(
     root_id : int
         Root ID of the neuron to skeletonize.
     shave_skeleton : bool, default True
-        Remove small protrusions and bristles from skeleton.
+        Remove small protrusions and bristles from skeleton (from my understanding).
     remove_soma_hairball : bool, default False
-        Remove dense branching within soma region.
+        Remove the hairball mesh from the soma
     assert_id_match : bool, default False
         Verify skeleton nodes map to correct segment ID.
     threads : int, default 2
@@ -82,9 +82,9 @@ def skeletonize_neuron(
     save_to : str, optional
         Save skeleton as SWC file to this path.
     progress : bool, default True
-        Show progress bars during processing.
+        Show progress bars during processing/i love to have this always.
     use_pcg_skel : bool, default False
-        Try pcg_skel first before skeletor.
+        Try pcg_skel first before skeletor (this is the cave version of skeletor but i have to cehck the class 'skeleton' from the docs).
     **kwargs
         Additional arguments for skeletonization algorithms.
 
@@ -373,7 +373,7 @@ def _assert_id_match(tn: navis.TreeNeuron, root_id: int, client: CAVEclient) -> 
 def _worker_wrapper(
     x: Tuple[Callable, List[Any], Dict[str, Any]],
 ) -> Union[navis.TreeNeuron, str]:
-    """Enhanced worker wrapper with error handling and retry logic.
+    """ worker wrapper (from fafbseg) with error handling and retry logic.
 
     Parameters
     ----------
@@ -773,7 +773,7 @@ def get_skeletons(
 
 
 def chunks_to_nm(xyz_ch, vol, voxel_resolution=[4, 4, 40]):
-    """Map a chunk location to Euclidean space.
+    """Map a chunk location to Euclidean space. CV workaround Implemented here after Giacomo's suggestion
 
     Parameters
     ----------
@@ -859,11 +859,9 @@ def _preprocess_mesh(mesh: trimesh.Trimesh, **kwargs) -> trimesh.Trimesh:
 
 
 def _shave_skeleton(tn: navis.TreeNeuron) -> None:
-    """Apply sophisticated skeleton cleanup.
+    """Apply  skeleton cleanup.
 
-    Removes bristles and small protrusions while preserving the main
-    backbone structure.
-
+   
     Parameters
     ----------
     tn : navis.TreeNeuron
