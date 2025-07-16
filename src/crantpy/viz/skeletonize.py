@@ -30,7 +30,7 @@ SKELETON_INFO = {
     "vertex_attributes": [
         {"id": "radius", "data_type": "float32", "num_components": 1}
     ],
-}
+} # from navis 
 
 __all__ = [
     "skeletonize_neuron",
@@ -46,11 +46,12 @@ __all__ = [
     "_shave_skeleton",
     "_worker_wrapper",
     "_remove_soma_hairball",
+    "divide_local_neighbourhood",
 ]
 
 
 @parse_neuroncriteria()
-@inject_dataset()
+@inject_dataset() #navis logic import
 def skeletonize_neuron(
     client: CAVEclient,
     root_id: Union[int, List[int], NDArray],
@@ -70,7 +71,7 @@ def skeletonize_neuron(
     client : CAVEclient
         CAVE client for data access.
     root_id : int
-        Root ID of the neuron to skeletonize.
+        Root ID of the neuron to skeletonize. 
     shave_skeleton : bool, default True
         Remove small protrusions and bristles from skeleton (from my understanding).
     remove_soma_hairball : bool, default False
@@ -92,6 +93,17 @@ def skeletonize_neuron(
     -------
     navis.TreeNeuron
         The skeletonized neuron.
+    # TODOs from fafbseg:
+    # - Use synapse locations as constraints
+    # - Mesh preprocessing options
+    # - Chunked skeletonization for large meshes
+    # - Use soma annotations from external sources
+    # - Better error handling/logging
+    # - Allow user-supplied soma location/radius
+    # - Option to return intermediate results
+    # - Support more skeletonization algorithms
+    # - Merge disconnected skeletons
+    # - Custom node/edge attributes
     """
     if save_to is not None:
         save_to = os.path.abspath(save_to)
@@ -123,7 +135,7 @@ def skeletonize_neuron(
     assert isinstance(root_id, (int, np.integer)), "root_id must be an integer for single neuron"
     root_id_int = int(root_id)
 
-    if use_pcg_skel:
+    if use_pcg_skel: # here we use the pcg_skel class from the caveclient
         try:
             skel = pcg_skel.pcg_skeleton(root_id=root_id_int, client=client)
             try:
@@ -141,7 +153,7 @@ def skeletonize_neuron(
             node_info = _create_node_info_dict(vertices, edges)
             df = _swc_dict_to_dataframe(node_info)
 
-            tn = navis.TreeNeuron(df, id=root_id_int, units="1 nm")
+            tn = navis.TreeNeuron(df, id=root_id_int, units="1 nm") # navis treeneuron object
 
             if shave_skeleton:
                 _shave_skeleton(tn)
@@ -170,7 +182,7 @@ def skeletonize_neuron(
         if isinstance(mesh_dict, dict) and root_id_int in mesh_dict:
             mesh = mesh_dict[root_id_int]
         else:
-            mesh = mesh_dict
+            mesh = mesh_dict 
 
         if not isinstance(mesh, trimesh.Trimesh):
             mesh = trimesh.Trimesh(vertices=mesh.vertices, faces=mesh.faces)  # type: ignore
@@ -481,7 +493,7 @@ def detect_soma_skeleton(
 ) -> Optional[int]:
     """Try detecting the soma based on radii.
 
-    Looks for consecutive nodes with large radii to identify soma.
+    Looks for consecutive nodes with large radii to identify soma. Added some checks to make sure the skeleton is valid.
 
     Parameters
     ----------
@@ -527,7 +539,7 @@ def detect_soma_skeleton(
 
     for seg in s.segments:
         rad = np.array([radii[node_id] for node_id in seg])
-        is_big = np.where(rad > min_rad)[0]
+        is_big = np.where(rad > min_rad)[0] # exactly migrated from fafbseg
 
         if not any(is_big):
             continue
@@ -535,7 +547,7 @@ def detect_soma_skeleton(
         for stretch in np.split(is_big, np.where(np.diff(is_big) != 1)[0] + 1):
             if len(stretch) < N:
                 continue
-            candidates += [seg[i] for i in stretch]
+            candidates += [seg[i] for i in stretch] # exactly migrated from fafbseg
 
     if not candidates:
         return None
@@ -581,13 +593,13 @@ def detect_soma_mesh(mesh: trimesh.Trimesh) -> NDArray:
     from scipy.spatial import cKDTree
 
     try:
-        tree = cKDTree(mesh.vertices)
+        tree = cKDTree(mesh.vertices)  #  migrated as is from fafbseg
     except Exception as e:
         warnings.warn(f"Failed to build KDTree for soma detection: {e}")
         return np.array([])
 
     n_neighbors = tree.query_ball_point(
-        mesh.vertices, r=4000, return_length=True
+        mesh.vertices, r=4000, return_length=True #  migrated as is from fafbseg
     )
 
     seed = np.argmax(n_neighbors)
@@ -644,7 +656,7 @@ def get_skeletons(
     """Fetch skeletons for multiple neurons.
 
     Tries to get precomputed skeletons first, then falls back to 
-    on-demand skeletonization if needed.
+    on-demand skeletonization if needed. if id more than one root_id, it will use the parallel skeletonization function.
 
     Parameters
     ----------
@@ -688,7 +700,7 @@ def get_skeletons(
         """Fetch single skeleton with fallback strategies."""
         try:
             try:
-                skel = client.skeleton.get_skeleton(root_id, output_format='dict')
+                skel = client.skeleton.get_skeleton(root_id, output_format='dict') # here we use the skeleton class from the caveclient
                 if skel is not None:
                     vertices = np.array(skel['vertices'], dtype=float)
                     edges = np.array(skel['edges'], dtype=int)
@@ -1001,3 +1013,44 @@ def _remove_soma_hairball(tn: navis.TreeNeuron, soma: int) -> None:
     to_drop = to_drop[~np.isin(to_drop, segs[-1] + [soma])]
 
     navis.remove_nodes(tn, to_drop, inplace=True)
+
+
+def divide_local_neighbourhood(mesh: trimesh.Trimesh, radius: float):
+    """Divide the mesh into locally connected patches of a given size (overlapping). 
+    migrated as is from fafbseg
+
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh
+        The mesh to divide.
+    radius : float
+        The radius (in mesh units) for local neighborhoods.
+
+    Returns
+    -------
+    list of sets
+        Each set contains vertex indices belonging to a local patch.
+    """
+    import numbers
+    import networkx as nx
+    assert isinstance(mesh, trimesh.Trimesh), "mesh must be a trimesh.Trimesh object"
+    assert isinstance(radius, numbers.Number), "radius must be a number"
+
+    # Generate a graph for mesh
+    G = mesh.vertex_adjacency_graph
+    # Use Euclidean distance for edge weights
+    edges = np.array(G.edges)
+    e1 = mesh.vertices[edges[:, 0]]
+    e2 = mesh.vertices[edges[:, 1]]
+    dist = np.sqrt(np.sum((e1 - e2) ** 2, axis=1))
+    nx.set_edge_attributes(G, dict(zip(map(tuple, edges), dist)), name='weight')
+
+    not_seen = set(G.nodes)
+    patches = []
+    while not_seen:
+        center = not_seen.pop()
+        sg = nx.ego_graph(G, center, radius=radius, distance='weight')
+        nodes = set(sg.nodes)
+        patches.append(nodes)
+        not_seen -= nodes
+    return patches
