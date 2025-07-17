@@ -181,49 +181,47 @@ def get_l2_chunk_info(
     # Get/Initialize the CAVE client
     client = get_cave_client(dataset=dataset)
 
-    # Gather all L2 chunk IDs for the given root IDs
-    all_l2_ids = []
-    for rid in root_ids:
-        l2 = client.chunkedgraph.get_leaves(str(rid), stop_layer=2)
-        all_l2_ids.extend(l2)
-    l2_ids = np.array([str(l2id) for l2id in all_l2_ids])
-
-    # Get the L2 representative coordinates, vectors and (if required) volume
+    # Use DataFrames from the start: each row is a single L2 chunk, with root_id column
     attributes = ['rep_coord_nm', 'pca', 'size_nm3']
-    l2_info = {}
-    with navis.config.tqdm(desc='Fetching L2 chunk info',
-                           disable=not progress,
-                           total=len(l2_ids),
-                           leave=False) as pbar:
-        for chunk_ix in np.arange(0, len(l2_ids), chunk_size):
-            chunk = l2_ids[chunk_ix: chunk_ix + chunk_size]
-            l2_info.update(client.l2cache.get_l2data(chunk.tolist(), attributes=attributes))
-            pbar.update(len(chunk))
-
-    # L2 chunks without info will show as empty dictionaries
-    # Let's drop them to make our life easier (speeds up indexing too)
-    l2_info = {k: v for k, v in l2_info.items() if v}
-
-    if l2_info:
+    dfs = []
+    for rid in root_ids:
+        l2_ids = client.chunkedgraph.get_leaves(str(rid), stop_layer=2)
+        l2_ids = [str(l2id) for l2id in l2_ids]
+        if not l2_ids:
+            continue
+        l2_info = {}
+        with navis.config.tqdm(desc=f'Fetching L2 chunk info for root {rid}',
+                               disable=not progress,
+                               total=len(l2_ids),
+                               leave=False) as pbar:
+            for chunk_ix in np.arange(0, len(l2_ids), chunk_size):
+                chunk = l2_ids[chunk_ix: chunk_ix + chunk_size]
+                l2_info.update(client.l2cache.get_l2data(chunk, attributes=attributes))
+                pbar.update(len(chunk))
+        l2_info = {k: v for k, v in l2_info.items() if v}
+        if not l2_info:
+            continue
+        # Build DataFrame for this root
+        l2_keys = list(l2_info.keys())
         pts = np.vstack([i['rep_coord_nm'] for i in l2_info.values()])
         vec = np.vstack([i.get('pca', [[None, None, None]])[0] for i in l2_info.values()])
         sizes = np.array([i['size_nm3'] for i in l2_info.values()])
-
-        info_df = pd.DataFrame()
-        info_df['id'] = list(l2_info.keys())
-        info_df['x'] = (pts[:, 0] / 4).astype(int)
-        info_df['y'] = (pts[:, 1] / 4).astype(int)
-        info_df['z'] = (pts[:, 2] / 40).astype(int)
-        info_df['vec_x'] = vec[:, 0]
-        info_df['vec_y'] = vec[:, 1]
-        info_df['vec_z'] = vec[:, 2]
-        info_df['size_nm3'] = sizes
+        df = pd.DataFrame({
+            'root_id': rid,
+            'l2_id': l2_keys,
+            'x': (pts[:, 0] / 4).astype(int),
+            'y': (pts[:, 1] / 4).astype(int),
+            'z': (pts[:, 2] / 40).astype(int),
+            'vec_x': vec[:, 0],
+            'vec_y': vec[:, 1],
+            'vec_z': vec[:, 2],
+            'size_nm3': sizes
+        })
+        dfs.append(df)
+    if dfs:
+        info_df = pd.concat(dfs, axis=0, ignore_index=True)
     else:
-        info_df = pd.DataFrame([], columns=['id',
-                                            'x', 'y', 'z',
-                                            'vec_x', 'vec_y', 'vec_z',
-                                            'size_nm3'])
-
+        info_df = pd.DataFrame(columns=['root_id', 'l2_id', 'x', 'y', 'z', 'vec_x', 'vec_y', 'vec_z', 'size_nm3'])
     return info_df
 
 
@@ -289,14 +287,7 @@ def find_anchor_loc(
 
     # Single root ID
     root_id = root_ids[0]
-    client = get_cave_client(dataset=dataset)
-    try:
-        l2_ids = client.chunkedgraph.get_leaves(root_id, stop_layer=2)
-    except Exception as e:
-        logging.error(f"Failed to get L2 leaves for root_id {root_id}: {e}")
-        return pd.DataFrame([[root_id, None, None, None]], columns=['root_id', 'x', 'y', 'z'])
-
-    info = get_l2_chunk_info(l2_ids, dataset=dataset, progress=progress)
+    info = get_l2_chunk_info(root_id, dataset=dataset, progress=progress)
     if info.empty:
         loc = [None, None, None]
     else:
