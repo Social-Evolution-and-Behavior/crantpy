@@ -28,7 +28,7 @@ CRANT_SEATABLE_ANNOTATIONS_TABLES = {
     'sandbox': 'CRANTb_meta',
 }
 
-MAXIMUM_CACHE_DURATION = 30 * 60 # 30 minutes
+MAXIMUM_CACHE_DURATION = 2 * 60 * 60 # 2 hours 
 
 ALL_ANNOTATION_FIELDS = [
     "root_id",
