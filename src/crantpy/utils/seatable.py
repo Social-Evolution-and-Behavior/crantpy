@@ -140,7 +140,7 @@ def get_all_seatable_annotations(
     for col in position_columns:
         if col in df.columns:
             df[col] = df[col].apply(
-                lambda x: [int(coord) for coord in x.split(',')] if x else []
+                lambda x: [int(coord.strip()) for coord in str(x).split(',') if coord.strip().isdigit()] if x and pd.notna(x) else []
             )
             
     return df
