@@ -135,4 +135,12 @@ def get_all_seatable_annotations(
         except Exception as e:
             logging.warning(f"Could not apply 'proofread' filter due to data type issue: {e}")
     
+    # Ensure that positions are integers
+    position_columns = ['position', 'nucleus_position', 'root_position']
+    for col in position_columns:
+        if col in df.columns:
+            df[col] = df[col].apply(
+                lambda x: [int(coord) for coord in x.split(',')] if x else []
+            )
+            
     return df
