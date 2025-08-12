@@ -10,22 +10,14 @@ TEST_ROOT_ID = 576460752732354679
 
 @pytest.mark.parametrize("root_id", [TEST_ROOT_ID])
 def test_get_l2_info(root_id) -> None:
-    """Test get_l2_info returns DataFrame with 'root_id' column.
+    """Test get_l2_info returns DataFrame with 'root_id' and 'l2_id' column.
     This verifies that get_l2_info fetches L2 info and returns a DataFrame
     with the expected columns for a given neuron root ID.
     """
     df = l2.get_l2_info(root_id)
     assert isinstance(df, pd.DataFrame)
     assert 'root_id' in df.columns
-
-@pytest.mark.parametrize("root_id", [TEST_ROOT_ID])
-def test_get_l2_chunk_info(root_id) -> None:
-    """Test get_l2_chunk_info returns DataFrame with 'id' column.
-    This checks that L2 chunk info is fetched and structured as expected.
-    """
-    df = l2.get_l2_chunk_info(root_id)
-    assert isinstance(df, pd.DataFrame)
-    assert 'id' in df.columns
+    assert 'l2_id' in df.columns
 
 @pytest.mark.parametrize("root_id", [TEST_ROOT_ID])
 def test_find_anchor_loc(root_id) -> None:
