@@ -31,7 +31,6 @@ def get_mesh_neuron(
     dataset: Optional[str] = None,
     omit_failures: Optional[bool] = None,
     threads: int = 5,
-    lod: Optional[int] = None,
     progress: bool = True,
 ) -> Union['navis.MeshNeuron', 'navis.NeuronList']:
     """
@@ -54,8 +53,6 @@ def get_mesh_neuron(
             - False: return an empty MeshNeuron for failed fetches
     threads : int, optional
         Number of parallel threads to use for batch queries. Default is 5.
-    lod : int [0-3], optional
-        Level-of-detail; higher = lower resolution. Defaults to 2 if not specified.
     progress : bool, optional
         Whether to show a progress bar during batch fetching. Default is True.
 
@@ -64,18 +61,6 @@ def get_mesh_neuron(
     navis.MeshNeuron or navis.NeuronList
         MeshNeuron if a single neuron is requested, or NeuronList for multiple neurons.
 
-    Raises
-    ------
-    ValueError
-        If input types are invalid or mesh cannot be found and omit_failures is None.
-
-    Examples
-    --------
-    >>> n = get_mesh_neuron(1234567890)
-    >>> n.plot3d()
-    >>> nlist = get_mesh_neuron([1234567890, 9876543210], threads=2)
-    >>> for n in nlist:
-    ...     n.plot3d()
     """
     if omit_failures not in (None, True, False):
         raise ValueError("`omit_failures` must be either None, True or False. "
@@ -99,7 +84,7 @@ def get_mesh_neuron(
     # Batch mode: multiple root IDs
     if len(root_ids) > 1:
         get_mesh = partial(get_mesh_neuron, dataset=dataset, omit_failures=omit_failures, 
-                           threads=None, lod=lod, progress=False)
+                           threads=None, progress=False)
         results = []
         with ThreadPoolExecutor(max_workers=threads) as pool:
             futures = pool.map(get_mesh, root_ids)
@@ -125,22 +110,15 @@ def get_mesh_neuron(
     logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
 
     try:
-        old_parallel = vol.parallel
-        vol.parallel = threads if threads else old_parallel
+        vol.parallel = threads if threads else 1
         mesh = None
         if vol.path.startswith("graphene"):
             mesh = vol.mesh.get(root_id, deduplicate_chunk_boundaries=False)[root_id]
         elif vol.path.startswith("precomputed"):
-            lod_ = lod if lod is not None else 2
-            while lod_ >= 0:
-                try:
-                    mesh = vol.mesh.get(root_id, lod=lod_)[root_id]
-                    break
-                except Exception as e:
-                    # MeshDecodeError is specific, but fallback to any error for robustness
-                    lod_ -= 1
-                    if lod_ < 0:
-                        raise ValueError(f"No mesh for id {root_id} found") from e
+            try:
+                mesh = vol.mesh.get(root_id)[root_id]
+            except Exception as e:
+                raise ValueError(f"No mesh for id {root_id} found") from e
         if mesh is None:
             raise ValueError(f"No mesh for id {root_id} found")
     except KeyboardInterrupt:
@@ -152,9 +130,7 @@ def get_mesh_neuron(
         elif omit_failures:
             return navis.NeuronList([])
         else:
-            return navis.MeshNeuron(None, id=root_id, units="1 nm", dataset=dataset)
-    finally:
-        vol.parallel = old_parallel
+            return navis.MeshNeuron(None, id=root_id, units="nm", dataset=dataset)
 
     n = navis.MeshNeuron(mesh, id=root_id, units="nm", dataset=dataset)
 
@@ -195,14 +171,6 @@ def detect_soma(
         If input is a list/array, returns (N, 3) array of coordinates for each neuron.
         If no soma is found, returns [None, None, None] for that neuron.
 
-    Examples
-    --------
-    >>> coords = detect_soma(1234567890)
-    >>> coords
-    array([12345.6, 78901.2, 34567.8])
-    >>> coords_batch = detect_soma([1234567890, 9876543210])
-    >>> coords_batch.shape
-    (2, 3)
     """
     # Normalize input: handle batch mode
     # Accept navis.NeuronList, list, or np.ndarray, but not single neuron objects
