@@ -463,7 +463,11 @@ def get_l2_skeleton(
         return nl
 
     # Single root ID
-    root_id = np.int64(ids[0])
+    try:
+        root_id = np.int64(ids[0])
+    except (ValueError, TypeError) as e:
+        logging.error(f"Invalid root ID '{ids[0]}': cannot convert to integer. Error: {e}")
+        raise ValueError(f"Invalid root ID '{ids[0]}': must be an integer or string representing an integer.") from e
     logging.info(f"Fetching L2 skeleton for root ID: {root_id}")
 
     # Get/Initialize the CAVE client
