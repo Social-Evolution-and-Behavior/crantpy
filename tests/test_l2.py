@@ -101,7 +101,9 @@ def test_get_l2_info_batch(root_ids) -> None:
     df = l2.get_l2_info(root_ids)
     assert isinstance(df, pd.DataFrame)
     assert 'root_id' in df.columns
-    assert set([str(rid) for rid in root_ids]).issubset(set(df['root_id'].astype(str)))
+    expected_ids = set(str(rid) for rid in root_ids)
+    actual_ids = set(df['root_id'].astype(str))
+    assert expected_ids.issubset(actual_ids)
 
 @pytest.mark.parametrize("root_ids", [TEST_ROOT_IDS])
 def test_get_l2_chunk_info_batch(root_ids) -> None:
