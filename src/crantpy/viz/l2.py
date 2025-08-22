@@ -18,7 +18,7 @@ import skeletor as sk
 from crantpy.utils.cave import get_cave_client, get_cloudvolume
 import trimesh as tm
 
-from crantpy.utils.config import CRANT_VALID_DATASETS
+from crantpy.utils.config import CRANT_VALID_DATASETS, SCALE_X, SCALE_Y, SCALE_Z
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.queries.neurons import NeuronCriteria 
 
@@ -801,7 +801,7 @@ def _get_l2_centroids(
     return centroids
 
 
-def chunks_to_nm(xyz_ch, vol, voxel_resolution=[4, 4, 40]):
+def chunks_to_nm(xyz_ch, vol, voxel_resolution=None):
     """Map a chunk location to Euclidean space.
 
     Parameters
@@ -811,13 +811,14 @@ def chunks_to_nm(xyz_ch, vol, voxel_resolution=[4, 4, 40]):
     vol : cloudvolume.CloudVolume
         CloudVolume object associated with the chunked space.
     voxel_resolution : list, optional
-        Voxel resolution.
+        Voxel resolution. If None, use SCALE_X, SCALE_Y, SCALE_Z.
 
     Returns
     -------
     np.array
         (N, 3) array of spatial points.
     """
+    voxel_resolution = [SCALE_X, SCALE_Y, SCALE_Z] if voxel_resolution is None else voxel_resolution
     mip_scaling = vol.mip_resolution(0) // np.array(voxel_resolution, dtype=int)
 
     x_vox = np.atleast_2d(xyz_ch) * vol.mesh.meta.meta.graph_chunk_size
