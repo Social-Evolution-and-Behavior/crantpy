@@ -18,7 +18,7 @@ from crantpy.utils.cave import get_cave_client, get_cloudvolume
 import trimesh as tm
 from tqdm import tqdm
 
-from crantpy.utils.config import CRANT_VALID_DATASETS
+from crantpy.utils.config import CRANT_VALID_DATASETS, SCALE_X, SCALE_Y, SCALE_Z
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.queries.neurons import NeuronCriteria 
 
@@ -225,7 +225,7 @@ def detect_soma(
 
     # Convert to integer coordinates
     center = centers[candidates[-1]]
-    center = [center[0]/8, center[1]/8, center[2]/42]
-    center = np.array([int(round(coord)) for coord in center], dtype=int) 
+    center = [center[0]/SCALE_X, center[1]/SCALE_Y, center[2]/SCALE_Z]
+    center = np.array([int(round(coord)) for coord in center], dtype=int)
 
     return center
