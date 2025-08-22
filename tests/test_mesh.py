@@ -59,4 +59,9 @@ def test_detect_soma_no_soma():
     coords = mesh.detect_soma('not_a_real_id')
     assert isinstance(coords, (list, np.ndarray))
     assert len(coords) == 3
-    assert all(c is None or c == 0 for c in coords) or np.all(np.equal(coords, [None, None, None]))
+    # Accept either [None, None, None] or [0, 0, 0] as valid outputs
+    # Normalize coords to a list for comparison
+    coords_list = list(coords)
+    assert coords_list == [None, None, None] or coords_list == [0, 0, 0], (
+        f"Expected [None, None, None] or [0, 0, 0], got {coords_list}"
+    )
