@@ -77,7 +77,11 @@ def get_l2_info(
             info = [
                 f
                 for f in navis.config.tqdm(
-                    futures,
+            futures = {pool.submit(func, rid): rid for rid in root_ids}
+            info = [
+                future.result()
+                for future in navis.config.tqdm(
+                    as_completed(futures),
                     desc="Fetching L2 info",
                     total=len(root_ids),
                     disable=not progress or len(root_ids) == 1,
