@@ -70,3 +70,6 @@ SEARCH_EXCLUDED_ANNOTATION_FIELDS = [
     "nucleus_position",
     "root_position",
 ]
+
+# Voxel resolution in nm
+SCALE_X, SCALE_Y, SCALE_Z = 8, 8, 42
