@@ -2,6 +2,7 @@
 """Visualization module for CRANTBpy."""
 
 
+
 import functools
 import logging
 from typing import (Any, Callable, Dict, Iterable, Iterator, List, Optional,
@@ -10,13 +11,14 @@ from typing import (Any, Callable, Dict, Iterable, Iterator, List, Optional,
 import numpy as np
 import pandas as pd
 import navis
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import partial
 import networkx as nx
 import fastremap
 import skeletor as sk
 from crantpy.utils.cave import get_cave_client, get_cloudvolume
 import trimesh as tm
+from tqdm import tqdm
 
 from crantpy.utils.config import CRANT_VALID_DATASETS, SCALE_X, SCALE_Y, SCALE_Z
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
@@ -73,14 +75,10 @@ def get_l2_info(
         info = []
         with ThreadPoolExecutor(max_workers=max_threads) as pool:
             func = partial(get_l2_info, dataset=dataset)
-            futures = pool.map(func, root_ids)
-            info = [
-                f
-                for f in navis.config.tqdm(
             futures = {pool.submit(func, rid): rid for rid in root_ids}
             info = [
                 future.result()
-                for future in navis.config.tqdm(
+                for future in tqdm(
                     as_completed(futures),
                     desc="Fetching L2 info",
                     total=len(root_ids),
