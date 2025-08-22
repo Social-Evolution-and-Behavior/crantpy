@@ -657,7 +657,7 @@ def get_l2_dotprops(
         if sample <= 0 or sample >= 1:
             raise ValueError(f'`sample` must be between 0 and 1, got {sample}')
         for i in range(len(l2_ids)):
-            np.random.seed(1985)
+            np.random.seed(42)
             l2_ids[i] = np.random.choice(l2_ids[i],
                                          size=max(1, int(len(l2_ids[i]) * sample)),
                                          replace=False)
