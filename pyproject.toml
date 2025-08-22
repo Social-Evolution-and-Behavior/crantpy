@@ -25,6 +25,8 @@ ipykernel = "^6.29.5"
 [tool.pytest.ini_options]
 python_paths = ["src"]
 testpaths = ["tests"]
+log_cli = true
+log_cli_level = "INFO"
 
 [build-system]
 requires = ["poetry-core"]

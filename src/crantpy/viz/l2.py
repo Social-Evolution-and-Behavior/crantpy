@@ -440,29 +440,29 @@ def get_l2_skeleton(
         raise ValueError("Invalid input type for root_ids. Must be int, str, list, np.ndarray, or NeuronCriteria.")
     ids = np.array([str(rid) for rid in ids])
 
+    
+
     # Batch mode: multiple root IDs
     if len(ids) > 1:
+        logging.info(f'Fetching L2 skeletons for {len(ids)} root IDs.')
         ids_unique = np.unique(ids)
-        get_l2_skels = partial(get_l2_skeleton, refine=refine, drop_missing=drop_missing,
-                               l2_node_ids=l2_node_ids, omit_failures=omit_failures,
-                               dataset=dataset, progress=False, **kwargs)
-        skels = []
         with ThreadPoolExecutor(max_workers=max_threads) as pool:
-            futures = pool.map(get_l2_skels, ids_unique)
-            skels = [f for f in navis.config.tqdm(futures,
-                                                  desc='Fetching L2 skeletons',
-                                                  total=len(ids_unique),
-                                                  disable=not progress or len(ids_unique) == 1,
-                                                  leave=False)]
-        nl = navis.NeuronList(skels)
-        # Bring in original order
-        if len(nl):
-            ids_ordered = ids[np.isin(ids, nl.id)]
-            nl = nl.idx[ids_ordered]
+            futures = pool.map(lambda rid: get_l2_skeleton(rid, refine=refine, drop_missing=drop_missing,
+                                                  l2_node_ids=l2_node_ids, omit_failures=omit_failures,
+                                                  dataset=dataset, progress=False, **kwargs),
+                       ids_unique.tolist())
+            results = [f for f in navis.config.tqdm(futures,
+                                                    desc='Fetching L2 skeletons',
+                                                    total=len(ids_unique),
+                                                    disable=not progress or len(ids_unique) == 1,
+                                                    leave=False)]
+        # Combine into a NeuronList
+        nl = navis.NeuronList(results)
         return nl
 
     # Single root ID
     root_id = np.int64(ids[0])
+    logging.info(f"Fetching L2 skeleton for root ID: {root_id}")
 
     # Get/Initialize the CAVE client
     client = get_cave_client(dataset=dataset)
@@ -721,7 +721,7 @@ def get_l2_meshes(
     progress: bool = True,
     dataset: Optional[str] = None
     ) -> 'navis.NeuronList':
-    """Fetch L2 meshes for a given neuron or NeuronCriteria in CRANTb.
+    """Fetch L2 meshes for a single neuron or NeuronCriteria in CRANTb.
 
     Parameters
     ----------

@@ -7,17 +7,27 @@ from typing import Any, Dict, List, Set, Tuple
 
 # Example root ID for testing 
 TEST_ROOT_ID = 576460752732354679
+TEST_ROOT_IDS = [576460752715406504, 576460752749155108]
 
 @pytest.mark.parametrize("root_id", [TEST_ROOT_ID])
 def test_get_l2_info(root_id) -> None:
-    """Test get_l2_info returns DataFrame with 'root_id' and 'l2_id' column.
+    """Test get_l2_info returns DataFrame with 'root_id' column.
     This verifies that get_l2_info fetches L2 info and returns a DataFrame
     with the expected columns for a given neuron root ID.
     """
     df = l2.get_l2_info(root_id)
     assert isinstance(df, pd.DataFrame)
     assert 'root_id' in df.columns
+
+@pytest.mark.parametrize("root_id", [TEST_ROOT_ID])
+def test_get_l2_chunk_info(root_id) -> None:
+    """Test get_l2_chunk_info returns DataFrame with 'l2_id' and 'root_id' columns.
+    Ensures the function returns a DataFrame with the expected columns for a given neuron root ID.
+    """
+    df = l2.get_l2_chunk_info(root_id)
+    assert isinstance(df, pd.DataFrame)
     assert 'l2_id' in df.columns
+    assert 'root_id' in df.columns
 
 @pytest.mark.parametrize("root_id", [TEST_ROOT_ID])
 def test_find_anchor_loc(root_id) -> None:
@@ -84,3 +94,51 @@ def test_chunks_to_nm() -> None:
     nm = l2.chunks_to_nm(arr, vol)
     assert isinstance(nm, np.ndarray)
     assert nm.shape == (2, 3)
+
+@pytest.mark.parametrize("root_ids", [TEST_ROOT_IDS])
+def test_get_l2_info_batch(root_ids) -> None:
+    """Test get_l2_info returns DataFrame with 'root_id' column for multiple neurons."""
+    df = l2.get_l2_info(root_ids)
+    assert isinstance(df, pd.DataFrame)
+    assert 'root_id' in df.columns
+    assert set([str(rid) for rid in root_ids]).issubset(set(df['root_id'].astype(str)))
+
+@pytest.mark.parametrize("root_ids", [TEST_ROOT_IDS])
+def test_get_l2_chunk_info_batch(root_ids) -> None:
+    """Test get_l2_chunk_info returns DataFrame with 'l2_id' and 'root_id' columns for multiple neurons."""
+    df = l2.get_l2_chunk_info(root_ids)
+    assert isinstance(df, pd.DataFrame)
+    assert 'l2_id' in df.columns
+    assert 'root_id' in df.columns
+    assert set([str(rid) for rid in root_ids]).issubset(set(df['root_id'].astype(str)))
+
+@pytest.mark.parametrize("root_ids", [TEST_ROOT_IDS])
+def test_find_anchor_loc_batch(root_ids) -> None:
+    """Test find_anchor_loc returns DataFrame with anchor columns for multiple neurons."""
+    df = l2.find_anchor_loc(root_ids)
+    assert isinstance(df, pd.DataFrame)
+    assert set(['root_id', 'x', 'y', 'z']).issubset(df.columns)
+    assert set([str(rid) for rid in root_ids]).issubset(set(df['root_id'].astype(str)))
+
+@pytest.mark.parametrize("root_ids", [TEST_ROOT_IDS])
+def test_get_l2_graph_batch(root_ids) -> None:
+    """Test get_l2_graph returns a list of graph objects for multiple neurons."""
+    Gs = l2.get_l2_graph(root_ids)
+    assert isinstance(Gs, list)
+    assert all(hasattr(G, 'nodes') for G in Gs)
+    assert len(Gs) == len(root_ids)
+
+@pytest.mark.parametrize("root_ids", [TEST_ROOT_IDS])
+def test_get_l2_skeleton_batch(root_ids) -> None:
+    """Test get_l2_skeleton returns a NeuronList for multiple neurons."""
+    skels = l2.get_l2_skeleton(root_ids)
+    assert isinstance(skels, navis.NeuronList)
+    assert len(skels) == len(root_ids)
+
+@pytest.mark.parametrize("root_ids", [TEST_ROOT_IDS])
+def test_get_l2_dotprops_batch(root_ids) -> None:
+    """Test get_l2_dotprops returns a NeuronList of Dotprops for multiple neurons."""
+    dps = l2.get_l2_dotprops(root_ids)
+    assert isinstance(dps, navis.NeuronList)
+    assert all(isinstance(dp, navis.Dotprops) for dp in dps)
+    assert len(dps) == len(root_ids)
