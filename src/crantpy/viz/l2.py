@@ -517,7 +517,7 @@ def get_l2_skeleton(
 
     # This turns the graph into a hierarchal tree by removing cycles and
     # ensuring all edges point towards a root
-    if sk.__version_vector__[0] < 1:
+    if hasattr(sk, "skeletonizers"):
         G = sk.skeletonizers.edges_to_graph(eg_arr_rm)
         swc = sk.skeletonizers.make_swc(G, coords=coords)
     else:
