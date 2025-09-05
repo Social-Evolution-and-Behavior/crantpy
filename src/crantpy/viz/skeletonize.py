@@ -1,9 +1,36 @@
 # -*- coding: utf-8 -*-
-"""Neuron skeletonization tools."""
+"""Neuron skeletonization tools.
+
+This module suppresses urllib3 connection pool warnings that commonly appear
+when downloading mesh data from Google Cloud Storage during skeletonization.
+The warnings "Connection pool is full, discarding connection: storage.googleapis.com"
+are cosmetic and do not affect functionality.
+"""
 
 import os
 import warnings
+import urllib3
 import numpy as np
+
+# Suppress urllib3 connection pool warnings
+urllib3.disable_warnings(urllib3.exceptions.HTTPWarning)
+urllib3.disable_warnings()  # Disable all urllib3 warnings
+warnings.filterwarnings(
+    "ignore", message=".*Connection pool is full, discarding connection.*"
+)
+warnings.filterwarnings("ignore", category=urllib3.exceptions.HTTPWarning)
+warnings.filterwarnings(
+    "ignore",
+    message="Connection pool is full, discarding connection: storage.googleapis.com.*",
+)
+warnings.filterwarnings("ignore", module="urllib3")
+warnings.filterwarnings("ignore", category=urllib3.exceptions.InsecureRequestWarning)
+
+# Also suppress at the urllib3 logger level
+import logging
+
+logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
+logging.getLogger("urllib3").setLevel(logging.ERROR)
 import pandas as pd
 import navis
 import pcg_skel
@@ -21,6 +48,10 @@ from caveclient import CAVEclient
 from ..utils.decorators import parse_neuroncriteria, inject_dataset
 from ..utils.cave import get_cave_client as create_client
 import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+
+# Configure matplotlib for proper PDF export
+plt.rcParams['pdf.fonttype'] = 42
 import matplotlib.colors as mcolors
 import requests
 
@@ -30,7 +61,7 @@ SKELETON_INFO = {
     "vertex_attributes": [
         {"id": "radius", "data_type": "float32", "num_components": 1}
     ],
-} # from navis 
+}  # from navis
 
 __all__ = [
     "skeletonize_neuron",
@@ -51,7 +82,7 @@ __all__ = [
 
 
 @parse_neuroncriteria()
-@inject_dataset() #navis logic import
+@inject_dataset()  # navis logic import
 def skeletonize_neuron(
     client: CAVEclient,
     root_id: Union[int, List[int], NDArray],
@@ -71,7 +102,7 @@ def skeletonize_neuron(
     client : CAVEclient
         CAVE client for data access.
     root_id : int
-        Root ID of the neuron to skeletonize. 
+        Root ID of the neuron to skeletonize.
     shave_skeleton : bool, default True
         Remove small protrusions and bristles from skeleton (from my understanding).
     remove_soma_hairball : bool, default False
@@ -127,19 +158,24 @@ def skeletonize_neuron(
                     **kwargs,
                 )
                 for rid in tqdm(
-                    root_id_array, desc="Skeletonizing", disable=not progress, leave=False
+                    root_id_array,
+                    desc="Skeletonizing",
+                    disable=not progress,
+                    leave=False,
                 )
             ]
         )
 
-    assert isinstance(root_id, (int, np.integer)), "root_id must be an integer for single neuron"
+    assert isinstance(
+        root_id, (int, np.integer)
+    ), "root_id must be an integer for single neuron"
     root_id_int = int(root_id)
 
-    if use_pcg_skel: # here we use the pcg_skel class from the caveclient
+    if use_pcg_skel:  # here we use the pcg_skel class from the caveclient
         try:
             skel = pcg_skel.pcg_skeleton(root_id=root_id_int, client=client)
             try:
-                if hasattr(skel, 'vertices') and hasattr(skel, 'edges'):
+                if hasattr(skel, "vertices") and hasattr(skel, "edges"):
                     vertices = skel.vertices  # type: ignore
                     edges = skel.edges  # type: ignore
                 else:
@@ -153,7 +189,9 @@ def skeletonize_neuron(
             node_info = _create_node_info_dict(vertices, edges)
             df = _swc_dict_to_dataframe(node_info)
 
-            tn = navis.TreeNeuron(df, id=root_id_int, units="1 nm") # navis treeneuron object
+            tn = navis.TreeNeuron(
+                df, id=root_id_int, units="1 nm"
+            )  # navis treeneuron object
 
             if shave_skeleton:
                 _shave_skeleton(tn)
@@ -177,12 +215,12 @@ def skeletonize_neuron(
         from ..utils.cave import get_cloudvolume
 
         vol = get_cloudvolume()
-        mesh_dict = vol.mesh.get(root_id_int) if hasattr(vol, 'mesh') else vol.get_mesh(root_id_int)  # type: ignore
+        mesh_dict = vol.mesh.get(root_id_int) if hasattr(vol, "mesh") else vol.get_mesh(root_id_int)  # type: ignore
 
         if isinstance(mesh_dict, dict) and root_id_int in mesh_dict:
             mesh = mesh_dict[root_id_int]
         else:
-            mesh = mesh_dict 
+            mesh = mesh_dict
 
         if not isinstance(mesh, trimesh.Trimesh):
             mesh = trimesh.Trimesh(vertices=mesh.vertices, faces=mesh.faces)  # type: ignore
@@ -210,11 +248,11 @@ def skeletonize_neuron(
         defaults.update(skeletor_kwargs)
         s = sk.skeletonize.by_wavefront(mesh, progress=progress, **defaults)  # type: ignore
 
-        if hasattr(s, 'swc'):
+        if hasattr(s, "swc"):
             swc_data = s.swc  # type: ignore
         else:
             swc_data = s[0] if isinstance(s, tuple) else s  # type: ignore
-            
+
         swc_data["node_id"] += 1  # type: ignore
         swc_data.loc[swc_data.parent_id >= 0, "parent_id"] += 1  # type: ignore
 
@@ -385,7 +423,7 @@ def _assert_id_match(tn: navis.TreeNeuron, root_id: int, client: CAVEclient) -> 
 def _worker_wrapper(
     x: Tuple[Callable, List[Any], Dict[str, Any]],
 ) -> Union[navis.TreeNeuron, str]:
-    """ worker wrapper (from fafbseg) with error handling and retry logic.
+    """worker wrapper (from fafbseg) with error handling and retry logic.
 
     Parameters
     ----------
@@ -539,7 +577,7 @@ def detect_soma_skeleton(
 
     for seg in s.segments:
         rad = np.array([radii[node_id] for node_id in seg])
-        is_big = np.where(rad > min_rad)[0] # exactly migrated from fafbseg
+        is_big = np.where(rad > min_rad)[0]  # exactly migrated from fafbseg
 
         if not any(is_big):
             continue
@@ -547,7 +585,7 @@ def detect_soma_skeleton(
         for stretch in np.split(is_big, np.where(np.diff(is_big) != 1)[0] + 1):
             if len(stretch) < N:
                 continue
-            candidates += [seg[i] for i in stretch] # exactly migrated from fafbseg
+            candidates += [seg[i] for i in stretch]  # exactly migrated from fafbseg
 
     if not candidates:
         return None
@@ -563,7 +601,7 @@ def detect_soma_mesh(mesh: trimesh.Trimesh) -> NDArray:
     Parameters
     ----------
     mesh : trimesh.Trimesh
-        Coordinates in nanometers. Mesh must not be downsampled for 
+        Coordinates in nanometers. Mesh must not be downsampled for
         accurate detection.
 
     Returns
@@ -599,7 +637,7 @@ def detect_soma_mesh(mesh: trimesh.Trimesh) -> NDArray:
         return np.array([])
 
     n_neighbors = tree.query_ball_point(
-        mesh.vertices, r=4000, return_length=True #  migrated as is from fafbseg
+        mesh.vertices, r=4000, return_length=True  #  migrated as is from fafbseg
     )
 
     seed = np.argmax(n_neighbors)
@@ -655,7 +693,7 @@ def get_skeletons(
 ) -> navis.NeuronList:
     """Fetch skeletons for multiple neurons.
 
-    Tries to get precomputed skeletons first, then falls back to 
+    Tries to get precomputed skeletons first, then falls back to
     on-demand skeletonization if needed. if id more than one root_id, it will use the parallel skeletonization function.
 
     Parameters
@@ -668,7 +706,7 @@ def get_skeletons(
         Show progress during fetching.
     omit_failures : bool, optional
         None: raise exception on failures
-        True: skip failed neurons 
+        True: skip failed neurons
         False: return empty TreeNeuron for failed cases
     max_threads : int, default 6
         Number of parallel threads for fetching skeletons.
@@ -700,15 +738,17 @@ def get_skeletons(
         """Fetch single skeleton with fallback strategies."""
         try:
             try:
-                skel = client.skeleton.get_skeleton(root_id, output_format='dict') # here we use the skeleton class from the caveclient
+                skel = client.skeleton.get_skeleton(
+                    root_id, output_format="dict"
+                )  # here we use the skeleton class from the caveclient
                 if skel is not None:
-                    vertices = np.array(skel['vertices'], dtype=float)
-                    edges = np.array(skel['edges'], dtype=int)
+                    vertices = np.array(skel["vertices"], dtype=float)
+                    edges = np.array(skel["edges"], dtype=int)
 
                     node_info = _create_node_info_dict(vertices, edges)
                     df = _swc_dict_to_dataframe(node_info)
 
-                    tn = navis.TreeNeuron(df, id=root_id, units='1 nm')
+                    tn = navis.TreeNeuron(df, id=root_id, units="1 nm")
                     return tn
             except Exception:
                 pass
@@ -858,13 +898,15 @@ def _preprocess_mesh(mesh: trimesh.Trimesh, **kwargs) -> trimesh.Trimesh:
     remove_disconnected = min_component_size > 0
 
     try:
-        fixed_mesh = sk.pre.fix_mesh(mesh, inplace=True, remove_disconnected=remove_disconnected)
+        fixed_mesh = sk.pre.fix_mesh(
+            mesh, inplace=True, remove_disconnected=remove_disconnected
+        )
         if fixed_mesh is not None:
             mesh = fixed_mesh if isinstance(fixed_mesh, trimesh.Trimesh) else mesh
     except Exception as e:
         raise ValueError(f"Mesh preprocessing failed: {e}")
 
-    if not hasattr(mesh, 'vertices') or len(mesh.vertices) == 0:
+    if not hasattr(mesh, "vertices") or len(mesh.vertices) == 0:
         raise ValueError("Mesh preprocessing resulted in empty mesh")
 
     return mesh
@@ -873,7 +915,7 @@ def _preprocess_mesh(mesh: trimesh.Trimesh, **kwargs) -> trimesh.Trimesh:
 def _shave_skeleton(tn: navis.TreeNeuron) -> None:
     """Apply  skeleton cleanup.
 
-   
+
     Parameters
     ----------
     tn : navis.TreeNeuron
@@ -950,7 +992,7 @@ def _apply_soma_processing(
 ) -> None:
     """Apply soma detection and processing.
 
-    Tries to get soma from annotation system, falls back to radius-based 
+    Tries to get soma from annotation system, falls back to radius-based
     detection, reroots skeleton to soma, and optionally removes soma hairball.
 
     Parameters
@@ -985,8 +1027,8 @@ def _apply_soma_processing(
 def _remove_soma_hairball(tn: navis.TreeNeuron, soma: int) -> None:
     """Remove hairball structure inside soma.
 
-    Finds all nodes within 2x soma radius (min 4μm), identifies segments 
-    containing these nodes, keeps only the longest segment, and removes 
+    Finds all nodes within 2x soma radius (min 4μm), identifies segments
+    containing these nodes, keeps only the longest segment, and removes
     all other segments in the region.
 
     Parameters
@@ -1016,7 +1058,7 @@ def _remove_soma_hairball(tn: navis.TreeNeuron, soma: int) -> None:
 
 
 def divide_local_neighbourhood(mesh: trimesh.Trimesh, radius: float):
-    """Divide the mesh into locally connected patches of a given size (overlapping). 
+    """Divide the mesh into locally connected patches of a given size (overlapping).
     migrated as is from fafbseg
 
     Parameters
@@ -1033,6 +1075,7 @@ def divide_local_neighbourhood(mesh: trimesh.Trimesh, radius: float):
     """
     import numbers
     import networkx as nx
+
     assert isinstance(mesh, trimesh.Trimesh), "mesh must be a trimesh.Trimesh object"
     assert isinstance(radius, numbers.Number), "radius must be a number"
 
@@ -1043,13 +1086,13 @@ def divide_local_neighbourhood(mesh: trimesh.Trimesh, radius: float):
     e1 = mesh.vertices[edges[:, 0]]
     e2 = mesh.vertices[edges[:, 1]]
     dist = np.sqrt(np.sum((e1 - e2) ** 2, axis=1))
-    nx.set_edge_attributes(G, dict(zip(map(tuple, edges), dist)), name='weight')
+    nx.set_edge_attributes(G, dict(zip(map(tuple, edges), dist)), name="weight")
 
     not_seen = set(G.nodes)
     patches = []
     while not_seen:
         center = not_seen.pop()
-        sg = nx.ego_graph(G, center, radius=radius, distance='weight')
+        sg = nx.ego_graph(G, center, radius=radius, distance="weight")
         nodes = set(sg.nodes)
         patches.append(nodes)
         not_seen -= nodes
