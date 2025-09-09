@@ -194,7 +194,7 @@ def cached_result(
                     return cached_result
                 
                 # Get current time for age check
-                current_time = pytz.UTC.localize(dt.datetime.utcnow())
+                current_time = dt.datetime.now(dt.timezone.utc)
                 elapsed_time = (current_time - metadata['_created_at']).total_seconds()
                 
                 # Check if cache is valid based on age and custom validation
@@ -211,8 +211,8 @@ def cached_result(
                     return cached_result
                 else:
                     logging.info(f"Cached {cache_name} is stale.")
-                    # Remove stale cache entry
-                    del cache[cache_key]
+                    # Remove stale cache entry safely to avoid key errors 
+                    cache.pop(cache_key, None)
             
             # Cache miss or forced refresh
             logging.debug(f"Fetching new {cache_name}...")
@@ -228,7 +228,7 @@ def cached_result(
                 cache[cache_key] = {
                     'result': result,
                     'metadata': {
-                        '_created_at': pytz.UTC.localize(dt.datetime.utcnow())
+                        '_created_at': dt.datetime.now(dt.timezone.utc)
                     }
                 }
                 
