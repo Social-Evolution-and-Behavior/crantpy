@@ -15,7 +15,6 @@ from typing import Any, Dict, List, Optional, TypeVar, Union, cast
 import numpy as np
 import pandas as pd
 import pytz
-import requests
 import seatable_api
 from seatable_api import Base
 
@@ -26,8 +25,8 @@ from crantpy.utils.config import (ALL_ANNOTATION_FIELDS,
                                   CRANT_SEATABLE_WORKSPACE_ID,
                                   CRANT_VALID_DATASETS, MAXIMUM_CACHE_DURATION,
                                   SEARCH_EXCLUDED_ANNOTATION_FIELDS)
-from crantpy.utils.decorators import cached_result, inject_dataset
-from crantpy.utils.utils import create_sql_query
+from crantpy.utils.decorators import cached_result, inject_dataset, parse_neuroncriteria
+from crantpy.utils.helpers import create_sql_query
 
 # get API TOKEN from environment variable
 CRANT_SEATABLE_API_TOKEN = os.getenv('CRANTTABLE_TOKEN')
@@ -98,7 +97,7 @@ def get_all_seatable_annotations(
     limit = 10000  # Seatable API limit per query
 
     while True:
-        logging.info(f"Fetching rows from {start} to {start + limit}...")
+        logging.debug(f"Fetching rows from {start} to {start + limit}...")
         sql_query = create_sql_query(
             table_name=CRANT_SEATABLE_ANNOTATIONS_TABLES[dataset],
             fields=ALL_ANNOTATION_FIELDS,
@@ -112,19 +111,19 @@ def get_all_seatable_annotations(
                 break
 
         if not results:
-            logging.info("No more results found.")
+            logging.debug("No more results found.")
             break # Exit loop if no results are returned
 
         all_results.extend(results)
-        logging.info(f"Retrieved {len(results)} rows in this batch.")
+        logging.debug(f"Retrieved {len(results)} rows in this batch.")
 
         if len(results) < limit:
-            logging.info("Fetched all rows.")
+            logging.debug("Fetched all rows.")
             break # Exit loop if fewer than 'limit' rows were returned
 
         start += limit # Prepare for the next batch
 
-    logging.info(f"Retrieved a total of {len(all_results)} rows.")
+    logging.debug(f"Retrieved a total of {len(all_results)} rows.")
     # Convert the results to a pandas DataFrame
     df = pd.DataFrame(all_results) if all_results else pd.DataFrame(columns=ALL_ANNOTATION_FIELDS)
 
@@ -144,3 +143,39 @@ def get_all_seatable_annotations(
             )
             
     return df
+
+# function to check if neurons are proofread
+@inject_dataset(allowed=CRANT_VALID_DATASETS)
+@cached_result(
+    cache_name="proofread_neurons",
+    key_fn=lambda *args, **kwargs: args[0] if args else kwargs['dataset'],
+)
+def get_proofread_neurons(
+    dataset: Optional[str] = None,
+    clear_cache: bool = False,
+):
+    """
+    Get the root IDs of neurons that are proofread.
+
+    Parameters
+    ----------
+    dataset : str, optional
+        Dataset to fetch annotations from.
+    clear_cache : bool, default False
+        Whether to force reloading annotations from Seatable, bypassing the cache.
+
+    Returns
+    -------
+    numpy.ndarray
+        Array of root IDs of proofread neurons.
+    """
+    # Fetch all annotations
+    annotations = get_all_seatable_annotations(proofread_only=True, clear_cache=clear_cache, dataset=dataset)
+
+    # Check if the 'root_id' column exists
+    if 'root_id' not in annotations.columns:
+        logging.warning("No 'root_id' column found in annotations. Returning empty array.")
+        return np.array([])
+
+    # Return unique root IDs as numpy array
+    return annotations['root_id'].unique().astype(np.int64)

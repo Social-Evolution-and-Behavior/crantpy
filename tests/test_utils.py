@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Set, Tuple
 import pandas as pd
 import pytest
 
-from crantpy.utils.utils import create_sql_query, filter_df, match_dtype
+from crantpy.utils.helpers import create_sql_query, filter_df, match_dtype
 
 
 def test_match_dtype_int() -> None:
