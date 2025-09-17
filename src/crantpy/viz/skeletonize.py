@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """Neuron skeletonization tools.
 
-This module suppresses urllib3 connection pool warnings that commonly appear
-when downloading mesh data from Google Cloud Storage during skeletonization.
-The warnings "Connection pool is full, discarding connection: storage.googleapis.com"
-are cosmetic and do not affect functionality.
+This module offers optional suppression of urllib3 connection pool warnings
+that can appear when downloading mesh data during skeletonization. These specific
+messages are cosmetic and do not affect functionality, but can be noisy. Suppression
+is opt-in via a function call or the environment variable
+"CRANTPY_SUPPRESS_URLLIB3_WARNINGS".
 """
 
 import os
@@ -12,25 +13,7 @@ import warnings
 import urllib3
 import numpy as np
 
-# Suppress urllib3 connection pool warnings
-urllib3.disable_warnings(urllib3.exceptions.HTTPWarning)
-urllib3.disable_warnings()  # Disable all urllib3 warnings
-warnings.filterwarnings(
-    "ignore", message=".*Connection pool is full, discarding connection.*"
-)
-warnings.filterwarnings("ignore", category=urllib3.exceptions.HTTPWarning)
-warnings.filterwarnings(
-    "ignore",
-    message="Connection pool is full, discarding connection: storage.googleapis.com.*",
-)
-warnings.filterwarnings("ignore", module="urllib3")
-warnings.filterwarnings("ignore", category=urllib3.exceptions.InsecureRequestWarning)
-
-# Also suppress at the urllib3 logger level
 import logging
-
-logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
-logging.getLogger("urllib3").setLevel(logging.ERROR)
 import pandas as pd
 import navis
 import pcg_skel
@@ -50,10 +33,67 @@ from ..utils.cave import get_cave_client as create_client
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 
-# Configure matplotlib for proper PDF export
+# Configure matplotlib for proper PDF export 
 plt.rcParams['pdf.fonttype'] = 42
 import matplotlib.colors as mcolors
 import requests
+
+# Module logger
+logger = logging.getLogger(__name__)
+
+# --- Optional urllib3 warning suppression utilities ---
+def configure_urllib3_warning_suppression(enable: Optional[bool] = None) -> bool:
+    """Enable suppression of known cosmetic urllib3 warnings.
+
+    Trade-offs: Hiding warnings can make it harder to notice real connectivity
+    issues. When enabled, only the specific connection pool message is filtered;
+    other warnings remain visible. Does not call urllib3.disable_warnings().
+
+    Control via `enable` or environment variable `CRANTPY_SUPPRESS_URLLIB3_WARNINGS`.
+
+    Returns True if suppression is enabled, False otherwise.
+    """
+    if enable is None:
+        env = os.getenv("CRANTPY_SUPPRESS_URLLIB3_WARNINGS", "").strip().lower()
+        enable = env in {"1", "true", "yes", "on"}
+
+    # Clear any prior filters for this exact message to avoid duplicates
+    if enable:
+        try:
+            warnings.filterwarnings(
+                "ignore",
+                message=r".*Connection pool is full, discarding connection.*",
+                module=r"urllib3[.]connectionpool",
+            )
+            # Keep logging in default state; do not blanket silence urllib3
+            logger.debug("Enabled urllib3 connection pool warning suppression")
+        except Exception:
+            # Non-fatal: log with traceback for debugging but do not raise
+            logger.exception("Failed to configure urllib3 warning suppression")
+            return False
+        return True
+    return False
+
+from contextlib import contextmanager
+
+
+@contextmanager
+def suppress_urllib3_connectionpool_warnings():
+    """Context manager to temporarily suppress urllib3 connectionpool messages.
+
+    Only filters the specific "Connection pool is full, discarding connection"
+    warnings while inside the context.
+    """
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r".*Connection pool is full, discarding connection.*",
+            module=r"urllib3[.]connectionpool",
+        )
+        yield
+
+# Apply suppression if requested via environment variable
+configure_urllib3_warning_suppression()
 
 SKELETON_INFO = {
     "@type": "neuroglancer_skeletons",
@@ -71,6 +111,8 @@ __all__ = [
     "detect_soma_skeleton",
     "detect_soma_mesh",
     "get_soma_from_annotations",
+    "configure_urllib3_warning_suppression",
+    "suppress_urllib3_connectionpool_warnings",
     "_create_node_info_dict",
     "_swc_dict_to_dataframe",
     "_preprocess_mesh",
@@ -114,9 +156,9 @@ def skeletonize_neuron(
     save_to : str, optional
         Save skeleton as SWC file to this path.
     progress : bool, default True
-        Show progress bars during processing/i love to have this always.
+        Show progress bars during processing.
     use_pcg_skel : bool, default False
-        Try pcg_skel first before skeletor (this is the cave version of skeletor but i have to cehck the class 'skeleton' from the docs).
+        Try pcg_skel first before skeletor (CAVE-client skeletonization).
     **kwargs
         Additional arguments for skeletonization algorithms.
 
@@ -171,7 +213,7 @@ def skeletonize_neuron(
     ), "root_id must be an integer for single neuron"
     root_id_int = int(root_id)
 
-    if use_pcg_skel:  # here we use the pcg_skel class from the caveclient
+    if use_pcg_skel:  # try the CAVE client's pcg_skel first
         try:
             skel = pcg_skel.pcg_skeleton(root_id=root_id_int, client=client)
             try:
@@ -183,7 +225,7 @@ def skeletonize_neuron(
                         skel = skel[0]  # type: ignore
                     vertices = skel.vertices  # type: ignore
                     edges = skel.edges  # type: ignore
-            except (AttributeError, IndexError) as e:
+            except (AttributeError, IndexError, KeyError, TypeError) as e:
                 raise ValueError(f"Failed to extract skeleton data from pcg_skel: {e}")
 
             node_info = _create_node_info_dict(vertices, edges)
@@ -206,9 +248,17 @@ def skeletonize_neuron(
 
             return tn
 
+        except (requests.HTTPError, requests.ConnectionError, requests.Timeout, ValueError) as e:
+            logger.warning(
+                "pcg_skel failed for %s: %s. Falling back to skeletor.",
+                root_id_int,
+                e,
+            )
         except Exception as e:
-            warnings.warn(
-                f"pcg_skel failed for {root_id_int}: {e}. Falling back to skeletor."
+            # Unexpected failure: log full traceback, then fall back
+            logger.exception(
+                "Unexpected error in pcg_skel for %s. Falling back to skeletor.",
+                root_id_int,
             )
 
     try:
@@ -260,8 +310,13 @@ def skeletonize_neuron(
 
         tn = navis.TreeNeuron(swc_data, units="1 nm", id=root_id_int, soma=None)
 
-    except Exception as e:
+    except (ValueError, RuntimeError, requests.RequestException) as e:
+        # Known/expected error types: raise with concise message
         raise ValueError(f"Failed to skeletonize neuron {root_id_int}: {e}")
+    except Exception:
+        # Unexpected: log full traceback to aid debugging, then raise
+        logger.exception("Unexpected error while skeletonizing neuron %s", root_id_int)
+        raise
 
     if shave_skeleton:
         _shave_skeleton(tn)
@@ -357,37 +412,24 @@ def skeletonize_neurons_parallel(
             disable=not progress,
             leave=True,
         ):
-            if isinstance(result, navis.TreeNeuron):
-                results.append(result)
-            else:
-                warnings.warn(f"Failed to skeletonize neuron {result}")
+            results.append(result)
 
-    failed = [r for r in results if not isinstance(r, navis.TreeNeuron)]
-    if failed:
-        failed_ids = []
-        for error in failed:
-            if isinstance(error, str) and "_" in error:
-                parts = error.split("_")
-                if len(parts) >= 3:
-                    failed_ids.append(parts[2])
-                else:
-                    failed_ids.append(str(error))
-            else:
-                failed_ids.append(str(error))
-
+    # Separate successes and failures (structured error dicts)
+    error_entries: List[Dict[str, Any]] = [
+        r for r in results if isinstance(r, dict) and r.get("status") == "error"
+    ]
+    if error_entries:
+        failed_ids = [str(e.get("root_id")) for e in error_entries]
+        error_types: Dict[str, int] = {}
+        for e in error_entries:
+            et = str(e.get("error_type", "unknown"))
+            error_types[et] = error_types.get(et, 0) + 1
         warnings.warn(
-            f'{len(failed)} neurons failed to skeletonize: {", ".join(failed_ids[:10])}'
-            + ("..." if len(failed) > 10 else "")
+            f"{len(error_entries)} neurons failed to skeletonize: "
+            + ", ".join(failed_ids[:10])
+            + ("..." if len(error_entries) > 10 else "")
         )
-
-        error_types = {}
-        for error in failed:
-            if isinstance(error, str) and "_" in error:
-                error_type = error.split("_")[0]
-                error_types[error_type] = error_types.get(error_type, 0) + 1
-
-        if error_types:
-            warnings.warn(f"Error breakdown: {error_types}")
+        warnings.warn(f"Error breakdown: {error_types}")
 
     neurons = navis.NeuronList([r for r in results if isinstance(r, navis.TreeNeuron)])
 
@@ -404,7 +446,13 @@ def skeletonize_neurons_parallel(
 
 
 def _assert_id_match(tn: navis.TreeNeuron, root_id: int, client: CAVEclient) -> None:
-    """Verify that skeleton nodes map to the correct segment ID."""
+    """Verify that skeleton nodes map to the correct segment ID.
+
+    TODO: ID matching is not implemented yet. This function currently acts as
+    a placeholder and will be implemented once the CAVEclient API usage is
+    finalized. Calls to this function log a warning to make it clear that the
+    `assert_id_match` option is currently a no-op.
+    """
     if root_id == 0:
         raise ValueError("Segmentation ID must not be 0")
 
@@ -412,12 +460,14 @@ def _assert_id_match(tn: navis.TreeNeuron, root_id: int, client: CAVEclient) -> 
 
     try:
         warnings.warn(
-            "ID matching validation temporarily disabled - CAVEclient API needs verification"
+            "TODO: assert_id_match is not implemented yet and currently has no effect.",
+            category=UserWarning,
         )
         return
 
     except Exception as e:
-        warnings.warn(f"Failed to verify segment IDs: {e}")
+        logger.exception("Unexpected error during ID match assertion for %s", root_id)
+        raise
 
 
 def _worker_wrapper(
@@ -432,8 +482,9 @@ def _worker_wrapper(
 
     Returns
     -------
-    navis.TreeNeuron or str
-        Successfully skeletonized neuron or error message string if failed.
+    navis.TreeNeuron or dict
+        Successfully skeletonized neuron or a structured error dict:
+        {"status": "error", "root_id": int, "error_type": str, "message": str}
     """
     f, args, kwargs = x
     root_id = args[1] if len(args) > 1 else "unknown"
@@ -441,7 +492,12 @@ def _worker_wrapper(
     try:
         result = f(*args, **kwargs)
         if result is None:
-            return f"skeletonization_failed_{root_id}"
+            return {
+                "status": "error",
+                "root_id": root_id,
+                "error_type": "skeletonization_failed",
+                "message": "Function returned None",
+            }
         return result
     except KeyboardInterrupt:
         raise
@@ -449,24 +505,44 @@ def _worker_wrapper(
         try:
             result = f(*args, **kwargs)
             if result is None:
-                return f"skeletonization_failed_after_retry_{root_id}"
+                return {
+                    "status": "error",
+                    "root_id": root_id,
+                    "error_type": "skeletonization_failed_after_retry",
+                    "message": "Function returned None after retry",
+                }
             return result
         except BaseException as retry_error:
-            error_msg = f"network_error_{root_id}_{type(e).__name__}"
-            warnings.warn(
-                f"Network error for neuron {root_id}: {e}, retry failed: {retry_error}"
+            logger.warning(
+                "Network error for neuron %s: %s, retry failed: %s",
+                root_id,
+                e,
+                retry_error,
             )
-            return error_msg
+            return {
+                "status": "error",
+                "root_id": root_id,
+                "error_type": type(e).__name__,
+                "message": f"Network error: {e}. Retry failed: {retry_error}",
+            }
     except ValueError as e:
-        error_msg = f"validation_error_{root_id}"
         warnings.warn(f"Validation error for neuron {root_id}: {e}")
-        return error_msg
+        return {
+            "status": "error",
+            "root_id": root_id,
+            "error_type": "validation_error",
+            "message": str(e),
+        }
     except Exception as e:
-        error_msg = f"processing_error_{root_id}_{type(e).__name__}"
-        warnings.warn(
-            f"Failed to skeletonize neuron {root_id}: {type(e).__name__}: {e}"
+        logger.exception(
+            "Failed to skeletonize neuron %s: %s: %s", root_id, type(e).__name__, e
         )
-        return error_msg
+        return {
+            "status": "error",
+            "root_id": root_id,
+            "error_type": type(e).__name__,
+            "message": str(e),
+        }
 
 
 def _create_node_info_dict(
@@ -531,7 +607,8 @@ def detect_soma_skeleton(
 ) -> Optional[int]:
     """Try detecting the soma based on radii.
 
-    Looks for consecutive nodes with large radii to identify soma. Added some checks to make sure the skeleton is valid.
+    Looks for consecutive nodes with large radii to identify soma. Includes
+    additional checks to ensure the skeleton is valid.
 
     Parameters
     ----------
@@ -577,7 +654,7 @@ def detect_soma_skeleton(
 
     for seg in s.segments:
         rad = np.array([radii[node_id] for node_id in seg])
-        is_big = np.where(rad > min_rad)[0]  # exactly migrated from fafbseg
+        is_big = np.where(rad > min_rad)[0]
 
         if not any(is_big):
             continue
@@ -585,7 +662,7 @@ def detect_soma_skeleton(
         for stretch in np.split(is_big, np.where(np.diff(is_big) != 1)[0] + 1):
             if len(stretch) < N:
                 continue
-            candidates += [seg[i] for i in stretch]  # exactly migrated from fafbseg
+            candidates += [seg[i] for i in stretch]
 
     if not candidates:
         return None
@@ -631,14 +708,20 @@ def detect_soma_mesh(mesh: trimesh.Trimesh) -> NDArray:
     from scipy.spatial import cKDTree
 
     try:
-        tree = cKDTree(mesh.vertices)  #  migrated as is from fafbseg
+        tree = cKDTree(mesh.vertices)
     except Exception as e:
         warnings.warn(f"Failed to build KDTree for soma detection: {e}")
         return np.array([])
 
-    n_neighbors = tree.query_ball_point(
-        mesh.vertices, r=4000, return_length=True  #  migrated as is from fafbseg
-    )
+    # cKDTree.query_ball_point returns lists of indices; compute lengths explicitly
+    n = mesh.vertices.shape[0]
+    n_neighbors = np.zeros(n, dtype=int)
+    for i, v in enumerate(mesh.vertices):
+        dist, _ix = tree.query(v, k=n, distance_upper_bound=4000)
+        if np.isscalar(dist):
+            n_neighbors[i] = int(np.isfinite(dist))
+        else:
+            n_neighbors[i] = int(np.isfinite(dist).sum())
 
     seed = np.argmax(n_neighbors)
 
@@ -676,7 +759,7 @@ def get_soma_from_annotations(
         (x, y, z) coordinates of the soma in nanometers, or None if not found.
     """
     try:
-        return None
+        return None  # TODO: implement when annotation source is available
 
     except Exception as e:
         warnings.warn(f"Failed to fetch soma annotations for {root_id}: {e}")
@@ -684,7 +767,7 @@ def get_soma_from_annotations(
 
 
 def get_skeletons(
-    root_ids: Union[List[int], NDArray],
+    root_ids: Union[int, List[int], NDArray],
     dataset: str = "latest",
     progress: bool = True,
     omit_failures: Optional[bool] = None,
@@ -724,8 +807,15 @@ def get_skeletons(
             f'Got "{omit_failures}".'
         )
 
-    if not navis.utils.is_iterable(root_ids):
-        root_ids = [root_ids]
+    # Normalize root_ids to a Python list of ints for downstream handling
+    if isinstance(root_ids, (int, np.integer)):
+        root_ids_list = [int(root_ids)]
+    elif isinstance(root_ids, np.ndarray):
+        root_ids_list = [int(x) for x in root_ids.tolist()]
+    else:
+        root_ids_list = [int(x) for x in root_ids]
+
+    root_ids = np.asarray(root_ids_list, dtype=np.int64)
 
     root_ids = np.asarray(root_ids, dtype=np.int64)
 
@@ -740,7 +830,7 @@ def get_skeletons(
             try:
                 skel = client.skeleton.get_skeleton(
                     root_id, output_format="dict"
-                )  # here we use the skeleton class from the caveclient
+                )
                 if skel is not None:
                     vertices = np.array(skel["vertices"], dtype=float)
                     edges = np.array(skel["edges"], dtype=int)
@@ -1059,7 +1149,6 @@ def _remove_soma_hairball(tn: navis.TreeNeuron, soma: int) -> None:
 
 def divide_local_neighbourhood(mesh: trimesh.Trimesh, radius: float):
     """Divide the mesh into locally connected patches of a given size (overlapping).
-    migrated as is from fafbseg
 
     Parameters
     ----------
