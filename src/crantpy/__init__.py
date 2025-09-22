@@ -85,6 +85,11 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
             'update_ids',
             'validate_cave_client',
         ],
+        'viz': [
+            'skeletonize_neuron',
+            'skeletonize_neurons_parallel',
+            'get_skeletons',
+        ],
     },
 )
 
@@ -104,6 +109,11 @@ __all__ = ['ALL_ANNOTATION_FIELDS', 'CRANT_CACHE_DIR', 'CRANT_CAVE_DATASTACKS',
            'get_cloudvolume', 'get_current_cave_token',
            'get_dataset_segmentation_source',
            'get_datastack_segmentation_source', 'get_global_cache',
+           'get_seatable_base_object', 'get_seatable_cache_name',
+           'inject_dataset', 'match_dtype', 'neurons', 'parse_neuroncriteria',
+           'queries', 'seatable', 'set_cave_token', 'set_logging_level',
+           'utils', 'validate_cave_client', 'viz', 'skeletonize_neuron',
+           'skeletonize_neurons_parallel', 'get_skeletons']
            'get_proofread_neurons', 'get_seatable_base_object',
            'get_seatable_cache_name', 'helpers', 'inject_dataset',
            'is_latest_roots', 'is_proofread', 'is_valid_root',
