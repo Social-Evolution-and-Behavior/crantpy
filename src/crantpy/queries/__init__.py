@@ -9,13 +9,12 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
     },
     submod_attrs={
         'neurons': [
-            'F',
             'NeuronCriteria',
-            'T',
             'get_annotations',
+            'is_proofread',
         ],
     },
 )
 
-__all__ = ['F', 'NeuronCriteria', 'T', 'connections', 'get_annotations',
+__all__ = ['NeuronCriteria', 'connections', 'get_annotations', 'is_proofread',
            'neurons']

@@ -5,18 +5,20 @@ This module provides decorators for caching and other utilities.
 
 import datetime as dt
 import functools
+import inspect
 import logging
 from typing import (Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union,
                     cast)
 
+import warnings
+import requests
+import time
 import numpy as np
 import pytz
 
 from crantpy.utils.config import CRANT_DEFAULT_DATASET, MAXIMUM_CACHE_DURATION
 from crantpy.utils.exceptions import NoMatchesError
-
-T = TypeVar('T')
-F = TypeVar('F', bound=Callable[..., Any])
+from crantpy.utils.types import T, F
 
 _GLOBAL_CACHES: Dict[str, Dict[Any, Any]] = {}
 
@@ -50,6 +52,20 @@ def clear_global_cache(cache_name: str) -> None:
     if cache_name in _GLOBAL_CACHES:
         _GLOBAL_CACHES[cache_name] = {}
         logging.info(f"{cache_name} cache cleared.")
+
+def _generate_default_cache_key(func, *args, **kwargs):
+    """Generate a default cache key for a function call."""
+    sig = inspect.signature(func)
+    bound_args = sig.bind_partial(*args, **kwargs)
+    bound_args.apply_defaults()
+    
+    # Try to get dataset from bound arguments
+    if 'dataset' in bound_args.arguments:
+        return bound_args.arguments['dataset']
+    elif args:
+        return args[0]
+    else:
+        return 'latest'
 
 def cached_result(
     cache_name: str,
@@ -138,7 +154,7 @@ def cached_result(
     - The `check_stale` parameter can be used to skip staleness checks when
       calling the decorated function.
     """
-    def decorator(func: F) -> F:
+    def outer(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Get the cache dictionary
@@ -150,16 +166,22 @@ def cached_result(
             
             # Generate cache key
             if key_fn is not None:
-                cache_key = key_fn(*args, **kwargs)
+                try:
+                    cache_key = key_fn(*args, **kwargs)
+                    logging.debug(f"Generated cache key: {cache_key} for {cache_name}")
+                except (KeyError, IndexError):
+                    logging.debug("Key function failed, falling back to default cache key generation.")
+                    # If key_fn fails, fall back to default behavior
+                    cache_key = _generate_default_cache_key(func, *args, **kwargs)
             else:
-                # Default: use first arg or dataset kwarg
-                cache_key = args[0] if args else kwargs['dataset']
+                cache_key = _generate_default_cache_key(func, *args, **kwargs)
             
             if cache_key is None:
                 raise ValueError("Cache key function returned None.")
             
             # Check for cached result
             if not clear_cache and cache_key in cache:
+                logging.debug(f"Cache hit for {cache_name} with key: {cache_key}")
                 cached_entry = cache[cache_key]
                 
                 # Extract the actual result and metadata
@@ -168,11 +190,11 @@ def cached_result(
                 
                 # Skip staleness checks if check_stale is False
                 if not check_stale:
-                    logging.info(f"Using cached {cache_name}.")
+                    logging.debug(f"Using cached {cache_name}.")
                     return cached_result
                 
                 # Get current time for age check
-                current_time = pytz.UTC.localize(dt.datetime.utcnow())
+                current_time = dt.datetime.now(dt.timezone.utc)
                 elapsed_time = (current_time - metadata['_created_at']).total_seconds()
                 
                 # Check if cache is valid based on age and custom validation
@@ -185,15 +207,15 @@ def cached_result(
                 
                 # If cache is valid, return it
                 if age_valid and validation_valid:
-                    logging.info(f"Using cached {cache_name}.")
+                    logging.debug(f"Using cached {cache_name}.")
                     return cached_result
                 else:
                     logging.info(f"Cached {cache_name} is stale.")
-                    # Remove stale cache entry
-                    del cache[cache_key]
+                    # Remove stale cache entry safely to avoid key errors 
+                    cache.pop(cache_key, None)
             
             # Cache miss or forced refresh
-            logging.info(f"Fetching new {cache_name}...")
+            logging.debug(f"Fetching new {cache_name}...")
             result = func(*args, **kwargs)
             
             # Determine if result should be cached
@@ -206,7 +228,7 @@ def cached_result(
                 cache[cache_key] = {
                     'result': result,
                     'metadata': {
-                        '_created_at': pytz.UTC.localize(dt.datetime.utcnow())
+                        '_created_at': dt.datetime.now(dt.timezone.utc)
                     }
                 }
                 
@@ -217,12 +239,13 @@ def cached_result(
         
         return cast(F, wrapper)
     
-    return decorator
+    return outer
 
 
 # decorator to inject dataset
 def inject_dataset(allowed: Optional[Union[List[str], str]] = None,
-                   disallowed: Optional[Union[List[str], str]] = None) -> Callable[[F], F]:
+                  disallowed: Optional[Union[List[str], str]] = None,
+                  param_name: str = 'dataset') -> Callable[[F], F]:
     """Inject current default dataset.
     
     Parameters
@@ -231,6 +254,8 @@ def inject_dataset(allowed: Optional[Union[List[str], str]] = None,
         List of allowed datasets or a single allowed dataset.
     disallowed : List[str] or str, optional
         List of disallowed datasets or a single disallowed dataset.
+    param_name : str, default 'dataset'
+        Name of the parameter to inject the dataset into.
         
     Returns
     -------
@@ -244,15 +269,37 @@ def inject_dataset(allowed: Optional[Union[List[str], str]] = None,
     def outer(func: F) -> F:
         @functools.wraps(func)
         def inner(*args: Any, **kwargs: Any) -> Any:
-            if kwargs.get('dataset', None) is None:
-                kwargs['dataset'] = CRANT_DEFAULT_DATASET
-
-            ds = kwargs['dataset']
+            # Get function signature
+            sig = inspect.signature(func)
+            param_names = list(sig.parameters.keys())
+            
+            # Check if dataset parameter exists in function signature
+            if param_name not in param_names:
+                # If parameter doesn't exist, just call the function
+                return func(*args, **kwargs)
+            
+            param_idx = param_names.index(param_name)
+            
+            # Check if dataset is already provided
+            if param_name not in kwargs and len(args) <= param_idx:
+                # Inject default dataset
+                kwargs[param_name] = CRANT_DEFAULT_DATASET
+            
+            # Get the dataset value for validation
+            if param_name in kwargs:
+                ds = kwargs[param_name]
+            elif len(args) > param_idx:
+                ds = args[param_idx]
+            else:
+                ds = CRANT_DEFAULT_DATASET
+            
+            # Validate dataset
             if allowed and ds not in allowed:
-                raise ValueError(f'Dataset "{ds}" not allowed for function {func}. '
-                                 f'Accepted datasets: {allowed}')
+                raise ValueError(f'Dataset "{ds}" not allowed for function {func.__name__}. '
+                                f'Accepted datasets: {allowed}')
             if disallowed and ds in disallowed:
-                raise ValueError(f'Dataset "{ds}" not allowed for function {func}.')
+                raise ValueError(f'Dataset "{ds}" not allowed for function {func.__name__}.')
+            
             return func(*args, **kwargs)
         return cast(F, inner)
     return outer
@@ -321,4 +368,34 @@ def parse_neuroncriteria(allow_empty: bool = False) -> Callable[[F], F]:
         return cast(F, inner)
     return outer
 
-
+def retry_func(retries=5, cooldown=2):
+    """
+    Retry decorator for functions on HTTPError.
+    This also suppresses UserWarnings (commonly raised by l2 cache requests)
+    Parameters
+    ----------
+    cooldown :  int | float
+                Cooldown period in seconds between attempts.
+    retries :   int
+                Number of retries before we give up. Every subsequent retry
+                will delay by an additional `retry`.
+    """
+    def outer(func: F) -> F:
+        @functools.wraps(func)
+        def inner(*args: Any, **kwargs: Any) -> Any:
+            for i in range(1, retries + 1):
+                logging.debug(f"Attempt {i} of {retries} for {func.__name__}")
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    try:
+                        return func(*args, **kwargs)
+                    except KeyboardInterrupt:
+                        raise
+                    except requests.RequestException:
+                        if i >= retries:
+                            raise
+                    except BaseException:
+                        raise
+                    time.sleep(cooldown * i)
+        return cast(F, inner)
+    return outer
