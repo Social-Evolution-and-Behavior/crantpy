@@ -378,8 +378,8 @@ def test_get_annotations_invalid_input(mock_ann: MagicMock) -> None:
     silent failures or confusing behavior.
     """
     with pytest.raises(ValueError) as excinfo:
-        result = get_annotations({1: 'a'})  # Dictionary is not valid input
-    assert "Invalid input type" in str(excinfo.value)
+        result = get_annotations([{'root_id': '1'}])  # Invalid input type
+    assert "Cannot convert" in str(excinfo.value)
 
 
 @patch('crantpy.queries.neurons.get_all_seatable_annotations', side_effect=dummy_get_all_seatable_annotations)
