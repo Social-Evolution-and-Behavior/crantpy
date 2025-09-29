@@ -76,7 +76,6 @@ class NeuronCriteria:
 
     # Get neurons by cell class
     >>> ol_neurons = NC(cell_class='olfactory_projection_neuron')
-
     # Get neurons by multiple cell types using regex
     >>> pns = NC(cell_type=['PN_.*', 'mPN_.*'], regex=True)
 
