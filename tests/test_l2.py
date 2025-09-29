@@ -5,7 +5,7 @@ import navis
 from crantpy.viz import l2
 from typing import Any, Dict, List, Set, Tuple
 
-# Example root ID for testing 
+# Example root ID for testing
 TEST_ROOT_ID = 576460752732354679
 TEST_ROOT_IDS = [576460752715406504, 576460752749155108]
 
