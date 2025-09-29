@@ -21,12 +21,11 @@ from crantpy.utils.config import (ALL_ANNOTATION_FIELDS, CRANT_VALID_DATASETS,
                                   SEARCH_EXCLUDED_ANNOTATION_FIELDS)
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.utils.exceptions import FilteringError, NoMatchesError
-from crantpy.utils.seatable import get_all_seatable_annotations
-from crantpy.utils.utils import filter_df
+from crantpy.utils.seatable import get_all_seatable_annotations, get_proofread_neurons
+from crantpy.utils.helpers import filter_df
+from crantpy.utils.cave.helpers import parse_root_ids
+from crantpy.utils.types import Neurons
 
-# Type variables for decorator
-F = TypeVar('F', bound=Callable[..., Any])
-T = TypeVar('T')
 
 class NeuronCriteria:
     """Parses filter queries into root IDs using Seatable.
@@ -273,24 +272,26 @@ class NeuronCriteria:
             logging.info(
                 f"Found {len(roots)} {'neurons' if len(roots) > 1 else 'neuron'} matching the given criteria."
             )
+        
+        # Remove nones and empty strings
+        roots = [root for root in roots if root not in (None, '', 'None', 'nan', 'NaN')]
 
         # Return as numpy array
         return np.asarray(roots)
 
 # function to fetch annotations from Seatable
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
-@parse_neuroncriteria()
 def get_annotations(
-    neurons: Union[int, str, List[Union[int, str]], 'NeuronCriteria'], 
-    dataset: Optional[str] = None, 
-    clear_cache: bool = False, 
+    neurons: Neurons,
+    dataset: Optional[str] = None,
+    clear_cache: bool = False,
     proofread_only: bool = False
 ) -> pd.DataFrame:
     """Get annotations from Seatable.
 
     Parameters
     ----------
-    neurons : int, str, list or NeuronCriteria
+    neurons : Neurons = Neurons = str | int | np.int64 | navis.BaseNeuron | Iterables of previous types | navis.NeuronList | NeuronCriteria
         Neurons to fetch annotations for. Can be a single root ID, a list of root IDs,
         or an instance of NeuronCriteria.
     dataset : str, optional
@@ -312,15 +313,10 @@ def get_annotations(
     NoMatchesError
         If no matching neurons are found.
     """
-    if isinstance(neurons, (int, str)):
-        # If integer convert to string
-        if isinstance(neurons, int):
-            neurons = str(neurons)
-        # If a single root ID, convert to list
-        neurons = [neurons]
-    elif not isinstance(neurons, (list, np.ndarray)):
-        raise ValueError("Invalid input type. Must be int, str, or list of root IDs.")
-    # Convert to string for consistency
+    # parse neurons
+    neurons = parse_root_ids(neurons)
+
+    # Convert to string for comparison to annotations
     neurons = [str(neuron) for neuron in neurons]
 
     # Fetch annotations from Seatable
@@ -330,3 +326,40 @@ def get_annotations(
     if filtered_annotations.empty:
         raise NoMatchesError("No matching neurons found for the provided criteria.")
     return filtered_annotations
+
+@inject_dataset(allowed=CRANT_VALID_DATASETS)
+def is_proofread(
+    neurons: Neurons,
+    dataset: Optional[str] = None,
+    clear_cache: bool = False,
+) -> np.ndarray:
+    """Check if the specified neurons are proofread.
+
+    Parameters
+    ----------
+    neurons : Neurons = Neurons = str | int | np.int64 | navis.BaseNeuron | Iterables of previous types | navis.NeuronList | NeuronCriteria
+        Neurons to check for proofread status.
+    dataset : str, optional
+        Dataset to fetch annotations from.
+    clear_cache : bool, default False
+        Whether to force updating annotations from Seatable, bypassing the cache.
+
+    Returns
+    -------
+    np.ndarray
+        A boolean array indicating whether each neuron is proofread.
+    """
+    # Parse neurons to get root IDs
+    neurons = parse_root_ids(neurons)
+
+    # Fetch all proofread neurons
+    proofread_neurons = get_proofread_neurons(dataset=dataset, clear_cache=clear_cache)
+
+    if len(proofread_neurons) == 0:
+        logging.warning("No proofread neurons found in the dataset.")
+        return np.array([], dtype=bool)
+
+    # Check if the neurons are in the proofread list
+    is_proofread = np.isin(neurons, proofread_neurons)
+
+    return is_proofread

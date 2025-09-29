@@ -29,3 +29,14 @@ __all__ = ['chunks_to_nm', 'detect_soma', 'find_anchor_loc',
            'get_l2_chunk_info', 'get_l2_dotprops', 'get_l2_graph',
            'get_l2_info', 'get_l2_meshes', 'get_l2_skeleton',
            'get_mesh_neuron', 'l2', 'mesh']
+    submodules={},
+    submod_attrs={
+        'skeletonize': [
+            'skeletonize_neuron',
+            'skeletonize_neurons_parallel',
+            'get_skeletons',
+        ],
+    },
+)
+
+__all__ = ['skeletonize_neuron', 'skeletonize_neurons_parallel', 'get_skeletons']

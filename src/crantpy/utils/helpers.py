@@ -1,18 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-This module contains utility functions for crantpy.
+This module contains helper functions for crantpy.
 """
 
 import logging
 import os
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, cast
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, cast, Set
+import functools
+import time
+import warnings
 
 import navis
 import pandas as pd
 import requests
-from pandas.api.types import pandas_dtype
+import numpy as np
+from collections.abc import Iterable
 
-T = TypeVar('T')
+from crantpy.utils.types import T, F, Neurons, IDs, Timestamp
+from crantpy.utils.decorators import parse_neuroncriteria
 
 # set up logging and options to change logging level
 logging.basicConfig(level=logging.WARNING,
@@ -140,7 +145,8 @@ def filter_df(df: pd.DataFrame, column: str, value: Any, regex: bool = False, ca
     This function filters a df based on a column and a value.
     It can handle string, numeric, and list-containing columns.
 
-    Args:
+    Parameters
+    ----------
         df (pd.DataFrame): The df to filter.
         column (str): The column to filter on.
         value (Any): The value(s) to filter by (can be single item or list).
@@ -152,7 +158,8 @@ def filter_df(df: pd.DataFrame, column: str, value: Any, regex: bool = False, ca
                           Defaults to False.
         exact (bool): For string columns, if False, use substring (contains) matching instead of exact match.
 
-    Returns:
+    Returns
+    -------
         pd.DataFrame: The filtered df.
     """
     if column not in df.columns:
@@ -234,3 +241,94 @@ def filter_df(df: pd.DataFrame, column: str, value: Any, regex: bool = False, ca
                  # Standard equality check
                  df_filtered = df_filtered[df_filtered[column] == value]
         return df_filtered
+
+def make_iterable(x: Any, force_type: Optional[type] = None) -> np.ndarray:
+    """
+    Convert input to an numpy array.
+
+    Parameters
+    ----------
+    x : Any
+        The input to convert.
+
+    force_type : Optional[type]
+        If specified, the input will be cast to this type.
+
+    Returns
+    -------
+    np.ndarray
+        The converted numpy array.
+    """
+    if not isinstance(x, Iterable):
+        x = [x]
+    if isinstance(x, (set, dict, pd.Series)):
+        x = list(x)
+
+    if force_type is not None:
+        try:
+            arr = np.array(x, dtype=force_type)
+        except Exception as e:
+            raise ValueError(f"Cannot convert {x} of type {type(x)} to {force_type}.")
+    return arr
+
+def parse_timestamp(x: Timestamp) -> str:
+    """
+    Parse a timestamp string to Unix timestamp.
+
+    Parameters
+    ----------
+    x : Timestamp
+        The timestamp string to parse. Int must be unix timestamp. String must be ISO 8601 - e.g. '2021-11-15'. datetime, np.datetime64, pd.Timestamp are also accepted.
+
+    Returns
+    -------
+    str
+        The Unix timestamp.
+    """
+    if isinstance(x, str):
+        try:
+            # Convert to datetime and then to Unix timestamp
+            dt = pd.to_datetime(x)
+            return str(int(dt.timestamp()))
+        except ValueError:
+            raise ValueError(f"Invalid timestamp format: {x}. String must be ISO 8601 format.")
+    elif isinstance(x, (int, np.int64)):
+        return str(int(x))
+    else:
+        try:
+            dt = pd.to_datetime(x)
+            return str(int(dt.timestamp()))
+        except ValueError:
+            raise ValueError(f"Invalid timestamp format: {x}. Input must be a valid datetime-like object.")
+
+
+def retry(func, retries=5, cooldown=2):
+    """
+    Retry function on HTTPError.
+
+    This also suppresses UserWarnings (commonly raised by l2 cache requests)
+
+    Parameters
+    ----------
+    cooldown :  int | float
+                Cooldown period in seconds between attempts.
+    retries :   int
+                Number of retries before we give up. Every subsequent retry
+                will delay by an additional `retry`.
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        for i in range(1, retries + 1):
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                try:
+                    return func(*args, **kwargs)
+                except KeyboardInterrupt:
+                    raise
+                except requests.RequestException:
+                    if i >= retries:
+                        raise
+                except BaseException:
+                    raise
+                time.sleep(cooldown * i)
+    return wrapper
