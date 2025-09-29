@@ -609,7 +609,7 @@ def get_l2_dotprops(
         Root ID(s) of the FlyWire neuron(s) to generate dotprops for.
     min_size : int, optional
         Minimum size (in nm^3) for the L2 chunks. Smaller chunks will be ignored.
-    sample : float [0 > 1], optional
+    sample : float (0 < sample < 1), optional
         If float, will create Dotprops based on a fractional sample of the L2 chunks.
     omit_failures : bool, optional
         Behaviour when dotprops generation fails. None (default) raises, True skips, False returns empty Dotprops.
