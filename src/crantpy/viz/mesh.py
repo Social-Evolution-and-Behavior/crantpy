@@ -74,7 +74,6 @@ def get_mesh_neuron(
     elif isinstance(neurons, (list, np.ndarray)):
         root_ids = np.array(neurons)
     else:
-        logging.error(f"Invalid input type for 'neurons': {type(neurons)}.")
         logging.error(f"Invalid input type for 'neurons': {type(neurons)}. Must be int, str, list, np.ndarray, or NeuronCriteria.")
         raise ValueError("Invalid input type for neurons. Must be int, str, list, np.ndarray, or NeuronCriteria.")
 
