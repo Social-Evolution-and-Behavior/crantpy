@@ -26,13 +26,14 @@ from crantpy.utils.helpers import retry, make_iterable, parse_timestamp
 from crantpy.utils.types import IDs, Neurons, Timestamp
 from crantpy.utils.seatable import get_all_seatable_annotations
 
+
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 def roots_to_supervoxels(
     neurons: Neurons,
     clear_cache: bool = False,
     progress: bool = True,
     *,
-    dataset: Optional[str] = None
+    dataset: Optional[str] = None,
 ):
     """Get supervoxels making up given neurons.
 
@@ -178,8 +179,10 @@ def supervoxels_to_roots(
             # Split e.g. 'mat_432' to extract version and query timestamp
             version = int(timestamp.split("_")[1])
             timestamp = client.materialize.get_timestamp(version)
-    else:
-        timestamp = parse_timestamp(timestamp)
+
+    if timestamp is not None:
+        # Parse timestamp but keep it as integer for cloudvolume
+        timestamp = int(parse_timestamp(timestamp))
 
     with navis.config.tqdm(
         desc="Fetching roots",
@@ -211,11 +214,12 @@ def supervoxels_to_roots(
 
     return roots
 
+
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 def update_ids(
     x: Union[Neurons, pd.DataFrame],
     supervoxels: Optional[IDs] = None,
-    timestamp: Optional[Timestamp] = None,
+    timestamp: Optional[Union[str, Timestamp]] = None,
     stop_layer: int = 2,
     progress: bool = True,
     dataset: Optional[str] = None,
@@ -223,14 +227,14 @@ def update_ids(
     clear_cache: bool = False,
 ) -> pd.DataFrame:
     """Update root IDs to their latest versions.
-    
+
     This function prioritizes using supervoxel IDs from annotations when available,
     falling back to chunkedgraph methods only when necessary.
 
     Parameters
     ----------
     x : Neurons or pd.DataFrame
-        Root IDs to update. If DataFrame, must contain 'root_id' column and 
+        Root IDs to update. If DataFrame, must contain 'root_id' column and
         optionally 'supervoxel_id' column.
     supervoxels : IDs, optional
         Supervoxel IDs corresponding to the root IDs. If provided, these will
@@ -260,21 +264,23 @@ def update_ids(
        old_id      new_id  confidence  changed
     0  123456789  123456789     1.0     False
     1  987654321  999999999     0.85    True
-    
+
     >>> # With supervoxels
     >>> update_ids([123456789], supervoxels=[111222333])
        old_id      new_id  confidence  changed
     0  123456789  123456789     1.0     False
     """
     import logging
-    
+
     # Handle DataFrame input
     if isinstance(x, pd.DataFrame):
-        if 'root_id' not in x.columns:
+        if "root_id" not in x.columns:
             raise ValueError("DataFrame must contain 'root_id' column")
-        
-        raw_root_ids = x['root_id'].values
-        raw_supervoxels = x['supervoxel_id'].values if 'supervoxel_id' in x.columns else None
+
+        raw_root_ids = x["root_id"].values
+        raw_supervoxels = (
+            x["supervoxel_id"].values if "supervoxel_id" in x.columns else None
+        )
     else:
         # Handle Neurons input - this already handles None/NaN through parse_neuroncriteria
         try:
@@ -282,61 +288,76 @@ def update_ids(
             raw_supervoxels = None
         except Exception as e:
             logging.warning(f"Failed to parse root IDs: {e}")
-            return pd.DataFrame(columns=['old_id', 'new_id', 'confidence', 'changed'])
+            return pd.DataFrame(columns=["old_id", "new_id", "confidence", "changed"])
 
     # Filter out None/NaN root IDs - we can't work with invalid root IDs
     valid_root_mask = pd.notna(raw_root_ids) & (raw_root_ids != 0)
-    
+
     if not valid_root_mask.any():
         logging.warning("No valid root IDs found. All root IDs are None, NaN, or zero.")
-        return pd.DataFrame(columns=['old_id', 'new_id', 'confidence', 'changed'])
-    
+        return pd.DataFrame(columns=["old_id", "new_id", "confidence", "changed"])
+
     # Extract valid root IDs and convert to proper format
     valid_indices = np.where(valid_root_mask)[0]
     root_ids = raw_root_ids[valid_root_mask]
-    
+
     try:
         root_ids = make_iterable(root_ids, force_type=np.int64)
     except Exception as e:
         logging.error(f"Failed to convert root IDs to int64: {e}")
-        return pd.DataFrame(columns=['old_id', 'new_id', 'confidence', 'changed'])
+        return pd.DataFrame(columns=["old_id", "new_id", "confidence", "changed"])
 
     # Handle supervoxels with None/NaN filtering
     supervoxel_mask = np.zeros(len(root_ids), dtype=bool)
     supervoxels_clean = None
-    
+
     if supervoxels is not None:
         # User provided supervoxels
         raw_supervoxels = supervoxels
     elif raw_supervoxels is not None:
         # Got supervoxels from DataFrame
-        raw_supervoxels = raw_supervoxels[valid_root_mask]  # Only keep supervoxels for valid root IDs
+        raw_supervoxels = raw_supervoxels[
+            valid_root_mask
+        ]  # Only keep supervoxels for valid root IDs
     elif use_annotations:
         # Try to get supervoxels from annotations
         try:
-            annotations = get_all_seatable_annotations(dataset=dataset, clear_cache=clear_cache)
-            if 'supervoxel_id' in annotations.columns and 'root_id' in annotations.columns:
+            annotations = get_all_seatable_annotations(
+                dataset=dataset, clear_cache=clear_cache
+            )
+            if (
+                "supervoxel_id" in annotations.columns
+                and "root_id" in annotations.columns
+            ):
                 # Filter out NaN values and create clean DataFrame
-                clean_annotations = annotations[['root_id', 'supervoxel_id']].dropna()
-                
+                clean_annotations = annotations[["root_id", "supervoxel_id"]].dropna()
+
                 # Check for duplicates and warn if found
-                duplicates = clean_annotations.duplicated(subset=['root_id'], keep=False)
+                duplicates = clean_annotations.duplicated(
+                    subset=["root_id"], keep=False
+                )
                 if duplicates.any():
-                    duplicate_roots = clean_annotations[duplicates]['root_id'].unique()
-                    logging.warning(f"Multiple supervoxel IDs found for {len(duplicate_roots)} root IDs. Using first occurrence for each.")
-                
+                    duplicate_roots = clean_annotations[duplicates]["root_id"].unique()
+                    logging.warning(
+                        f"Multiple supervoxel IDs found for {len(duplicate_roots)} root IDs. Using first occurrence for each."
+                    )
+
                 # Create mapping using drop_duplicates (keeps first occurrence)
-                supervoxel_map = clean_annotations.drop_duplicates(subset=['root_id']).set_index('root_id')['supervoxel_id']
-                
+                supervoxel_map = clean_annotations.drop_duplicates(
+                    subset=["root_id"]
+                ).set_index("root_id")["supervoxel_id"]
+
                 # Map supervoxels to our root IDs using pandas vectorized operations
                 root_ids_series = pd.Series(root_ids)
                 supervoxels_series = root_ids_series.map(supervoxel_map)
-                
+
                 # Convert back to numpy arrays, handling NaN values
                 raw_supervoxels = supervoxels_series.values
-                
+
                 if pd.notna(raw_supervoxels).any():
-                    logging.info(f"Found supervoxel IDs for {pd.notna(raw_supervoxels).sum()}/{len(root_ids)} root IDs from annotations")
+                    logging.info(
+                        f"Found supervoxel IDs for {pd.notna(raw_supervoxels).sum()}/{len(root_ids)} root IDs from annotations"
+                    )
             else:
                 raw_supervoxels = None
                 logging.info("No supervoxel_id column found in annotations")
@@ -350,44 +371,62 @@ def update_ids(
     if raw_supervoxels is not None:
         # Check length match
         if len(raw_supervoxels) != len(root_ids):
-            logging.warning(f"Number of supervoxels ({len(raw_supervoxels)}) does not match root IDs ({len(root_ids)}). Ignoring supervoxels.")
+            logging.warning(
+                f"Number of supervoxels ({len(raw_supervoxels)}) does not match root IDs ({len(root_ids)}). Ignoring supervoxels."
+            )
             raw_supervoxels = None
         else:
             # Filter out None/NaN/zero supervoxels
             supervoxel_mask = pd.notna(raw_supervoxels) & (raw_supervoxels != 0)
-            
+
             if supervoxel_mask.any():
                 try:
                     # Only convert valid supervoxels
                     valid_supervoxels = raw_supervoxels[supervoxel_mask]
-                    supervoxels_clean = make_iterable(valid_supervoxels, force_type=np.int64)
-                    logging.info(f"Using supervoxels for {supervoxel_mask.sum()}/{len(root_ids)} root IDs")
+                    supervoxels_clean = make_iterable(
+                        valid_supervoxels, force_type=np.int64
+                    )
+                    logging.info(
+                        f"Using supervoxels for {supervoxel_mask.sum()}/{len(root_ids)} root IDs"
+                    )
                 except Exception as e:
-                    logging.warning(f"Failed to convert supervoxels to int64: {e}. Falling back to chunkedgraph method.")
+                    logging.warning(
+                        f"Failed to convert supervoxels to int64: {e}. Falling back to chunkedgraph method."
+                    )
                     supervoxel_mask = np.zeros(len(root_ids), dtype=bool)
                     supervoxels_clean = None
 
-    # Check which IDs are already latest
-    is_latest = is_latest_roots(root_ids, timestamp=timestamp, dataset=dataset, progress=progress)
-    
+    # Check which valid IDs are already latest
+    is_latest_valid = np.zeros(len(root_ids), dtype=bool)  # For valid IDs only
+    if len(root_ids) > 0:  # Only check if there are valid IDs
+        is_latest_valid = is_latest_roots(
+            root_ids,
+            timestamp=timestamp,
+            dataset=dataset,
+            progress=progress,
+            validate_ids=False,
+        )
+
     # Initialize result DataFrame for ALL original indices (including invalid ones)
-    result = pd.DataFrame({
-        'old_id': raw_root_ids,
-        'new_id': raw_root_ids.copy(),
-        'confidence': np.ones(len(raw_root_ids), dtype=float),
-        'changed': np.zeros(len(raw_root_ids), dtype=bool)
-    })
-    
+    result = pd.DataFrame(
+        {
+            "old_id": raw_root_ids,
+            "new_id": raw_root_ids.copy(),
+            "confidence": np.ones(len(raw_root_ids), dtype=float),
+            "changed": np.zeros(len(raw_root_ids), dtype=bool),
+        }
+    )
+
     # Mark invalid root IDs with 0 confidence
-    result.loc[~valid_root_mask, 'confidence'] = 0.0
-    
-    # Find valid IDs that need updating
-    valid_needs_update = ~is_latest
-    
+    result.loc[~valid_root_mask, "confidence"] = 0.0
+
+    # Find valid IDs that need updating (indices into root_ids array)
+    valid_needs_update = ~is_latest_valid
+
     if not valid_needs_update.any():
         logging.info("All valid root IDs are already the latest. No updates needed.")
         return result
-    
+
     # Handle materialization timestamps
     if isinstance(timestamp, str) and timestamp.startswith("mat"):
         client = get_cave_client(dataset=dataset)
@@ -398,29 +437,36 @@ def update_ids(
                 version = int(timestamp.split("_")[1])
                 timestamp = client.materialize.get_timestamp(version)
             except (IndexError, ValueError):
-                raise ValueError(f"Invalid materialization timestamp format: {timestamp}")
+                raise ValueError(
+                    f"Invalid materialization timestamp format: {timestamp}"
+                )
 
     # Parse timestamp
     if timestamp is not None:
-        timestamp = parse_timestamp(timestamp)
+        # Parse timestamp but keep it as integer for cloudvolume
+        timestamp = int(parse_timestamp(timestamp))
 
-    # Get indices that need updating (in terms of valid root IDs)
+    # Get indices that need updating (indices into root_ids array, not raw_root_ids)
     update_indices = np.where(valid_needs_update)[0]
-    
+
     # Split into those with and without supervoxels
-    has_supervoxels = supervoxel_mask[update_indices] if supervoxels_clean is not None else np.zeros(len(update_indices), dtype=bool)
-    
+    has_supervoxels = (
+        supervoxel_mask[update_indices]
+        if supervoxels_clean is not None
+        else np.zeros(len(update_indices), dtype=bool)
+    )
+
     with navis.config.tqdm(
         desc="Updating IDs",
         total=len(update_indices),
         disable=not progress or len(update_indices) <= 1,
         leave=False,
     ) as pbar:
-        
+
         # Update using supervoxels (fast path)
         if has_supervoxels.any() and supervoxels_clean is not None:
             svoxel_update_indices = update_indices[has_supervoxels]
-            
+
             # Create mapping from update indices to supervoxel indices
             supervoxel_indices = np.where(supervoxel_mask)[0]
             svoxel_lookup = {}
@@ -429,68 +475,92 @@ def update_ids(
                 if has_sv:
                     svoxel_lookup[i] = svoxel_idx
                     svoxel_idx += 1
-            
+
             # Get supervoxel IDs for the indices that need updating
             svoxel_ids = []
             for idx in svoxel_update_indices:
                 if idx in svoxel_lookup:
                     svoxel_ids.append(supervoxels_clean[svoxel_lookup[idx]])
-            
+
             if svoxel_ids:
                 try:
-                    new_roots = supervoxels_to_roots(svoxel_ids, timestamp=timestamp, dataset=dataset, progress=False)
-                    
-                    for i, (update_idx, new_root) in enumerate(zip(svoxel_update_indices, new_roots)):
-                        original_idx = valid_indices[update_idx]  # Map back to original DataFrame index
-                        result.loc[original_idx, 'new_id'] = new_root
-                        result.loc[original_idx, 'confidence'] = 1.0
-                        result.loc[original_idx, 'changed'] = (new_root != root_ids[update_idx])
+                    new_roots = supervoxels_to_roots(
+                        svoxel_ids, timestamp=timestamp, dataset=dataset, progress=True
+                    )
+
+                    for i, (update_idx, new_root) in enumerate(
+                        zip(svoxel_update_indices, new_roots)
+                    ):
+                        original_idx = valid_indices[
+                            update_idx
+                        ]  # Map back to original DataFrame index
+                        result.loc[original_idx, "new_id"] = new_root
+                        result.loc[original_idx, "confidence"] = 1.0
+                        result.loc[original_idx, "changed"] = (
+                            new_root != root_ids[update_idx]
+                        )
                         pbar.update(1)
-                        
+
                 except Exception as e:
                     logging.warning(f"Failed to update IDs using supervoxels: {e}")
+                    import traceback
+
+                    traceback.print_exc()
                     # Fall back to chunkedgraph method for these
                     has_supervoxels[:] = False
-        
+
         # Update using chunkedgraph suggest_latest_roots (robust but slower)
         no_supervoxels = update_indices[~has_supervoxels]
-        
+
         if len(no_supervoxels) > 0:
             client = get_cave_client(dataset=dataset)
             suggest_latest = retry(client.chunkedgraph.suggest_latest_roots)
-            
+
             for update_idx in no_supervoxels:
-                original_idx = valid_indices[update_idx]  # Map back to original DataFrame index
+                original_idx = valid_indices[
+                    update_idx
+                ]  # Map back to original DataFrame index
                 old_id = root_ids[update_idx]
-                
+
                 try:
-                    suggestions = suggest_latest(
+                    suggestions, overlap = suggest_latest(
                         old_id,
                         timestamp=timestamp,
                         stop_layer=stop_layer,
                         return_all=True,
-                        return_fraction_overlap=True
+                        return_fraction_overlap=True,
                     )
-                    
-                    if suggestions and len(suggestions) > 0:
+
+                    if len(suggestions) > 0:
                         # Get the suggestion with highest overlap
-                        best_suggestion = max(suggestions, key=lambda x: x.get('overlap_fraction', 0))
-                        new_id = best_suggestion['new_root_id']
-                        confidence = best_suggestion.get('overlap_fraction', 0.0)
+                        candidates = [
+                            {"new_root_id": s, "overlap_fraction": f}
+                            for s, f in zip(suggestions, overlap)
+                        ]
+                        best_suggestion = max(
+                            candidates, key=lambda x: x.get("overlap_fraction", 0)
+                        )
+                        new_id = best_suggestion["new_root_id"]
+                        confidence = best_suggestion.get("overlap_fraction", 0.0)
                     else:
                         # No suggestions found, keep original
                         new_id = old_id
                         confidence = 0.0
-                        
-                    result.loc[original_idx, 'new_id'] = new_id
-                    result.loc[original_idx, 'confidence'] = confidence
-                    result.loc[original_idx, 'changed'] = (new_id != old_id)
-                    
+
+                    result.loc[original_idx, "new_id"] = new_id
+                    result.loc[original_idx, "confidence"] = confidence
+                    result.loc[original_idx, "changed"] = new_id != old_id
+
                 except Exception as e:
                     logging.warning(f"Failed to update ID {old_id}: {e}")
+                    import traceback
+
+                    traceback.print_exc()
                     # Keep original ID with 0 confidence
-                    result.loc[original_idx, 'confidence'] = 0.0
-                
+                    result.loc[original_idx, "new_id"] = old_id
+                    result.loc[original_idx, "confidence"] = 0.0
+                    result.loc[original_idx, "changed"] = False
+
                 pbar.update(1)
-    
+
     return result
