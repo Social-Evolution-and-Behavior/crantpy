@@ -1,88 +1,30 @@
 # -*- coding: utf-8 -*-
 """
-This module provides utility functions for cave-related operations.
+This module provides utility functions for cave-related loading and caching.
 """
 
-import datetime as dt
 import functools
 import logging
-import os
-from getpass import getpass
+import datetime as dt
 from typing import Optional
-
-import cloudvolume as cv
 import pytz
+
 from caveclient import CAVEclient
 
-from crantpy.utils.config import (CRANT_CAVE_DATASTACKS, CRANT_CAVE_SERVER_URL,
-                                  CRANT_VALID_DATASETS, MAXIMUM_CACHE_DURATION)
-from crantpy.utils.decorators import cached_result, inject_dataset
+import navis
+import cloudvolume as cv
 
+from crantpy.utils.config import (
+    CRANT_CAVE_SERVER_URL,
+    CRANT_CAVE_DATASTACKS,
+    CRANT_VALID_DATASETS,
+)
+from crantpy.utils.decorators import (
+    inject_dataset,
+    cached_result,
+)
+from crantpy.utils.cave.auth import generate_cave_token
 
-def get_current_cave_token() -> str:
-    """
-    Retrieves the current token from the CAVE client.
-    
-    Returns
-    -------
-    str
-        The current CAVE token.
-        
-    Raises
-    ------
-    ValueError
-        If no token is found.
-    """
-    # Create a CAVE client instance
-    client = CAVEclient(server_address=CRANT_CAVE_SERVER_URL)
-    # Get the current authentication 
-    auth = client.auth 
-
-    if auth.token:
-        # If a token is already set, return it
-        return auth.token
-    else:
-        raise ValueError("No token found. Please generate a new token using generate_cave_token().")
-
-def set_cave_token(token: str) -> None:
-    """
-    Sets the CAVE token for the CAVE client.
-    
-    Parameters
-    ----------
-    token : str
-        The CAVE token to set.
-    """
-    assert isinstance(token, str), "Token must be a string."
-
-    # Create a CAVE client instance
-    client = CAVEclient(server_address=CRANT_CAVE_SERVER_URL)
-    # Get the current authentication
-    auth = client.auth
-    # Save the token
-    auth.save_token(token, overwrite=True)
-
-def generate_cave_token(save: bool = False) -> None:
-    """
-    Generates a token for the CAVE client.
-    If save is True, the token will be saved (overwriting any existing token).
-    
-    Parameters
-    ----------
-    save : bool, default False
-        Whether to save the token after generation.
-    """
-    # Create a CAVE client instance
-    client = CAVEclient(server_address=CRANT_CAVE_SERVER_URL)
-    # Get the current authentication
-    auth = client.auth
-    # Generate a new token
-    auth.get_new_token(open=True)
-    if save:
-        token = getpass("Enter your CAVE token: ").strip()
-        set_cave_token(token)
-    else:
-        logging.warning("Token generated but not saved. Use set_cave_token(<token>) to save it.")
 
 @functools.lru_cache
 def get_cave_datastacks() -> list:
@@ -92,7 +34,16 @@ def get_cave_datastacks() -> list:
 @functools.lru_cache
 def get_datastack_segmentation_source(datastack) -> str:
     """Get segmentation source for given CAVE datastack."""
+    # ensure the datastack is valid
+    if datastack not in get_cave_datastacks():
+        raise ValueError(f"Invalid datastack: {datastack}. Available datastacks: {get_cave_datastacks()}")
     return CAVEclient(server_address=CRANT_CAVE_SERVER_URL).info.get_datastack_info(datastack_name=datastack)['segmentation_source']
+
+@functools.lru_cache
+@inject_dataset(allowed=CRANT_VALID_DATASETS)
+def get_dataset_segmentation_source(dataset: str) -> str:
+    """Get segmentation source for given dataset."""
+    return get_datastack_segmentation_source(CRANT_CAVE_DATASTACKS[dataset])
 
 # Define a validation function for CAVE client cache
 def validate_cave_client(client, *args, **kwargs):
@@ -100,8 +51,8 @@ def validate_cave_client(client, *args, **kwargs):
     try:
         current_time = pytz.UTC.localize(dt.datetime.utcnow())
         mds = client.materialize.get_versions_metadata()
-        expired = [version for version in mds if version['expires_on'] <= current_time]
-        return len(expired) == 0
+        unexpired = [version for version in mds if version['expires_on'] > current_time]
+        return len(unexpired) > 0
     except Exception as e:
         logging.warning(f"Error validating CAVE client: {e}")
         return False
@@ -207,3 +158,8 @@ def get_cloudvolume(
 def clear_cloudvolume_cache() -> None:
     """Clears the cloudvolume cache."""
     get_cloudvolume.clear_cache()
+
+def clear_all_caches() -> None:
+    """Clears all caches."""
+    clear_cave_client_cache()
+    clear_cloudvolume_cache()
