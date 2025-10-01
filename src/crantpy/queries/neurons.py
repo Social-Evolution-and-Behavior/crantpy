@@ -282,7 +282,7 @@ class NeuronCriteria:
 # function to fetch annotations from Seatable
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 def get_annotations(
-    neurons: Neurons,
+    neurons: Union[int, str, List[Union[int, str]], 'NeuronCriteria'],
     dataset: Optional[str] = None,
     clear_cache: bool = False,
     proofread_only: bool = False
@@ -291,9 +291,9 @@ def get_annotations(
 
     Parameters
     ----------
-    neurons : Neurons = Neurons = str | int | np.int64 | navis.BaseNeuron | Iterables of previous types | navis.NeuronList | NeuronCriteria
-        Neurons to fetch annotations for. Can be a single root ID, a list of root IDs,
-        or an instance of NeuronCriteria.
+    neurons : int, str, list of int/str, or NeuronCriteria
+        Neuron root ID(s) or a NeuronCriteria instance specifying which neurons to fetch.
+        Accepts a single ID, a list/array of IDs, or a NeuronCriteria object.
     dataset : str, optional
         Dataset to fetch annotations from.
     clear_cache : bool, default False
@@ -313,16 +313,25 @@ def get_annotations(
     NoMatchesError
         If no matching neurons are found.
     """
-    # parse neurons
-    neurons = parse_root_ids(neurons)
+    # Normalize input
+    if hasattr(neurons, 'get_roots'):
+        root_ids = neurons.get_roots()
+    elif isinstance(neurons, (int, str)):
+        root_ids = np.array([neurons])
+    elif isinstance(neurons, (list, np.ndarray)):
+        root_ids = np.array(neurons)
+    else:
+        logging.error(f"Invalid input type for 'neurons': {type(neurons)}. Must be int, str, list, np.ndarray, or NeuronCriteria.")
+        raise ValueError("Invalid input type for neurons. Must be int, str, list, np.ndarray, or NeuronCriteria.")
+
 
     # Convert to string for comparison to annotations
-    neurons = [str(neuron) for neuron in neurons]
+    root_ids = [str(root) for root in root_ids]
 
     # Fetch annotations from Seatable
     annotations = get_all_seatable_annotations(proofread_only=proofread_only, clear_cache=clear_cache, dataset=dataset)
     # Filter annotations based on the provided root IDs
-    filtered_annotations = annotations[annotations['root_id'].isin(neurons)]
+    filtered_annotations = annotations[annotations['root_id'].isin(root_ids)]
     if filtered_annotations.empty:
         raise NoMatchesError("No matching neurons found for the provided criteria.")
     return filtered_annotations
