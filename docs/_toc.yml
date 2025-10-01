@@ -6,12 +6,8 @@ root: intro
 chapters:
 - file: installation
   title: Installation & Setup
-- file: quickstart
-  title: Quick Start Guide
-- file: user-guide
-  title: User Guide
 - file: tutorial
-  title: Tutorial Notebook
+  title: Quickstart Tutorial
 - file: faq
   title: FAQ
 - file: api/modules

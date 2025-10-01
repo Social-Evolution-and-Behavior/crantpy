@@ -1,104 +1,83 @@
 # CRANTpy
 
-## Python Access to the Clonal Raider ANT (CRANT) Brain Datasets
+> **Python Access to the Clonal Raider ANT Brain Connectome**
 
 [![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://social-evolution-and-behavior.github.io/crantpy/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-CRANTpy is a Python library providing streamlined access to the Clonal Raider ANT Brain (CRANTb) connectome datasets. It offers a comprehensive interface for querying neurons, accessing morphological data, and analyzing neural circuits in the ant brain.
+A comprehensive Python interface for exploring the complete neural connectome of the clonal raider ant (*Ooceraea biroi*).
 
-## 🧠 About the CRANT Project
+**[Documentation](https://social-evolution-and-behavior.github.io/crantpy/)** • **[Quick Start](#-quick-start)** • **[Examples](#-examples)** • **[Support](#-support)**
 
-The Clonal Raider ANT Brain (CRANTb) project is a large-scale effort to map the complete neural connectome of the clonal raider ant (*Ooceraea biroi*). This dataset represents one of the most complete invertebrate brain connectomes available, providing unprecedented insights into the neural basis of social behavior in insects.
+---
 
-## ✨ Key Features
+## 🧠 About
 
-- **🔍 Flexible Neuron Querying**: Filter neurons by anatomical region, cell type, tract, or custom criteria
-- **🌐 CAVE Integration**: Direct access to the Connectome Annotation Versioning Engine
-- **📊 Rich Metadata**: Access to comprehensive neuron annotations and properties
-- **🧮 Morphological Analysis**: Tools for analyzing neuron meshes and skeletons
-- **⚡ Optimized Performance**: Intelligent caching and batch processing for large-scale analyses
-- **🔄 Version Control**: Support for different dataset versions (latest, sandbox)
+The Clonal Raider ANT Brain (CRANTb) project represents one of the most complete invertebrate brain connectomes available, providing unprecedented insights into the neural basis of social behavior in insects. CRANTpy makes this rich dataset accessible through an intuitive Python interface.
 
-## 🚀 Quick Start
+## ✨ Features
 
-```python
-import crantpy as cp
+- **🔍 Intelligent Querying** - Filter neurons by anatomy, cell type, or custom criteria
+- **🌐 CAVE Integration** - Direct access to the Connectome Annotation Versioning Engine  
+- **📊 Rich Metadata** - Comprehensive neuron annotations and properties
+- **🧮 Morphological Tools** - Analyze neuron meshes, skeletons, and connectivity
+- **⚡ High Performance** - Optimized caching and batch processing
+- **🔄 Version Support** - Work with latest stable or development datasets
 
-# Set up authentication (one-time setup)
-cp.generate_cave_token(save=True)
-
-# Query neurons by cell type
-ol_neurons = cp.NeuronCriteria(cell_class='olfactory_projection_neuron')
-root_ids = ol_neurons.get_roots()
-
-# Get morphological data
-mesh = cp.get_mesh_neuron(root_ids[0])
-skeleton = cp.get_skeletons(root_ids[0])
-
-# Access annotations
-annotations = cp.get_annotations(ol_neurons)
-```
-
-## 🛠️ Installation
-
-### Requirements
-
-- Python 3.10 or higher
-- Internet connection for accessing CAVE datasets
-
-### Install from PyPI
+## � Installation
 
 ```bash
+# Install from PyPI
 pip install crantpy
-```
 
-### Install from Source
-
-```bash
+# Or install from source
 git clone https://github.com/Social-Evolution-and-Behavior/crantpy.git
 cd crantpy
 pip install -e .
 ```
 
-### Development Installation
+**Requirements:** Python 3.10+, internet connection for CAVE access
 
-```bash
-git clone https://github.com/Social-Evolution-and-Behavior/crantpy.git
-cd crantpy
-poetry install
-```
-
-## 📖 Documentation
-
-- **[Installation Guide](https://social-evolution-and-behavior.github.io/crantpy/installation.html)**: Detailed setup instructions
-- **[Quick Start](https://social-evolution-and-behavior.github.io/crantpy/quickstart.html)**: Get up and running in minutes
-- **[User Guide](https://social-evolution-and-behavior.github.io/crantpy/user-guide.html)**: Comprehensive tutorials and examples
-- **[Tutorial Notebook](https://social-evolution-and-behavior.github.io/crantpy/tutorial.html)**: Interactive Jupyter notebook
-- **[API Reference](https://social-evolution-and-behavior.github.io/crantpy/api/modules.html)**: Complete function documentation
-- **[FAQ](https://social-evolution-and-behavior.github.io/crantpy/faq.html)**: Common questions and solutions
-
-## 💡 Usage Examples
-
-### Query Neurons by Criteria
+## � Quick Start
 
 ```python
 import crantpy as cp
 
-# Find Kenyon cells in the mushroom body
+# One-time authentication setup
+cp.generate_cave_token(save=True)
+
+# Query neurons by cell type
+neurons = cp.NeuronCriteria(cell_class='kenyon_cell')
+root_ids = neurons.get_roots()
+
+# Get morphological data  
+skeleton = cp.get_skeletons(root_ids[0])
+mesh = cp.get_mesh_neuron(root_ids[0])
+
+# Analyze properties
+print(f"Cable length: {skeleton.cable_length:.0f} nm")
+print(f"Branch points: {skeleton.n_branch_points}")
+```
+
+## 💡 Examples
+
+### Find Specific Neurons
+
+```python
+# Kenyon cells in mushroom body
 kenyon_cells = cp.NeuronCriteria(
     cell_class='kenyon_cell',
     region='mushroom_body'
 )
 
-# Get projection neurons from the left side
+# Left-side projection neurons  
 left_pns = cp.NeuronCriteria(
     cell_class='projection_neuron',
     side='L'
 )
 
-# Use regex for complex matching
+# Pattern matching with regex
 pn_subtypes = cp.NeuronCriteria(
     cell_type='PN_.*',  # Matches PN_vm1, PN_dm1, etc.
     regex=True
@@ -108,83 +87,72 @@ pn_subtypes = cp.NeuronCriteria(
 ### Morphological Analysis
 
 ```python
-# Get neuron skeletons for morphological analysis
+# Batch analysis of neuron populations
 neuron_ids = kenyon_cells.get_roots()[:10]
 skeletons = cp.get_skeletons(neuron_ids)
 
-# Analyze morphology
 for skel in skeletons:
-    print(f"Neuron {skel.id}:")
-    print(f"  Cable length: {skel.cable_length:.2f} nm")
-    print(f"  Branch points: {skel.n_branch_points}")
-    print(f"  End points: {skel.n_endpoints}")
+    print(f"Neuron {skel.id}: {skel.cable_length:.0f} nm cable")
 ```
 
 ### 3D Visualization
 
 ```python
-# Visualize neurons in 3D
-skeleton = cp.get_skeletons(neuron_ids[0])
+# Interactive 3D plots
 skeleton.plot3d(backend='plotly')
-
-# Visualize mesh
-mesh = cp.get_mesh_neuron(neuron_ids[0])
 mesh.plot3d(backend='plotly')
 ```
 
-### Population Analysis
+## � Documentation
+
+| Resource | Description |
+|----------|-------------|
+| [**Installation Guide**](https://social-evolution-and-behavior.github.io/crantpy/installation.html) | Detailed setup instructions |
+| [**Quick Start**](https://social-evolution-and-behavior.github.io/crantpy/quickstart.html) | Get up and running in minutes |
+| [**Tutorial Notebook**](https://social-evolution-and-behavior.github.io/crantpy/tutorial.html) | Interactive Jupyter examples |
+| [**API Reference**](https://social-evolution-and-behavior.github.io/crantpy/api/modules.html) | Complete function documentation |
+| [**FAQ**](https://social-evolution-and-behavior.github.io/crantpy/faq.html) | Common questions and solutions |
+
+## 🔐 Authentication
+
+CRANTpy requires one-time authentication setup to access CAVE:
 
 ```python
-# Compare different neuron populations
-cell_classes = ['kenyon_cell', 'projection_neuron', 'local_neuron']
+import crantpy as cp
 
-for cell_class in cell_classes:
-    neurons = cp.NeuronCriteria(cell_class=cell_class)
-    count = len(neurons.get_roots())
-    print(f"{cell_class}: {count} neurons")
+# Interactive setup (saves token automatically)
+cp.generate_cave_token(save=True)
+
+# Verify connection
+client = cp.get_cave_client()
+print(f"Connected to: {client.datastack_name}")
 ```
 
-## 🔧 Authentication
+## 📊 Dataset Versions
 
-CRANTpy requires authentication to access the CAVE service:
+Choose between dataset versions for your analysis:
 
-1. **Generate token** (interactive, one-time setup):
-
-   ```python
-   import crantpy as cp
-   cp.generate_cave_token(save=True)
-   ```
-
-2. **Verify connection**:
-
-   ```python
-   client = cp.get_cave_client()
-   print(f"Connected to: {client.datastack_name}")
-   ```
-
-## 🧪 Dataset Versions
-
-CRANTpy supports multiple dataset versions:
-
-- **`latest`**: Most recent stable release (recommended)
-- **`sandbox`**: Development version with newest annotations
+- **`latest`** - Stable release (recommended for research)
+- **`sandbox`** - Development version with newest annotations
 
 ```python
-# Use specific dataset version
-latest_neurons = cp.NeuronCriteria(cell_type='KC_a', dataset='latest')
-sandbox_neurons = cp.NeuronCriteria(cell_type='KC_a', dataset='sandbox')
+# Specify version in queries
+stable_neurons = cp.NeuronCriteria(cell_type='KC_a', dataset='latest')
+dev_neurons = cp.NeuronCriteria(cell_type='KC_a', dataset='sandbox')
 ```
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [contribution guidelines](CONTRIBUTING.md) for details on:
+We welcome contributions! Here's how to get involved:
 
-- Reporting bugs
-- Suggesting enhancements
-- Submitting pull requests
-- Code style and testing
+- 🐛 **Report bugs** via [GitHub Issues](https://github.com/Social-Evolution-and-Behavior/crantpy/issues)
+- 💡 **Suggest features** in [GitHub Discussions](https://github.com/Social-Evolution-and-Behavior/crantpy/discussions)  
+- 🔧 **Submit pull requests** with improvements
+- 📖 **Improve documentation** and examples
 
-## 📄 Citation
+See our [contribution guidelines](CONTRIBUTING.md) for detailed information.
+
+## � Citation
 
 If you use CRANTpy in your research, please cite:
 
@@ -197,19 +165,27 @@ If you use CRANTpy in your research, please cite:
 }
 ```
 
-## 📞 Support
+## � Support
 
-- **Documentation**: [https://social-evolution-and-behavior.github.io/crantpy/](https://social-evolution-and-behavior.github.io/crantpy/)
-- **Issues**: [GitHub Issues](https://github.com/Social-Evolution-and-Behavior/crantpy/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Social-Evolution-and-Behavior/crantpy/discussions)
+| Need Help? | Resource |
+|------------|----------|
+| 📖 **Documentation** | [social-evolution-and-behavior.github.io/crantpy](https://social-evolution-and-behavior.github.io/crantpy/) |
+| 🐛 **Bug Reports** | [GitHub Issues](https://github.com/Social-Evolution-and-Behavior/crantpy/issues) |
+| 💭 **Questions** | [GitHub Discussions](https://github.com/Social-Evolution-and-Behavior/crantpy/discussions) |
 
-## 📜 License
+## � License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- The CRANT project team for providing the connectome data
-- The CAVE development team for the infrastructure
+Special thanks to:
+
+- The CRANT project team for the connectome data
+- The CAVE development team for infrastructure  
 - The navis team for morphological analysis tools
-- All contributors to the CRANTpy project
+- All CRANTpy contributors and users
+
+---
+
+Made with ❤️ by the CRANTb Community

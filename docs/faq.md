@@ -308,7 +308,7 @@ Yes! CRANTpy is open source. See the [GitHub repository](https://github.com/Soci
 Confidence scores (0-1) indicate how certain the system is that an old ID maps to a new ID:
 - **1.0**: Perfect match (100% supervoxel overlap)
 - **0.5**: Partial match (50% overlap)
-- **0.0**: No overlap (completely different neuron)
+- **0.0**: No strong overlap (Minimal overlap)
 
 ### What does "proofread" mean?
 
@@ -318,7 +318,6 @@ A proofread neuron has been manually reviewed and corrected by expert annotators
 
 Common statuses include:
 - `BACKBONE_PROOFREAD`: Main structure reviewed
-- `PRELIM_PROOFREAD`: Initial review completed
 - `COMPLETED`: Fully proofread and finalized
 
 ### How accurate are the morphological measurements?
