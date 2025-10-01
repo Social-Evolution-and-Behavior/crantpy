@@ -405,4 +405,137 @@ Contributors are recognized in:
 - **Release notes** for significant contributions
 - **Documentation** author credits
 
+## 📦 Package Deployment (Maintainers Only)
+
+### Prerequisites for Deployment
+
+1. **PyPI Account**: You need accounts on both [PyPI](https://pypi.org/) and [TestPyPI](https://test.pypi.org/)
+2. **API Tokens**: Create API tokens for both services
+3. **Poetry Configuration**: Configure Poetry with your API tokens
+
+### Setting Up PyPI Authentication
+
+```bash
+# Create API tokens:
+# - PyPI: https://pypi.org/manage/account/token/
+# - TestPyPI: https://test.pypi.org/manage/account/token/
+
+# Configure Poetry with your tokens:
+poetry config pypi-token.pypi pypi-your-actual-token-here
+poetry config pypi-token.testpypi pypi-your-actual-testpypi-token-here
+
+# Verify configuration:
+poetry config --list
+```
+
+### Deployment Script Usage
+
+The project includes a comprehensive deployment script (`deploy.sh`) that automates the entire release process:
+
+**Available Commands:**
+- `test-deploy`: Deploy to TestPyPI for testing
+- `deploy`: Deploy to production PyPI
+- `build-only`: Build package without deploying
+
+**Version Bumping:**
+- `--bump patch`: Bug fixes (0.1.0 → 0.1.1)
+- `--bump minor`: New features (0.1.0 → 0.2.0)
+- `--bump major`: Breaking changes (0.1.0 → 1.0.0)
+
+**Skip Options:**
+- `--skip-tests`: Skip running pytest
+- `--skip-docs`: Skip building documentation
+- `--skip-checks`: Skip code quality checks
+
+### Example Deployment Workflows
+
+**First Release:**
+```bash
+# 1. Test the release process
+./deploy.sh --bump patch test-deploy
+
+# 2. Verify the test package
+pip install -i https://test.pypi.org/simple/ crantpy==0.1.1
+
+# 3. If everything works, deploy to production
+./deploy.sh deploy
+```
+
+**Regular Updates:**
+```bash
+# For bug fixes
+./deploy.sh --bump patch deploy
+
+# For new features  
+./deploy.sh --bump minor deploy
+
+# For breaking changes
+./deploy.sh --bump major deploy
+```
+
+**Development Build:**
+```bash
+# Just build without deploying
+./deploy.sh build-only
+```
+
+### What the Deployment Script Does
+
+1. **Pre-flight Checks:**
+   - Verifies Poetry installation
+   - Checks project structure
+   - Validates git status
+
+2. **Quality Assurance:**
+   - Updates lazy imports with mkinit
+   - Formats code with Black
+   - Lints code with Ruff
+   - Runs tests with pytest
+   - Builds documentation
+
+3. **Package Building:**
+   - Cleans previous builds
+   - Builds with Poetry
+   - Validates with twine
+
+4. **Deployment:**
+   - Deploys to TestPyPI or PyPI
+   - Creates git tags for releases
+   - Pushes tags to remote
+
+### Troubleshooting Deployment
+
+**Authentication Issues:**
+```bash
+# Check Poetry configuration
+poetry config --list
+
+# Reconfigure tokens
+poetry config pypi-token.pypi your-new-token
+```
+
+**Build Failures:**
+- Check that all tests pass: `poetry run pytest`
+- Verify code quality: `poetry run ruff check src/`
+- Ensure documentation builds: `./build_docs.sh --clean`
+
+**Version Conflicts:**
+- Check existing versions: `pip index versions crantpy`
+- Use appropriate version bump: `--bump major|minor|patch`
+
+### Deployment Best Practices
+
+1. **Always test first**: Use `test-deploy` before `deploy`
+2. **Follow semantic versioning**: Use appropriate bump levels
+3. **Keep git clean**: Commit changes before deploying
+4. **Document changes**: Update CHANGELOG.md
+5. **Tag releases**: The script automatically creates git tags
+
+### Security Notes
+
+- Store API tokens securely
+- Never commit tokens to git
+- Use environment variables for CI/CD
+- Regularly rotate tokens
+
 Thank you for contributing to CRANTpy! 🎉
