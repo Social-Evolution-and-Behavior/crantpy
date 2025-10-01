@@ -252,12 +252,12 @@ def get_brain_mesh_scene(
     neurons: Union[int, str, tm.Trimesh, navis.MeshNeuron, navis.NeuronList, 'NeuronCriteria', List[Union[int, str, tm.Trimesh, navis.MeshNeuron, 'NeuronCriteria']]], 
     dataset: Optional[str] = None,
     omit_failures: Optional[bool] = None,
-    threads: Optional[int] = 5,
-    progress: Optional[bool] = True,
-    brain_mesh_color: Optional[str] = "grey", 
-    brain_mesh_alpha: Optional[float] = 0.1, 
-    neuron_mesh_alpha: Optional[float] = 1, 
-    backend: Optional[str] = 'client'
+    threads: int = 5,
+    progress: bool = True,
+    brain_mesh_color: str = "grey",
+    brain_mesh_alpha: float = 0.1,
+    neuron_mesh_alpha: float = 1,
+    backend: str = 'client'
 ) -> pv.Plotter:
     """
     Create a 3D scene of the brain mesh with the specified neurons in random colors. 
