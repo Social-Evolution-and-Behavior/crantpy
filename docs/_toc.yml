@@ -1,0 +1,18 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
+format: jb-book
+root: intro
+chapters:
+- file: installation
+  title: Installation & Setup
+- file: quickstart
+  title: Quick Start Guide
+- file: user-guide
+  title: User Guide
+- file: tutorial
+  title: Tutorial Notebook
+- file: faq
+  title: FAQ
+- file: api/modules
+  title: API Reference
