@@ -22,7 +22,7 @@ from crantpy.utils.config import (ALL_ANNOTATION_FIELDS, CRANT_VALID_DATASETS,
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.utils.exceptions import FilteringError, NoMatchesError
 from crantpy.utils.seatable import get_all_seatable_annotations, get_proofread_neurons
-from crantpy.utils.helpers import filter_df
+from crantpy.utils.helpers import filter_df, parse_root_ids
 from crantpy.utils.cave.helpers import parse_root_ids
 from crantpy.utils.types import Neurons
 
@@ -280,6 +280,7 @@ class NeuronCriteria:
         return np.asarray(roots)
 
 # function to fetch annotations from Seatable
+@parse_neuroncriteria()
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 def get_annotations(
     neurons: Union[int, str, List[Union[int, str]], 'NeuronCriteria'],
@@ -314,17 +315,8 @@ def get_annotations(
         If no matching neurons are found.
     """
     # Normalize input
-    if hasattr(neurons, 'get_roots'):
-        root_ids = neurons.get_roots()
-    elif isinstance(neurons, (int, str)):
-        root_ids = np.array([neurons])
-    elif isinstance(neurons, (list, np.ndarray)):
-        root_ids = np.array(neurons)
-    else:
-        logging.error(f"Invalid input type for 'neurons': {type(neurons)}. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-        raise ValueError("Invalid input type for neurons. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-
-
+    root_ids = parse_root_ids(neurons)
+    
     # Convert to string for comparison to annotations
     root_ids = [str(root) for root in root_ids]
 
@@ -337,8 +329,9 @@ def get_annotations(
     return filtered_annotations
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
+@parse_neuroncriteria()
 def is_proofread(
-    neurons: Neurons,
+    neurons: Union[int, str, List[Union[int, str]], 'NeuronCriteria'],
     dataset: Optional[str] = None,
     clear_cache: bool = False,
 ) -> np.ndarray:
@@ -358,8 +351,11 @@ def is_proofread(
     np.ndarray
         A boolean array indicating whether each neuron is proofread.
     """
-    # Parse neurons to get root IDs
-    neurons = parse_root_ids(neurons)
+    # Normalize input
+    root_ids = parse_root_ids(neurons)
+
+    # Convert to string for comparison to annotations
+    root_ids = [str(root) for root in root_ids]
 
     # Fetch all proofread neurons
     proofread_neurons = get_proofread_neurons(dataset=dataset, clear_cache=clear_cache)
@@ -369,6 +365,6 @@ def is_proofread(
         return np.array([], dtype=bool)
 
     # Check if the neurons are in the proofread list
-    is_proofread = np.isin(neurons, proofread_neurons)
+    is_proofread = np.isin(root_ids, proofread_neurons)
 
     return is_proofread

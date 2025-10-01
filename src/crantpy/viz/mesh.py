@@ -21,6 +21,7 @@ from tqdm import tqdm
 from crantpy.utils.config import CRANT_VALID_DATASETS, SCALE_X, SCALE_Y, SCALE_Z, WHOLE_BRAIN_TISSUE_MESH_URL
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.queries.neurons import NeuronCriteria 
+from crantpy.utils.helpers import parse_root_ids
 
 from neuroglancer_scripts.mesh import read_precomputed_mesh
 import requests
@@ -71,15 +72,7 @@ def get_mesh_neuron(
                          f'Got "{omit_failures}".')
 
     # Normalize input
-    if hasattr(neurons, 'get_roots'):
-        root_ids = neurons.get_roots()
-    elif isinstance(neurons, (int, str)):
-        root_ids = np.array([neurons])
-    elif isinstance(neurons, (list, np.ndarray)):
-        root_ids = np.array(neurons)
-    else:
-        logging.error(f"Invalid input type for 'neurons': {type(neurons)}. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-        raise ValueError("Invalid input type for neurons. Must be int, str, list, np.ndarray, or NeuronCriteria.")
+    root_ids = parse_root_ids(neurons) 
 
     # Convert to list of ints
     root_ids = [int(rid) for rid in root_ids]

@@ -18,6 +18,7 @@ from collections.abc import Iterable
 
 from crantpy.utils.types import T, F, Neurons, IDs, Timestamp
 from crantpy.utils.decorators import parse_neuroncriteria
+from crantpy.queries.neurons import NeuronCriteria 
 
 # set up logging and options to change logging level
 logging.basicConfig(level=logging.WARNING,
@@ -332,3 +333,23 @@ def retry(func, retries=5, cooldown=2):
                     raise
                 time.sleep(cooldown * i)
     return wrapper
+
+
+def parse_root_ids(
+    neurons: Union[int, str, List[Union[int, str]], 'NeuronCriteria'],
+) -> List[str]:
+
+    # Normalize input
+    if hasattr(neurons, 'get_roots'):
+        root_ids = neurons.get_roots()
+    elif isinstance(neurons, (int, str)):
+        root_ids = np.array([neurons])
+    elif isinstance(neurons, (list, np.ndarray)):
+        root_ids = np.array(neurons)
+    else:
+        logging.error(f"Invalid input type for 'neurons': {type(neurons)}. Must be int, str, list, np.ndarray, or NeuronCriteria.")
+        raise ValueError("Invalid input type for neurons. Must be int, str, list, np.ndarray, or NeuronCriteria.")
+
+    # Convert to list of str
+    root_ids = [str(rid) for rid in root_ids]
+    return root_ids
