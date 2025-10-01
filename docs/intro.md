@@ -39,6 +39,10 @@ cd crantpy
 poetry install
 ```
 
+## 🔗 Sister Projects
+
+For R users, check out our sister project **crantr** which provides R-based access to the same CRANT datasets: [flyconnectome.github.io/crantr](https://flyconnectome.github.io/crantr/)
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [GitHub repository](https://github.com/Social-Evolution-and-Behavior/crantpy) for guidelines on how to contribute to the project.
