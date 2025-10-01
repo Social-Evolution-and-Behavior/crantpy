@@ -303,8 +303,8 @@ def get_l2_graph(
     root_ids = parse_root_ids(neurons)
 
     # Batch mode: multiple root IDs
-    if len(ids) > 1:
-        ids_unique = np.unique(ids)
+    if len(root_ids) > 1:
+        ids_unique = np.unique(root_ids)
         graphs = []
         with ThreadPoolExecutor(max_workers=max_threads) as pool:
             func = partial(get_l2_graph, dataset=dataset, progress=False)
@@ -317,7 +317,7 @@ def get_l2_graph(
         return graphs
 
     # Single root ID
-    root_id = ids[0]
+    root_id = root_ids[0]
     client = get_cave_client(dataset=dataset)
 
     # Load the L2 graph for given root ID
