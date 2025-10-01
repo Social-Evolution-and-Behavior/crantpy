@@ -293,7 +293,7 @@ def get_brain_mesh_scene(
 
     Returns
     -------
-    tm.Scene
+    pv.Plotter
         The 3D scene containing the brain mesh and highlighted neurons.
     """
     # Load the whole brain mesh 
