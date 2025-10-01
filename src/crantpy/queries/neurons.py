@@ -23,7 +23,6 @@ from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.utils.exceptions import FilteringError, NoMatchesError
 from crantpy.utils.seatable import get_all_seatable_annotations, get_proofread_neurons
 from crantpy.utils.helpers import filter_df, parse_root_ids
-from crantpy.utils.cave.helpers import parse_root_ids
 from crantpy.utils.types import Neurons
 
 
