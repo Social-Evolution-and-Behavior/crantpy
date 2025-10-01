@@ -25,7 +25,6 @@ from crantpy.queries.neurons import NeuronCriteria
 from neuroglancer_scripts.mesh import read_precomputed_mesh
 import requests
 import io 
-import trimesh 
 import pyvista as pv
 import seaborn as sns   
 
