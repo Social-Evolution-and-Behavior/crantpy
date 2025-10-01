@@ -309,9 +309,9 @@ def get_brain_mesh_scene(
 
     # Convert to Trimesh objects
     if isinstance(neuron_meshes, navis.MeshNeuron):
-        neuron_meshes = [trimesh.Trimesh(vertices=neuron_meshes.vertices, faces=neuron_meshes.faces, process=False)]
+        neuron_meshes = [tm.Trimesh(vertices=neuron_meshes.vertices, faces=neuron_meshes.faces, process=False)]
     elif isinstance(neuron_meshes, navis.NeuronList):
-        neuron_meshes = [trimesh.Trimesh(vertices=n.vertices, faces=n.faces, process=False) for n in neuron_meshes]
+        neuron_meshes = [tm.Trimesh(vertices=n.vertices, faces=n.faces, process=False) for n in neuron_meshes]
     else:
         # Throw error if unexpected type
         raise ValueError("Unexpected type for neuron_meshes")
