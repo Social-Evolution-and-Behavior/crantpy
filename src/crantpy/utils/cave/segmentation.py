@@ -485,7 +485,10 @@ def update_ids(
             if svoxel_ids:
                 try:
                     new_roots = supervoxels_to_roots(
-                        svoxel_ids, timestamp=timestamp, dataset=dataset, progress=True
+                        svoxel_ids,
+                        timestamp=timestamp,
+                        dataset=dataset,
+                        progress=progress,
                     )
 
                     for i, (update_idx, new_root) in enumerate(
@@ -531,7 +534,7 @@ def update_ids(
                         return_fraction_overlap=True,
                     )
 
-                    if len(suggestions) > 0:
+                    if suggestions:
                         # Get the suggestion with highest overlap
                         candidates = [
                             {"new_root_id": s, "overlap_fraction": f}
