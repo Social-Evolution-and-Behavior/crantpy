@@ -23,6 +23,7 @@ from tqdm import tqdm
 from crantpy.utils.config import CRANT_VALID_DATASETS, SCALE_X, SCALE_Y, SCALE_Z
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.queries.neurons import NeuronCriteria 
+from crantpy.utils.helpers import parse_root_ids
 
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
@@ -55,19 +56,8 @@ def get_l2_info(
         - `bounds_nm` is the rough bounding box based on the representative coordinates of the L2 chunks 
         - `chunks_missing` is the number of L2 chunks not present in the L2 cache.
     """
-    # Convert neurons to root_ids (np.ndarray) using NeuronCriteria if needed
-    if hasattr(neurons, 'get_roots'):
-        root_ids = neurons.get_roots()
-    elif isinstance(neurons, (int, str)):
-        root_ids = np.array([neurons])
-    elif isinstance(neurons, (list, np.ndarray)):
-        root_ids = np.array(neurons)
-    else:
-        logging.error("Invalid input type for 'neurons' in get_l2_info. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-        raise ValueError("Invalid input type for neurons. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-
-    # Ensure all root IDs are strings for consistency
-    root_ids = np.array([str(rid) for rid in root_ids])
+    # Normalize input 
+    root_ids = parse_root_ids(neurons)
 
     # If multiple root_ids, parallelize
     if len(root_ids) > 1:
@@ -168,17 +158,8 @@ def get_l2_chunk_info(
     pandas.DataFrame
         DataFrame with L2 chunk info (coordinates, vectors, size).
     """
-    # Convert neurons to a flat np.ndarray of root IDs (as strings)
-    if hasattr(neurons, 'get_roots'):
-        root_ids = neurons.get_roots()
-    elif isinstance(neurons, (int, str)):
-        root_ids = np.array([neurons])
-    elif isinstance(neurons, (list, np.ndarray)):
-        root_ids = np.array(neurons)
-    else:
-        logging.error("Invalid input type for 'neurons' in get_l2_chunk_info. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-        raise ValueError("Invalid input type for neurons. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-    root_ids = np.array([str(rid) for rid in root_ids])
+    # Normalize input
+    root_ids = parse_root_ids(neurons)
 
     # Get/Initialize the CAVE client
     client = get_cave_client(dataset=dataset)
@@ -258,17 +239,8 @@ def find_anchor_loc(
     pandas.DataFrame
         DataFrame with columns: root_id, x, y, z.
     """
-    # Convert neurons to root_ids (np.ndarray) using NeuronCriteria if needed
-    if hasattr(neurons, 'get_roots'):
-        root_ids = neurons.get_roots()
-    elif isinstance(neurons, (int, str)):
-        root_ids = np.array([neurons])
-    elif isinstance(neurons, (list, np.ndarray)):
-        root_ids = np.array(neurons)
-    else:
-        logging.error("Invalid input type for 'neurons' in find_anchor_loc. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-        raise ValueError("Invalid input type for neurons. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-    root_ids = np.array([str(rid) for rid in root_ids])
+    # Normalize input
+    root_ids = parse_root_ids(neurons)
 
     # Batch mode: multiple root IDs
     if len(root_ids) > 1:
@@ -327,21 +299,12 @@ def get_l2_graph(
     networkx.Graph or list of networkx.Graph
         The L2 graph or list thereof.
     """
-    # Convert root_ids to a flat np.ndarray of root IDs (as strings)
-    if hasattr(root_ids, 'get_roots'):
-        ids = root_ids.get_roots()
-    elif isinstance(root_ids, (int, str)):
-        ids = np.array([root_ids])
-    elif isinstance(root_ids, (list, np.ndarray)):
-        ids = np.array(root_ids)
-    else:
-        logging.error("Invalid input type for 'root_ids' in get_l2_graph. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-        raise ValueError("Invalid input type for root_ids. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-    ids = np.array([str(rid) for rid in ids])
+    # Normalize input
+    root_ids = parse_root_ids(root_ids)
 
     # Batch mode: multiple root IDs
-    if len(ids) > 1:
-        ids_unique = np.unique(ids)
+    if len(root_ids) > 1:
+        ids_unique = np.unique(root_ids)
         graphs = []
         with ThreadPoolExecutor(max_workers=max_threads) as pool:
             func = partial(get_l2_graph, dataset=dataset, progress=False)
@@ -354,7 +317,7 @@ def get_l2_graph(
         return graphs
 
     # Single root ID
-    root_id = ids[0]
+    root_id = root_ids[0]
     client = get_cave_client(dataset=dataset)
 
     # Load the L2 graph for given root ID
@@ -430,24 +393,13 @@ def get_l2_skeleton(
         raise ValueError('`omit_failures` must be either None, True or False. '
                          f'Got "{omit_failures}".')
 
-    # Convert root_ids to a flat np.ndarray of root IDs (as strings)
-    if hasattr(root_ids, 'get_roots'):
-        ids = root_ids.get_roots()
-    elif isinstance(root_ids, (int, str)):
-        ids = np.array([root_ids])
-    elif isinstance(root_ids, (list, np.ndarray)):
-        ids = np.array(root_ids)
-    else:
-        logging.error("Invalid input type for 'root_ids' in get_l2_skeleton. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-        raise ValueError("Invalid input type for root_ids. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-    ids = np.array([str(rid) for rid in ids])
-
-    
+    # Normalize input
+    root_ids = parse_root_ids(root_ids)    
 
     # Batch mode: multiple root IDs
-    if len(ids) > 1:
-        logging.info(f'Fetching L2 skeletons for {len(ids)} root IDs.')
-        ids_unique = np.unique(ids)
+    if len(root_ids) > 1:
+        logging.info(f'Fetching L2 skeletons for {len(root_ids)} root IDs.')
+        ids_unique = np.unique(root_ids)
         with ThreadPoolExecutor(max_workers=max_threads) as pool:
             futures = pool.map(lambda rid: get_l2_skeleton(rid, refine=refine, drop_missing=drop_missing,
                                                   l2_node_ids=l2_node_ids, omit_failures=omit_failures,
@@ -464,10 +416,10 @@ def get_l2_skeleton(
 
     # Single root ID
     try:
-        root_id = np.int64(ids[0])
+        root_id = np.int64(root_ids[0])
     except (ValueError, TypeError) as e:
-        logging.error(f"Invalid root ID '{ids[0]}': cannot convert to integer. Error: {e}")
-        raise ValueError(f"Invalid root ID '{ids[0]}': must be an integer or string representing an integer.") from e
+        logging.error(f"Invalid root ID '{root_ids[0]}': cannot convert to integer. Error: {e}")
+        raise ValueError(f"Invalid root ID '{root_ids[0]}': must be an integer or string representing an integer.") from e
     logging.info(f"Fetching L2 skeleton for root ID: {root_id}")
 
     # Get/Initialize the CAVE client
@@ -631,17 +583,8 @@ def get_l2_dotprops(
         raise ValueError('`omit_failures` must be either None, True or False. '
                          f'Got "{omit_failures}".')
 
-    # Convert root_ids to a flat np.ndarray of root IDs (as strings)
-    if hasattr(root_ids, 'get_roots'):
-        ids = root_ids.get_roots()
-    elif isinstance(root_ids, (int, str)):
-        ids = np.array([root_ids])
-    elif isinstance(root_ids, (list, np.ndarray)):
-        ids = np.array(root_ids)
-    else:
-        logging.error("Invalid input type for 'root_ids' in get_l2_dotprops. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-        raise ValueError("Invalid input type for root_ids. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-    ids = np.array([str(rid) for rid in ids])
+    # Normalize input
+    root_ids = parse_root_ids(root_ids)    
 
     # Get/Initialize the CAVE client
     client = get_cave_client(dataset=dataset)
@@ -649,11 +592,11 @@ def get_l2_dotprops(
     # Load the L2 IDs
     with ThreadPoolExecutor(max_workers=max_threads) as pool:
         get_l2_ids = partial(client.chunkedgraph.get_leaves, stop_layer=2)
-        futures = pool.map(get_l2_ids, ids)
+        futures = pool.map(get_l2_ids, root_ids)
         l2_ids = [f for f in navis.config.tqdm(futures,
                                                desc='Fetching L2 IDs',
-                                               total=len(ids),
-                                               disable=not progress or len(ids) == 1,
+                                               total=len(root_ids),
+                                               disable=not progress or len(root_ids) == 1,
                                                leave=False)]
 
     # Turn IDs into strings
@@ -692,10 +635,10 @@ def get_l2_dotprops(
 
     # Generate dotprops
     dps = []
-    for root, ids_ in navis.config.tqdm(zip(ids, l2_ids),
+    for root, ids_ in navis.config.tqdm(zip(root_ids, l2_ids),
                                        desc='Creating dotprops',
-                                       total=len(ids),
-                                       disable=not progress or len(ids) <= 1,
+                                       total=len(root_ids),
+                                       disable=not progress or len(root_ids) <= 1,
                                        leave=False):
         this_info = [l2_info[i] for i in ids_ if i in l2_info]
         if not len(this_info):

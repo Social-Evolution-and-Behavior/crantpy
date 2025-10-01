@@ -21,6 +21,7 @@ from tqdm import tqdm
 from crantpy.utils.config import CRANT_VALID_DATASETS, SCALE_X, SCALE_Y, SCALE_Z, WHOLE_BRAIN_TISSUE_MESH_URL
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.queries.neurons import NeuronCriteria 
+from crantpy.utils.helpers import parse_root_ids
 
 from neuroglancer_scripts.mesh import read_precomputed_mesh
 import requests
@@ -71,15 +72,7 @@ def get_mesh_neuron(
                          f'Got "{omit_failures}".')
 
     # Normalize input
-    if hasattr(neurons, 'get_roots'):
-        root_ids = neurons.get_roots()
-    elif isinstance(neurons, (int, str)):
-        root_ids = np.array([neurons])
-    elif isinstance(neurons, (list, np.ndarray)):
-        root_ids = np.array(neurons)
-    else:
-        logging.error(f"Invalid input type for 'neurons': {type(neurons)}. Must be int, str, list, np.ndarray, or NeuronCriteria.")
-        raise ValueError("Invalid input type for neurons. Must be int, str, list, np.ndarray, or NeuronCriteria.")
+    root_ids = parse_root_ids(neurons) 
 
     # Convert to list of ints
     root_ids = [int(rid) for rid in root_ids]
@@ -250,7 +243,7 @@ def load_whole_brain_mesh() -> tm.Trimesh:
     vertices = np.asarray(vertices, dtype=np.float32)
     faces = np.asarray(faces, dtype=np.uint32)
     # Convert to trimesh
-    brain_trimesh = trimesh.Trimesh(vertices=vertices, faces=faces, process=False)
+    brain_trimesh = tm.Trimesh(vertices=vertices, faces=faces, process=False)
     return brain_trimesh
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
@@ -261,10 +254,10 @@ def get_brain_mesh_scene(
     omit_failures: Optional[bool] = None,
     threads: int = 5,
     progress: bool = True,
-    brain_mesh_color: Optional[str] = "grey", 
-    brain_mesh_alpha: Optional[float] = 0.1, 
-    neuron_mesh_alpha: Optional[float] = 1, 
-    backend: Optional[str] = 'client'
+    brain_mesh_color: str = "grey",
+    brain_mesh_alpha: float = 0.1,
+    neuron_mesh_alpha: float = 1,
+    backend: str = 'client'
 ) -> pv.Plotter:
     """
     Create a 3D scene of the brain mesh with the specified neurons in random colors. 
@@ -309,9 +302,9 @@ def get_brain_mesh_scene(
 
     # Convert to Trimesh objects
     if isinstance(neuron_meshes, navis.MeshNeuron):
-        neuron_meshes = [trimesh.Trimesh(vertices=neuron_meshes.vertices, faces=neuron_meshes.faces, process=False)]
+        neuron_meshes = [tm.Trimesh(vertices=neuron_meshes.vertices, faces=neuron_meshes.faces, process=False)]
     elif isinstance(neuron_meshes, navis.NeuronList):
-        neuron_meshes = [trimesh.Trimesh(vertices=n.vertices, faces=n.faces, process=False) for n in neuron_meshes]
+        neuron_meshes = [tm.Trimesh(vertices=n.vertices, faces=n.faces, process=False) for n in neuron_meshes]
     else:
         # Throw error if unexpected type
         raise ValueError("Unexpected type for neuron_meshes")
