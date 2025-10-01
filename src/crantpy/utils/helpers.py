@@ -340,6 +340,19 @@ def retry(func, retries=5, cooldown=2):
 def parse_root_ids(
     neurons: Union[int, str, List[Union[int, str]], 'NeuronCriteria'],
 ) -> List[str]:
+    """
+    Parse various neuron input types to a list of root ID strings.
+    Parameters
+    ----------
+    neurons : Union[int, str, List[Union[int, str]], NeuronCriteria]
+        The neuron(s) to parse. Can be a single root ID (int or str),
+        a list of root IDs, or a NeuronCriteria object. 
+        
+    Returns 
+    -------
+    List[str]
+        A list of root ID strings.
+    """
 
     # Normalize input
     if hasattr(neurons, 'get_roots'):
