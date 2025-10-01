@@ -6,6 +6,8 @@
 
 The Clonal Raider ANT Brain (CRANTb) project is a large-scale effort to map the complete neural connectome of the clonal raider ant (*Ooceraea biroi*). This dataset represents one of the first comprehensive invertebrate brain connectomes available after the fruitfly, providing unprecedented insights into the neural basis of social behavior in insects.
 
+![CRANT Brain Dataset Overview](crant.png)
+
 ## ✨ Key Features
 
 - **🔍 Flexible Neuron Querying**: Filter neurons by anatomical region, cell type, tract, or custom criteria

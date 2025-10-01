@@ -1,0 +1,408 @@
+# Contributing to CRANTpy
+
+We welcome contributions to CRANTpy! This guide will help you get started with contributing to the project.
+
+## 🎯 Ways to Contribute
+
+- 🐛 **Report bugs** and suggest fixes
+- 💡 **Propose new features** and enhancements  
+- 📖 **Improve documentation** and examples
+- 🧪 **Write tests** and improve code coverage
+- 🔧 **Submit code** improvements and bug fixes
+- 💬 **Help other users** in discussions
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Python 3.10 or higher
+- Git
+- **Poetry** (required for dependency management) - Install from [python-poetry.org](https://python-poetry.org/)
+
+### Development Setup
+
+1. **Fork and clone the repository**
+
+```bash
+git clone https://github.com/your-username/crantpy.git
+cd crantpy
+```
+
+2. **Install development dependencies with Poetry**
+
+```bash
+# Poetry is REQUIRED for this project
+poetry install
+```
+
+This will:
+- Create a virtual environment
+- Install all dependencies and development tools
+- Set up the project for development
+
+3. **Set up pre-commit hooks**
+
+```bash
+poetry run pre-commit install
+```
+
+4. **Verify installation**
+
+```bash
+poetry run pytest tests/
+./build_docs.sh --clean
+```
+
+## 📝 Development Workflow
+
+### 1. Create a Branch
+
+```bash
+git checkout -b feature/your-feature-name
+# or
+git checkout -b fix/issue-number
+```
+
+### 2. Make Changes
+
+Follow these coding standards:
+
+- **Start each file with UTF-8 encoding and detailed docstring**:
+  ```python
+  # -*- coding: utf-8 -*-
+  """
+  This module provides XXX functionality for YYY.
+  
+  Detailed description of what this module does,
+  its main classes, functions, and usage patterns.
+  """
+  ```
+
+- **Use type hints** for all function parameters and return values
+- **Follow existing code structure** and patterns
+- **Add tests** for new functionality
+- **Update documentation** as needed
+- **Add `__init__.py`** files to new folders
+
+### 3. Update Module Imports (Required)
+
+After adding new code, **always** run:
+
+```bash
+poetry run mkinit --lazy_loader src/crantpy --recursive --inplace
+```
+
+This updates the `__init__.py` files with lazy loading for efficient imports.
+
+### 4. Test Your Changes
+
+```bash
+# Run tests
+poetry run pytest tests/
+
+# Check code style
+poetry run black src/ tests/
+poetry run ruff check src/ tests/
+
+# Build and test documentation (REQUIRED before commit)
+./build_docs.sh --clean
+```
+
+### 5. Pre-Commit Requirements
+
+**Before every commit**, ensure you run:
+
+```bash
+# 1. Update lazy imports
+poetry run mkinit --lazy_loader src/crantpy --recursive --inplace
+
+# 2. Build documentation
+./build_docs.sh --clean
+
+# 3. Run tests
+poetry run pytest tests/
+
+# 4. Check code formatting
+poetry run black src/ tests/
+poetry run ruff check src/ tests/
+```
+
+### 6. Commit and Push
+
+```bash
+git add .
+git commit -m "feat: add new feature description"
+git push origin feature/your-feature-name
+```
+
+### 7. Create Pull Request
+
+- Open a pull request against the `main` branch
+- Fill out the pull request template
+- Link any related issues
+
+## 🧪 Testing
+
+### Running Tests
+
+```bash
+# Run all tests
+poetry run pytest
+
+# Run specific test file
+poetry run pytest tests/test_queries.py
+
+# Run with coverage
+poetry run pytest --cov=crantpy tests/
+```
+
+### Writing Tests
+
+- Place tests in the `tests/` directory
+- Use descriptive test names
+- Test both success and failure cases
+- Mock external dependencies (CAVE API calls)
+
+Example test:
+
+```python
+import pytest
+from crantpy import NeuronCriteria
+
+def test_neuron_criteria_creation():
+    """Test that NeuronCriteria can be created with valid parameters."""
+    criteria = NeuronCriteria(cell_class='kenyon_cell')
+    assert criteria.cell_class == 'kenyon_cell'
+
+def test_invalid_cell_class():
+    """Test that invalid cell class raises appropriate error."""
+    with pytest.raises(ValueError):
+        NeuronCriteria(cell_class='invalid_class')
+```
+
+## 📖 Documentation
+
+### Building Documentation (Required)
+
+**Always use the provided build script:**
+
+```bash
+# Build and test documentation
+./build_docs.sh --clean
+
+# Build and deploy (for maintainers)
+./build_docs.sh --clean --deploy
+```
+
+**Never use `jupyter-book build` directly** - use `build_docs.sh` which handles:
+- Dependency compatibility fixes
+- Proper error handling
+- Consistent build environment
+
+### Documentation Guidelines
+
+- Use clear, concise language
+- Include executable code examples
+- Add comprehensive docstrings to all public functions
+- Update relevant tutorials when adding features
+- **Test documentation build before every commit**
+
+### Docstring Format
+
+Use Google-style docstrings:
+
+```python
+def get_skeletons(root_ids, dataset='latest'):
+    """Retrieve neuron skeletons for given root IDs.
+    
+    Args:
+        root_ids: List of neuron root IDs or single root ID
+        dataset: Dataset version to use ('latest' or 'sandbox')
+        
+    Returns:
+        List of TreeNeuron objects or single TreeNeuron
+        
+    Raises:
+        ValueError: If root_ids is empty or invalid
+        ConnectionError: If CAVE service is unavailable
+        
+    Example:
+        >>> skeleton = cp.get_skeletons(123456789)
+        >>> skeletons = cp.get_skeletons([123456789, 987654321])
+    """
+```
+
+## 🎨 Code Style & Standards
+
+### File Structure Requirements
+
+**Every new Python file must start with:**
+
+```python
+# -*- coding: utf-8 -*-
+"""
+This module provides [detailed description of functionality].
+
+[Comprehensive explanation of what this module does, its main classes,
+functions, and usage patterns. Be as detailed as possible.]
+"""
+```
+
+### Type Hints (Mandatory)
+
+Use type hints for **all** function parameters and return values:
+
+```python
+from typing import List, Optional, Union, Dict, Any
+from crantpy.utils.types import NeuronID, RootID
+
+def get_skeletons(
+    root_ids: Union[NeuronID, List[NeuronID]], 
+    dataset: str = 'latest',
+    simplify: bool = False
+) -> Union[TreeNeuron, List[TreeNeuron]]:
+    """Retrieve neuron skeletons with full type specification."""
+    pass
+```
+
+**Benefits of type hints:**
+- Easier debugging with type assertion
+- Clear input/output expectations
+- Better IDE support and autocompletion
+- See `crantpy/utils/types.py` for custom compound types
+
+### Module Organization
+
+**For new folders:**
+1. Always create `__init__.py` files
+2. After adding code, run the lazy import updater:
+
+```bash
+poetry run mkinit --lazy_loader src/crantpy --recursive --inplace
+```
+
+### Code Formatting
+
+- Use [Black](https://black.readthedocs.io/) for code formatting
+- Use [Ruff](https://ruff.rs/) for linting  
+- Maximum line length: 88 characters
+- **Poetry is required** - no pip installations
+
+### Project Structure
+
+```
+src/crantpy/
+├── __init__.py          # Main public API
+├── queries/             # Neuron querying functionality
+├── utils/              # Utility functions
+│   ├── cave/           # CAVE-specific utilities
+│   └── config.py       # Configuration management
+└── viz/                # Visualization tools
+```
+
+### Naming Conventions
+
+- **Functions**: `snake_case`
+- **Classes**: `PascalCase`
+- **Constants**: `UPPER_SNAKE_CASE`
+- **Private methods**: `_snake_case`
+
+## 🚨 Issue Guidelines
+
+### Reporting Bugs
+
+Use the bug report template and include:
+
+- **Environment details** (Python version, OS, CRANTpy version)
+- **Steps to reproduce** the issue
+- **Expected vs actual behavior**
+- **Code example** that demonstrates the bug
+- **Error messages** (full traceback)
+
+### Feature Requests
+
+Use the feature request template and include:
+
+- **Clear description** of the proposed feature
+- **Use case** and motivation
+- **Possible implementation** approach
+- **Examples** of how it would be used
+
+## 📋 Pull Request Guidelines
+
+### Before Submitting (Checklist)
+
+- [ ] **Poetry used** for all dependency management
+- [ ] **UTF-8 header and docstring** added to new files
+- [ ] **Type hints** added to all functions
+- [ ] **`__init__.py`** files created for new folders
+- [ ] **Lazy imports updated**: `poetry run mkinit --lazy_loader src/crantpy --recursive --inplace`
+- [ ] **Documentation built successfully**: `./build_docs.sh --clean`
+- [ ] **Tests pass locally**: `poetry run pytest tests/`
+- [ ] **Code formatted**: `poetry run black src/ tests/`
+- [ ] **Linting passes**: `poetry run ruff check src/ tests/`
+- [ ] **Changelog updated** (for significant changes)
+- [ ] **Commit messages follow conventional format**
+
+### Pull Request Template
+
+Your PR should include:
+
+- **Description** of changes made
+- **Type of change** (bug fix, feature, docs, etc.)
+- **Testing** performed
+- **Related issues** (if any)
+
+### Review Process
+
+1. **Automated checks** must pass (CI/CD)
+2. **Code review** by maintainers
+3. **Testing** on different environments
+4. **Documentation review** if applicable
+5. **Final approval** and merge
+
+## 🏷️ Release Process
+
+### Version Numbers
+
+We follow [Semantic Versioning](https://semver.org/):
+
+- `MAJOR.MINOR.PATCH` (e.g., 1.2.3)
+- **MAJOR**: Breaking changes
+- **MINOR**: New features (backward compatible)
+- **PATCH**: Bug fixes (backward compatible)
+
+### Commit Message Format
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+type(scope): description
+
+feat: add new visualization backend
+fix: resolve authentication token refresh
+docs: update installation guide
+test: add tests for neuron queries
+```
+
+## 💬 Community
+
+### Communication Channels
+
+- **GitHub Discussions**: General questions and ideas
+- **GitHub Issues**: Bug reports and feature requests
+- **Email**: [crantpy-dev@example.com](mailto:crantpy-dev@example.com)
+
+### Code of Conduct
+
+Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md). We are committed to providing a welcoming and inclusive environment for all contributors.
+
+## 🙏 Recognition
+
+Contributors are recognized in:
+
+- **README.md** acknowledgments
+- **Release notes** for significant contributions
+- **Documentation** author credits
+
+Thank you for contributing to CRANTpy! 🎉
