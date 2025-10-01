@@ -23,6 +23,7 @@ def set_default_dataset(dataset: str):
     return CRANT_DEFAULT_DATASET
 
 
+
 CRANT_CAVE_SERVER_URL = "https://proofreading.zetta.ai"
 CRANT_CAVE_DATASTACKS = {
     'latest': 'kronauer_ant',
@@ -84,3 +85,11 @@ SEARCH_EXCLUDED_ANNOTATION_FIELDS = [
 
 # Voxel resolution in nm
 SCALE_X, SCALE_Y, SCALE_Z = 8, 8, 42
+
+# Neuroglancer URL for the whole brain tissue mesh 
+WHOLE_BRAIN_TISSUE_MESH_URL = (
+    "https://www.googleapis.com/storage/v1/b/"
+    "dkronauer-ant-001-alignment-final/o/tissue_mesh%2F"
+    "mesh%2Ftissue_mesh.frag?alt=media"
+    "&neuroglancer=a2b0cf07baf8c501891d6c683cc7e24a"
+)

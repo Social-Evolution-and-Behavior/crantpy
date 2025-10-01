@@ -4,7 +4,7 @@ This module provides utility functions for cave-related helpers.
 """
 import numpy as np
 import requests
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Union
 import navis
 from datetime import datetime
 
@@ -102,7 +102,7 @@ def is_valid_root(
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 def is_latest_roots(
     x: IDs,
-    timestamp: Optional[Timestamp] = None,
+    timestamp: Optional[Union[str, Timestamp]] = None,
     dataset: Optional[str] = None,
     progress: bool = True,
     batch_size: int = 100_000,
@@ -183,7 +183,7 @@ def is_latest_roots(
 
     # Parse timestamp using the existing helper function
     if timestamp is not None:
-        timestamp = parse_timestamp(timestamp)
+        timestamp = int(parse_timestamp(timestamp))
 
     # Process in batches with progress bar
     valid_x = x[not_zero]
