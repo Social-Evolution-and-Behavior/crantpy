@@ -71,6 +71,7 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
             'filter_df',
             'make_iterable',
             'match_dtype',
+            'parse_root_ids',
             'parse_timestamp',
             'retry',
             'set_logging_level',
