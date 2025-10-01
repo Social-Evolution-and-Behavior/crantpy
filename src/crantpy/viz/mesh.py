@@ -250,7 +250,7 @@ def load_whole_brain_mesh() -> tm.Trimesh:
     vertices = np.asarray(vertices, dtype=np.float32)
     faces = np.asarray(faces, dtype=np.uint32)
     # Convert to trimesh
-    brain_trimesh = trimesh.Trimesh(vertices=vertices, faces=faces, process=False)
+    brain_trimesh = tm.Trimesh(vertices=vertices, faces=faces, process=False)
     return brain_trimesh
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
@@ -259,8 +259,8 @@ def get_brain_mesh_scene(
     neurons: Union[int, str, tm.Trimesh, navis.MeshNeuron, navis.NeuronList, 'NeuronCriteria', List[Union[int, str, tm.Trimesh, navis.MeshNeuron, 'NeuronCriteria']]], 
     dataset: Optional[str] = None,
     omit_failures: Optional[bool] = None,
-    threads: int = 5,
-    progress: bool = True,
+    threads: Optional[int] = 5,
+    progress: Optional[bool] = True,
     brain_mesh_color: Optional[str] = "grey", 
     brain_mesh_alpha: Optional[float] = 0.1, 
     neuron_mesh_alpha: Optional[float] = 1, 
