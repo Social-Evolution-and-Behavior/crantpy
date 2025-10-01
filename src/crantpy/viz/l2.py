@@ -300,7 +300,7 @@ def get_l2_graph(
         The L2 graph or list thereof.
     """
     # Normalize input
-    root_ids = parse_root_ids(neurons)
+    root_ids = parse_root_ids(root_ids)
 
     # Batch mode: multiple root IDs
     if len(root_ids) > 1:
@@ -592,11 +592,11 @@ def get_l2_dotprops(
     # Load the L2 IDs
     with ThreadPoolExecutor(max_workers=max_threads) as pool:
         get_l2_ids = partial(client.chunkedgraph.get_leaves, stop_layer=2)
-        futures = pool.map(get_l2_ids, ids)
+        futures = pool.map(get_l2_ids, root_ids)
         l2_ids = [f for f in navis.config.tqdm(futures,
                                                desc='Fetching L2 IDs',
-                                               total=len(ids),
-                                               disable=not progress or len(ids) == 1,
+                                               total=len(root_ids),
+                                               disable=not progress or len(root_ids) == 1,
                                                leave=False)]
 
     # Turn IDs into strings
@@ -635,10 +635,10 @@ def get_l2_dotprops(
 
     # Generate dotprops
     dps = []
-    for root, ids_ in navis.config.tqdm(zip(ids, l2_ids),
+    for root, ids_ in navis.config.tqdm(zip(root_ids, l2_ids),
                                        desc='Creating dotprops',
-                                       total=len(ids),
-                                       disable=not progress or len(ids) <= 1,
+                                       total=len(root_ids),
+                                       disable=not progress or len(root_ids) <= 1,
                                        leave=False):
         this_info = [l2_info[i] for i in ids_ if i in l2_info]
         if not len(this_info):
