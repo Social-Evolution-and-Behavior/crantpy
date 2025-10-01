@@ -331,8 +331,6 @@ def get_brain_mesh_scene(
 
     # Generate random colors for neurons
     neuron_colors = sns.color_palette("bright", len(neuron_meshes_pv))
-
-
     # Add the neuron meshes
     for neuron_pv, color in zip(neuron_meshes_pv, neuron_colors):
         plotter.add_mesh(neuron_pv, color=color, opacity=neuron_mesh_alpha)
