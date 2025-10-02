@@ -1,0 +1,36 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
+format: jb-book
+root: intro
+parts:
+- caption: Getting Started
+  chapters:
+  - file: installation
+    title: Installation & Setup
+  - file: tutorial
+    title: Quickstart Tutorial
+
+- caption: Deep Dive
+  chapters:
+  - file: deep_dive/queries
+    title: Finding Neurons
+  - file: deep_dive/visualization
+    title: Visualizing Neurons
+  - file: deep_dive/connectivity
+    title: Analyzing Connectivity
+  - file: deep_dive/advanced
+    title: Advanced Topics
+
+- caption: Reference
+  chapters:
+  - file: api/modules
+    title: API Reference
+  - file: datasets
+    title: Datasets
+  - file: changelog
+    title: Changelog
+  - file: faq
+    title: FAQ
+  - file: contribute
+    title: Contributing

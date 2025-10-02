@@ -1,0 +1,97 @@
+# Book settings
+# Learn more at https://jupyterbook.org/customize/config.html
+
+title: CRANTpy Documentation
+author: CRANTb Community
+logo: logo.png
+
+# Force re-execution of notebooks on each build.
+# See https://jupyterbook.org/content/execute.html
+execute:
+  execute_notebooks: 'off'  # Change to 'off' to avoid execution issues
+
+# Parse and render settings
+parse:
+  myst_enable_extensions:
+    - colon_fence
+    - deflist
+    - dollarmath
+    - html_admonition
+    - html_image
+    - linkify
+    - replacements
+    - smartquotes
+    - substitution
+    - tasklist
+    - fieldlist
+    - attrs_inline
+    - attrs_block
+    - strikethrough
+
+# Define the name of the latex output file for PDF builds
+latex:
+  latex_documents:
+    targetname: crantpy.tex
+
+# Add a bibtex file so that we can create citations
+bibtex_bibfiles:
+  - references.bib
+
+# Information about where the book exists on the web
+repository:
+  url: https://github.com/Social-Evolution-and-Behavior/crantpy  # Online location of your book
+  path_to_book: docs  # Optional path to your book, relative to the repository root
+  branch: main  # Which branch of the repository should be used when creating links (optional)
+
+# Add GitHub buttons to your book
+# See https://jupyterbook.org/customize/config.html#add-a-link-to-your-repository
+html:
+
+  favicon: logo.png
+  use_edit_page_button: true
+  use_repository_button: true
+  use_issues_button: true
+  use_download_button: true
+  home_page_in_toc: false
+  home_page_in_navbar: false
+  html_theme: "sphinx_rtd_theme"
+  navbar_number_sections: false
+  announcement: "📚 Tutorials available! Check out the Deep Dive Gallery."
+
+# Launch buttons
+launch_buttons:
+  notebook_interface: jupyterlab
+  binderhub_url: https://mybinder.org
+  colab_url: https://colab.research.google.com
+
+# Add the following at the end of the file
+sphinx:
+  extra_extensions:
+    - sphinx.ext.autodoc
+    - sphinx.ext.napoleon
+    - sphinx.ext.viewcode
+    - sphinx.ext.autosummary
+    - sphinx.ext.intersphinx
+  config:
+    autodoc_mock_imports: 
+      - "gdata"
+      - "pandas"
+      - "navis"
+      - "caveclient"
+      - "pcg_skel"
+      - "meshparty"
+      - "sklearn"
+      - "scikit-learn"
+      - "trimesh"
+      - "skeletor"
+      - "neuroglancer"
+      - "cloud_volume"
+      - "nglui"
+    autodoc_typehints: description
+    napoleon_google_docstring: true
+    napoleon_numpy_docstring: true
+    intersphinx_mapping:
+      python: ['https://docs.python.org/3/', null]
+      numpy: ['https://numpy.org/doc/stable/', null]
+      pandas: ['https://pandas.pydata.org/docs/', null]
+    autosummary_generate: true 
