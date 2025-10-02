@@ -62,7 +62,7 @@ Synapse annotations are continuously being improved. The latest dataset contains
 - **Changes**: Ongoing proofreading and annotation
 
 ### Stable Releases
-- **v1.0**: Initial public release ising planned for 2026
+- **v1.0**: Initial public release is planned for 2026
 
 ### Previous Versions
 No deprecated releases yet.
