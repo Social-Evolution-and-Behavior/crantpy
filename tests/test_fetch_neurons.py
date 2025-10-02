@@ -479,26 +479,26 @@ def test_get_annotations_no_matches(mock_ann: MagicMock) -> None:
 
 def test_parse_neuroncriteria_backward_compatibility() -> None:
     """Test that parse_neuroncriteria can still be imported from the old location.
-    
+
     This test verifies that the backward compatibility import works and generates
     a deprecation warning to guide users to the new import location.
     """
     # Test that we can import from the old location
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
-        
+
         from crantpy.queries.neurons import parse_neuroncriteria as old_import
-        
+
         # Create a simple test function with the decorator
         @old_import()
         def test_function(neurons=None):
             return neurons
-        
+
         # Check that a deprecation warning was issued
         assert len(w) == 1
         assert issubclass(w[0].category, DeprecationWarning)
         assert "parse_neuroncriteria has been moved" in str(w[0].message)
         assert "crantpy.utils.decorators" in str(w[0].message)
-        
+
         # Test that the function still works
         assert callable(test_function)

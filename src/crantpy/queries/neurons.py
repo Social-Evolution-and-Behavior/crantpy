@@ -410,9 +410,9 @@ def is_proofread(
 # Backward compatibility: Re-export parse_neuroncriteria with deprecation warning
 def _deprecated_parse_neuroncriteria(*args, **kwargs):
     """Deprecated: parse_neuroncriteria has moved to crantpy.utils.decorators.
-    
+
     This function will be removed in a future version. Please update your imports:
-    
+
     OLD: from crantpy.queries.neurons import parse_neuroncriteria
     NEW: from crantpy.utils.decorators import parse_neuroncriteria
     """
@@ -421,11 +421,13 @@ def _deprecated_parse_neuroncriteria(*args, **kwargs):
         "crantpy.utils.decorators. Please update your imports. This backward "
         "compatibility will be removed in a future version.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
     # Import here to avoid circular imports
     from crantpy.utils.decorators import parse_neuroncriteria as _parse_neuroncriteria
+
     return _parse_neuroncriteria(*args, **kwargs)
+
 
 # Re-export with the original name for backward compatibility
 parse_neuroncriteria = _deprecated_parse_neuroncriteria
