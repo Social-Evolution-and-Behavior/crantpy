@@ -8,13 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Initial changelog file
+- Backward compatibility for `parse_neuroncriteria` import from `crantpy.queries.neurons`
 
 ### Changed
-- N/A
+
+- **BREAKING**: `parse_neuroncriteria` has been moved from `crantpy.queries.neurons` to `crantpy.utils.decorators`
+  - Backward compatibility maintained with deprecation warning
+  - Users should update imports: `from crantpy.utils.decorators import parse_neuroncriteria`
+  - Old import location will be removed in a future version
+
+### Deprecated
+
+- Importing `parse_neuroncriteria` from `crantpy.queries.neurons` (use `crantpy.utils.decorators` instead)
 
 ### Fixed
-- N/A
+
+- Import error in tests for `parse_neuroncriteria` function
 
 
 ## Support
