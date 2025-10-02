@@ -1,10 +1,25 @@
 [tool.poetry]
 name = "crantpy"
-version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+version = "0.0.0"
+description = "Python Access to the Clonal Raider ANT (CRANT) Brain Datasets"
+authors = ["CRANTb Community <crantb@example.com>"]
 license = "GNU Public License v3.0"
 readme = "README.md"
+homepage = "https://github.com/Social-Evolution-and-Behavior/crantpy"
+repository = "https://github.com/Social-Evolution-and-Behavior/crantpy"
+documentation = "https://social-evolution-and-behavior.github.io/crantpy/"
+keywords = ["neuroscience", "connectomics", "ant", "brain", "CAVE"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 packages = [{include = "crantpy", from = "src"}]
 
 [tool.poetry.dependencies]
@@ -34,6 +49,13 @@ vtk = "^9.5.2"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
+jupyter-book = "^1.0.4.post1"
+ghp-import = "^2.1.0"
+sphinx-rtd-theme = "^3.0.2"
+pytest = "^8.0.0"
+black = "^24.0.0"
+ruff = "^0.6.0"
+twine = "^5.0.0"
 
 [tool.pytest.ini_options]
 python_paths = ["src"]
