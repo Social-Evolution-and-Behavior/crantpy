@@ -300,6 +300,19 @@ def inject_dataset(
             else:
                 ds = CRANT_DEFAULT_DATASET
 
+            # If dataset is None, inject the default dataset
+            if ds is None:
+                ds = CRANT_DEFAULT_DATASET
+                if param_name in kwargs:
+                    kwargs[param_name] = ds
+                else:
+                    # Need to rebuild args tuple with the new dataset value
+                    args_list = list(args)
+                    while len(args_list) <= param_idx:
+                        args_list.append(None)
+                    args_list[param_idx] = ds
+                    args = tuple(args_list)
+
             # Validate dataset
             if allowed and ds not in allowed:
                 raise ValueError(

@@ -457,7 +457,7 @@ def test_get_annotations_invalid_input(mock_ann: MagicMock) -> None:
     """
     with pytest.raises(ValueError) as excinfo:
         result = get_annotations([{"root_id": "1"}])  # Invalid input type
-    assert "Cannot convert" in str(excinfo.value)
+    assert "Invalid input type" in str(excinfo.value)
 
 
 @patch(
