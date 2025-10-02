@@ -1,10 +1,14 @@
 import pytest
 import numpy as np
+import pyvista as pv
+import trimesh as tm
 from crantpy.viz import mesh
 
 # Example root IDs for testing
 TEST_ROOT_ID = 576460752681552812
-TEST_ROOT_IDS = [576460752662526105, 576460752730083020]
+TEST_ROOT_IDS = [576460752664524086, 576460752662516321]
+# For typing compatibility with Union types
+TEST_ROOT_IDS_MIXED = [576460752664524086, "576460752662516321"]
 
 
 def test_get_mesh_neuron_single():
