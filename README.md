@@ -65,7 +65,7 @@ We welcome contributions! See our [contribution guidelines](CONTRIBUTING.md) or 
   title={CRANTpy: Python Access to Clonal Raider ANT Brain Datasets},
   author={CRANTb Community},
   url={https://github.com/Social-Evolution-and-Behavior/crantpy},
-  year={2024}
+  year={2025}
 }
 ```
 

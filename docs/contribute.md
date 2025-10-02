@@ -413,19 +413,95 @@ Contributors are recognized in:
 2. **API Tokens**: Create API tokens for both services
 3. **Poetry Configuration**: Configure Poetry with your API tokens
 
-### Setting Up PyPI Authentication
+### Create API Tokens
+
+**TestPyPI Token:**
+- Go to: https://test.pypi.org/manage/account/token/
+- Click 'Add API token'
+- Token name: 'crantpy-dev' (or any name you prefer)
+- Scope: 'Entire account' (or limit to specific project)
+- Copy the generated token (starts with 'pypi-')
+
+**PyPI Token:**
+- Go to: https://pypi.org/manage/account/token/
+- Click 'Add API token'
+- Token name: 'crantpy-dev' (or any name you prefer)
+- Scope: 'Entire account' (or limit to specific project)
+- Copy the generated token (starts with 'pypi-')
+
+### Quick Setup with API Token Script
+
+We provide an automated script to set up your PyPI tokens:
 
 ```bash
-# Create API tokens:
-# - PyPI: https://pypi.org/manage/account/token/
-# - TestPyPI: https://test.pypi.org/manage/account/token/
+# Run the interactive token setup
+./api_token.sh --setup
 
-# Configure Poetry with your tokens:
-poetry config pypi-token.pypi pypi-your-actual-token-here
-poetry config pypi-token.testpypi pypi-your-actual-testpypi-token-here
+# Check configuration status
+./api_token.sh --status
 
-# Verify configuration:
-poetry config --list
+# Test if tokens are working
+./api_token.sh --test
+
+# Clean up configuration (if needed)
+./api_token.sh --cleanup
+```
+
+The script will:
+- Guide you through getting API tokens from PyPI and TestPyPI
+- Automatically configure your shell environment (.bashrc/.zshrc)
+- Set up Poetry with the correct tokens and repositories
+- Test the configuration to ensure everything works
+
+### Manual Setup (Alternative)
+
+If you prefer to set up tokens manually:
+
+#### Configure Environment Variables
+
+Add to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.):
+
+```bash
+# CRANTpy PyPI Tokens
+export POETRY_PYPI_TOKEN_TESTPYPI="pypi-your-testpypi-token-here"
+export POETRY_PYPI_TOKEN_PYPI="pypi-your-pypi-token-here"
+```
+
+Reload your shell:
+
+```bash
+source ~/.bashrc  # or source ~/.zshrc
+```
+
+### Security Best Practices
+
+- **Never commit tokens to git**: Tokens are automatically excluded by `.gitignore`
+- **Use environment variables**: The deployment script supports both Poetry config and environment variables
+- **Rotate tokens regularly**: Create new tokens periodically and update your configuration
+- **Limit token scope**: When possible, limit tokens to specific projects rather than entire account
+
+### Troubleshooting Token Issues
+
+**Script won't run:**
+```bash
+chmod +x api_token.sh
+./api_token.sh --setup
+```
+
+**Tokens not working:**
+```bash
+# Check current status
+./api_token.sh --status
+
+# Clean and reconfigure
+./api_token.sh --cleanup
+./api_token.sh --setup
+```
+
+**Environment variables not loading:**
+```bash
+# Restart terminal or reload shell config
+source ~/.bashrc  # or ~/.zshrc
 ```
 
 ### Deployment Script Usage
