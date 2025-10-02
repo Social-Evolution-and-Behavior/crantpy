@@ -56,7 +56,7 @@ Visit our **[comprehensive documentation](https://social-evolution-and-behavior.
 
 ## 🤝 Contributing
 
-We welcome contributions! See our [contribution guidelines](CONTRIBUTING.md) or visit [GitHub Discussions](https://github.com/Social-Evolution-and-Behavior/crantpy/discussions).
+We welcome contributions! See our [contribution guidelines](docs/contribute.md) or visit [GitHub Discussions](https://github.com/Social-Evolution-and-Behavior/crantpy/discussions).
 
 ## 📝 Citation
 
