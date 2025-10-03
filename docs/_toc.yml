@@ -17,6 +17,8 @@ parts:
     title: Finding Neurons
   - file: deep_dive/visualization
     title: Visualizing Neurons
+  - file: deep_dive/morphology
+    title: Working with Neuron Morphology
   - file: deep_dive/connectivity
     title: Analyzing Connectivity
   - file: deep_dive/advanced
