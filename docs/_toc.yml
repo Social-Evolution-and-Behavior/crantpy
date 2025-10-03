@@ -13,8 +13,8 @@ parts:
 
 - caption: Deep Dive
   chapters:
-  - file: deep_dive/queries
-    title: Finding Neurons
+  - file: deep_dive/advanced_queries
+    title: Advanced Neuron Querying
   - file: deep_dive/visualization
     title: Visualizing Neurons
   - file: deep_dive/morphology
