@@ -1,0 +1,205 @@
+# Pre-commit hooks for CRANTpy
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+
+repos:
+  # Built-in pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        description: Trims trailing whitespace
+      - id: end-of-file-fixer
+        description: Ensures files end with a newline
+      - id: check-yaml
+        description: Checks yaml files for parseable syntax
+      - id: check-toml
+        description: Checks toml files for parseable syntax
+      - id: check-json
+        description: Checks json files for parseable syntax
+      - id: check-added-large-files
+        description: Prevents giant files from being committed
+        args: ["--maxkb=1000"]
+      - id: check-merge-conflict
+        description: Checks for files that contain merge conflict strings
+      - id: debug-statements
+        description: Checks for debugger imports and py37+ `breakpoint()` calls
+      - id: check-docstring-first
+        description: Checks for proper docstring placement
+      - id: check-case-conflict
+        description: Checks for files with names that would conflict on case-insensitive filesystems
+      - id: check-symlinks
+        description: Checks for broken symlinks
+      - id: destroyed-symlinks
+        description: Checks for destroyed symlinks
+      - id: fix-byte-order-marker
+        description: Removes UTF-8 byte order marker
+      - id: mixed-line-ending
+        description: Replaces mixed line endings automatically
+        args: ["--fix=lf"]
+
+  # Import sorting with isort (compatible with Black)
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        description: Sorts Python imports
+        args:
+          [--profile=black, --line-length=88, --multi-line=3, --trailing-comma]
+
+  # Python upgrade syntax
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.15.0
+    hooks:
+      - id: pyupgrade
+        description: Upgrade syntax for newer versions of Python
+        args: [--py310-plus]
+
+  # Remove unused imports and variables
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.2.1
+    hooks:
+      - id: autoflake
+        description: Remove unused imports and variables
+        args:
+          [
+            --remove-all-unused-imports,
+            --remove-unused-variables,
+            --remove-duplicate-keys,
+            --in-place,
+          ]
+
+  # Black code formatting
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        description: Formats Python code with Black
+        args: [--line-length=88]
+        language_version: python3
+
+  # Ruff linting and formatting (less strict for generated code)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        description: Run Ruff linter
+        args:
+          [
+            --fix,
+            --exit-non-zero-on-fix,
+            --ignore=F811,F841,E741,E712,F821,E402,
+          ]
+      - id: ruff-format
+        description: Run Ruff formatter
+
+  # Docstring formatting and validation
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        description: Checks docstring style
+        args:
+          [
+            --convention=numpy,
+            --add-ignore=D100,D101,D102,D103,D104,D105,D107,D200,D205,D400,D401,D403,D404,D411,D202,
+          ]
+        files: ^src/
+
+  # Type checking with mypy (optional but valuable)
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        description: Static type checking with mypy
+        additional_dependencies: [types-requests, pandas-stubs, numpy]
+        args: [--ignore-missing-imports, --no-strict-optional, --allow-any-generics, --disable-error-code=no-any-return,misc,assignment]
+        files: ^src/
+        exclude: ^(tests/|docs/)
+
+  # Security scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.6
+    hooks:
+      - id: bandit
+        description: Security linting with bandit
+        args: [-ll, --skip=B101,B601,B608,B113] # Skip assert, shell injection, SQL, and request timeout tests
+        files: ^src/
+        exclude: ^tests/
+
+  # YAML formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        description: Format YAML, JSON, and other files
+        types_or: [yaml, json, markdown]
+        exclude: ^\.github/workflows/.*\.yml$ # Exclude GitHub Actions (they have specific formatting)
+
+  # Jupyter notebook cleaning (optional, can be disabled if too strict)
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 1.8.7
+    hooks:
+      - id: nbqa-black
+        description: Format Jupyter notebooks with Black
+        exclude: ^docs/tutorial\.ipynb$ # Exclude tutorial notebook
+      - id: nbqa-ruff
+        description: Lint Jupyter notebooks with Ruff
+        args: [--fix, --ignore=F821, E402] # Ignore undefined names in notebooks
+        exclude: ^docs/tutorial\.ipynb$ # Exclude tutorial notebook
+      - id: nbqa-isort
+        description: Sort imports in Jupyter notebooks
+        args: [--profile=black]
+        exclude: ^docs/tutorial\.ipynb$
+
+  # Clear notebook outputs (keeps notebooks clean in git)
+  - repo: https://github.com/srstevenson/nb-clean
+    rev: 3.3.0
+    hooks:
+      - id: nb-clean
+        description: Clean Jupyter notebook outputs and metadata
+        args:
+          [
+            --remove-empty-cells,
+            --preserve-cell-metadata=kernelspec,
+            --preserve-notebook-metadata=kernelspec,language_info,
+          ]
+
+  # Documentation linting (more lenient)
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.42.0
+    hooks:
+      - id: markdownlint
+        description: Lint markdown files
+        args: [--fix, --disable=MD013, MD040, MD029, MD033] # Disable line length, code language, list numbering, and HTML rules
+        files: \.(md|markdown)$
+
+  # Validate GitHub Actions workflows
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.27.3
+    hooks:
+      - id: check-github-workflows
+        description: Validate GitHub Actions workflow files
+
+# Configuration for individual hooks
+default_language_version:
+  python: python3.10
+
+# Global settings
+default_stages: [pre-commit]
+fail_fast: false
+
+# Exclude patterns for all hooks
+exclude: |
+  (?x)^(
+    .*\.min\.(js|css)$|
+    .*\.bundle\.(js|css)$|
+    node_modules/.*|
+    \.git/.*|
+    \.venv/.*|
+    __pycache__/.*|
+    \.pytest_cache/.*|
+    \.mypy_cache/.*|
+    dist/.*|
+    build/.*
+  )$

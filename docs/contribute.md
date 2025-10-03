@@ -5,7 +5,7 @@ We welcome contributions to CRANTpy! This guide will help you get started with c
 ## 🎯 Ways to Contribute
 
 - 🐛 **Report bugs** and suggest fixes
-- 💡 **Propose new features** and enhancements  
+- 💡 **Propose new features** and enhancements
 - 📖 **Improve documentation** and examples
 - 🧪 **Write tests** and improve code coverage
 - 🔧 **Submit code** improvements and bug fixes
@@ -28,7 +28,7 @@ git clone https://github.com/your-username/crantpy.git
 cd crantpy
 ```
 
-2. **Install development dependencies with Poetry**
+1. **Install development dependencies with Poetry**
 
 ```bash
 # Poetry is REQUIRED for this project
@@ -36,24 +36,81 @@ poetry install
 ```
 
 This will:
+
 - Create a virtual environment
 - Install all dependencies and development tools
 - Set up the project for development
 
-3. **Set up pre-commit hooks**
+1. **Set up development environment**
 
 ```bash
-poetry run pre-commit install
+# Set up pre-commit hooks for automatic formatting and linting
+./setup_dev.sh --install
 ```
 
-4. **Verify installation**
+This will:
+
+- Install pre-commit hooks
+- Set up automatic code formatting with Black
+- Set up automatic linting with Ruff
+- Configure checks for common issues
+
+1. **Verify installation**
 
 ```bash
 poetry run pytest tests/
 ./build_docs.sh --clean
 ```
 
-## 📝 Development Workflow
+## �️ Development Tools
+
+### Pre-commit Hooks (Recommended)
+
+Pre-commit hooks automatically format and lint your code before each commit:
+
+```bash
+# Set up pre-commit hooks (one-time setup)
+./setup_dev.sh --install
+
+# Check setup status
+./setup_dev.sh --check
+
+# Run hooks manually on all files
+./setup_dev.sh --run
+```
+
+**What the hooks do:**
+
+- **Black**: Automatic code formatting
+- **Ruff**: Linting and additional formatting
+- **File checks**: Trailing whitespace, file endings, YAML/JSON syntax
+- **Notebook formatting**: Clean Jupyter notebooks
+
+### Manual Code Formatting
+
+If you prefer manual control:
+
+```bash
+# Quick format script (runs Black + Ruff)
+./format.sh
+
+# Or run individually
+poetry run black src/ tests/
+poetry run ruff check src/ tests/ --fix
+poetry run ruff format src/ tests/
+```
+
+### Skipping Hooks (When Needed)
+
+```bash
+# Skip all pre-commit hooks for a specific commit
+git commit --no-verify -m "Your commit message"
+
+# Skip specific hooks
+SKIP=black,ruff git commit -m "Your commit message"
+```
+
+## �📝 Development Workflow
 
 ### 1. Create a Branch
 
@@ -68,11 +125,12 @@ git checkout -b fix/issue-number
 Follow these coding standards:
 
 - **Start each file with UTF-8 encoding and detailed docstring**:
+
   ```python
   # -*- coding: utf-8 -*-
   """
   This module provides XXX functionality for YYY.
-  
+
   Detailed description of what this module does,
   its main classes, functions, and usage patterns.
   """
@@ -195,6 +253,7 @@ def test_invalid_cell_class():
 ```
 
 **Never use `jupyter-book build` directly** - use `build_docs.sh` which handles:
+
 - Dependency compatibility fixes
 - Proper error handling
 - Consistent build environment
@@ -214,18 +273,18 @@ Use Google-style docstrings:
 ```python
 def get_skeletons(root_ids, dataset='latest'):
     """Retrieve neuron skeletons for given root IDs.
-    
+
     Args:
         root_ids: List of neuron root IDs or single root ID
         dataset: Dataset version to use ('latest' or 'sandbox')
-        
+
     Returns:
         List of TreeNeuron objects or single TreeNeuron
-        
+
     Raises:
         ValueError: If root_ids is empty or invalid
         ConnectionError: If CAVE service is unavailable
-        
+
     Example:
         >>> skeleton = cp.get_skeletons(123456789)
         >>> skeletons = cp.get_skeletons([123456789, 987654321])
@@ -257,7 +316,7 @@ from typing import List, Optional, Union, Dict, Any
 from crantpy.utils.types import NeuronID, RootID
 
 def get_skeletons(
-    root_ids: Union[NeuronID, List[NeuronID]], 
+    root_ids: Union[NeuronID, List[NeuronID]],
     dataset: str = 'latest',
     simplify: bool = False
 ) -> Union[TreeNeuron, List[TreeNeuron]]:
@@ -266,6 +325,7 @@ def get_skeletons(
 ```
 
 **Benefits of type hints:**
+
 - Easier debugging with type assertion
 - Clear input/output expectations
 - Better IDE support and autocompletion
@@ -274,6 +334,7 @@ def get_skeletons(
 ### Module Organization
 
 **For new folders:**
+
 1. Always create `__init__.py` files
 2. After adding code, run the lazy import updater:
 
@@ -284,13 +345,13 @@ poetry run mkinit --lazy_loader src/crantpy --recursive --inplace
 ### Code Formatting
 
 - Use [Black](https://black.readthedocs.io/) for code formatting
-- Use [Ruff](https://ruff.rs/) for linting  
+- Use [Ruff](https://ruff.rs/) for linting
 - Maximum line length: 88 characters
 - **Poetry is required** - no pip installations
 
 ### Project Structure
 
-```
+```text
 src/crantpy/
 ├── __init__.py          # Main public API
 ├── queries/             # Neuron querying functionality
@@ -376,7 +437,7 @@ We follow [Semantic Versioning](https://semver.org/):
 
 Use [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 type(scope): description
 
 feat: add new visualization backend
@@ -416,14 +477,16 @@ Contributors are recognized in:
 ### Create API Tokens
 
 **TestPyPI Token:**
-- Go to: https://test.pypi.org/manage/account/token/
+
+- Go to: <https://test.pypi.org/manage/account/token/>
 - Click 'Add API token'
 - Token name: 'crantpy-dev' (or any name you prefer)
 - Scope: 'Entire account' (or limit to specific project)
 - Copy the generated token (starts with 'pypi-')
 
 **PyPI Token:**
-- Go to: https://pypi.org/manage/account/token/
+
+- Go to: <https://pypi.org/manage/account/token/>
 - Click 'Add API token'
 - Token name: 'crantpy-dev' (or any name you prefer)
 - Scope: 'Entire account' (or limit to specific project)
@@ -448,6 +511,7 @@ We provide an automated script to set up your PyPI tokens:
 ```
 
 The script will:
+
 - Guide you through getting API tokens from PyPI and TestPyPI
 - Automatically configure your shell environment (.bashrc/.zshrc)
 - Set up Poetry with the correct tokens and repositories
@@ -483,12 +547,14 @@ source ~/.bashrc  # or source ~/.zshrc
 ### Troubleshooting Token Issues
 
 **Script won't run:**
+
 ```bash
 chmod +x api_token.sh
 ./api_token.sh --setup
 ```
 
 **Tokens not working:**
+
 ```bash
 # Check current status
 ./api_token.sh --status
@@ -499,6 +565,7 @@ chmod +x api_token.sh
 ```
 
 **Environment variables not loading:**
+
 ```bash
 # Restart terminal or reload shell config
 source ~/.bashrc  # or ~/.zshrc
@@ -509,16 +576,19 @@ source ~/.bashrc  # or ~/.zshrc
 The project includes a comprehensive deployment script (`deploy.sh`) that automates the entire release process:
 
 **Available Commands:**
+
 - `test-deploy`: Deploy to TestPyPI for testing
 - `deploy`: Deploy to production PyPI
 - `build-only`: Build package without deploying
 
 **Version Bumping:**
+
 - `--bump patch`: Bug fixes (0.1.0 → 0.1.1)
 - `--bump minor`: New features (0.1.0 → 0.2.0)
 - `--bump major`: Breaking changes (0.1.0 → 1.0.0)
 
 **Skip Options:**
+
 - `--skip-tests`: Skip running pytest
 - `--skip-docs`: Skip building documentation
 - `--skip-checks`: Skip code quality checks
@@ -526,6 +596,7 @@ The project includes a comprehensive deployment script (`deploy.sh`) that automa
 ### Example Deployment Workflows
 
 **First Release:**
+
 ```bash
 # 1. Test the release process
 ./deploy.sh --bump patch test-deploy
@@ -538,11 +609,12 @@ pip install -i https://test.pypi.org/simple/ crantpy==0.1.1
 ```
 
 **Regular Updates:**
+
 ```bash
 # For bug fixes
 ./deploy.sh --bump patch deploy
 
-# For new features  
+# For new features
 ./deploy.sh --bump minor deploy
 
 # For breaking changes
@@ -550,6 +622,7 @@ pip install -i https://test.pypi.org/simple/ crantpy==0.1.1
 ```
 
 **Development Build:**
+
 ```bash
 # Just build without deploying
 ./deploy.sh build-only
@@ -582,6 +655,7 @@ pip install -i https://test.pypi.org/simple/ crantpy==0.1.1
 ### Troubleshooting Deployment
 
 **Authentication Issues:**
+
 ```bash
 # Check Poetry configuration
 poetry config --list
@@ -591,11 +665,13 @@ poetry config pypi-token.pypi your-new-token
 ```
 
 **Build Failures:**
+
 - Check that all tests pass: `poetry run pytest`
 - Verify code quality: `poetry run ruff check src/`
 - Ensure documentation builds: `./build_docs.sh --clean`
 
 **Version Conflicts:**
+
 - Check existing versions: `pip index versions crantpy`
 - Use appropriate version bump: `--bump major|minor|patch`
 

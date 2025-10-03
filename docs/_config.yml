@@ -73,7 +73,7 @@ sphinx:
     - sphinx.ext.autosummary
     - sphinx.ext.intersphinx
   config:
-    autodoc_mock_imports: 
+    autodoc_mock_imports:
       - "gdata"
       - "pandas"
       - "navis"
@@ -94,4 +94,6 @@ sphinx:
       python: ['https://docs.python.org/3/', null]
       numpy: ['https://numpy.org/doc/stable/', null]
       pandas: ['https://pandas.pydata.org/docs/', null]
-    autosummary_generate: true 
+    autosummary_generate: true
+    html_js_files:
+      - https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js

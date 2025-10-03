@@ -72,9 +72,9 @@ get_current_version() {
 # Function to bump version
 bump_version() {
     local bump_type="$1"
-    
+
     print_status "Current version: $(get_current_version)"
-    
+
     case $bump_type in
         major|minor|patch)
             poetry version "$bump_type"
@@ -84,7 +84,7 @@ bump_version() {
             exit 1
             ;;
     esac
-    
+
     local new_version=$(get_current_version)
     print_success "Version bumped to: $new_version"
     return 0
@@ -93,75 +93,95 @@ bump_version() {
 # Function to update lazy imports
 update_imports() {
     print_status "Updating lazy imports with mkinit..."
-    
+
     if ! poetry run mkinit --lazy_loader src/crantpy --recursive --inplace; then
         print_error "Failed to update lazy imports"
         exit 1
     fi
-    
+
     print_success "Lazy imports updated successfully"
 }
 
 # Function to run tests
 run_tests() {
     print_status "Running tests..."
-    
+
     if ! poetry run pytest tests/ -v; then
         print_error "Tests failed"
         exit 1
     fi
-    
+
     print_success "All tests passed"
 }
 
 # Function to check code quality
 check_code_quality() {
     print_status "Checking code quality..."
-    
-    # Format code
-    print_status "Formatting code with Black..."
-    poetry run black src/ tests/
-    
-    # Check linting (fix what can be fixed automatically)
-    print_status "Checking and fixing code with Ruff..."
-    poetry run ruff check src/ tests/ --fix || true
-    
-    # Check remaining issues (non-blocking for now due to mkinit generated code)
-    print_status "Final code quality check..."
-    if poetry run ruff check src/ tests/ --quiet; then
-        print_success "All code quality checks passed"
+
+    # Run pre-commit hooks if available
+    if [[ -f ".pre-commit-config.yaml" ]] && command -v poetry run pre-commit &> /dev/null; then
+        print_status "Running pre-commit hooks..."
+        if poetry run pre-commit run --all-files; then
+            print_success "All pre-commit hooks passed"
+        else
+            print_warning "Some pre-commit hooks failed or made changes"
+            print_info "Please review the changes and commit them before continuing"
+            read -p "Continue with deployment? (y/N): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                print_error "Deployment cancelled"
+                exit 1
+            fi
+        fi
     else
-        print_warning "Some code quality issues remain (mostly from auto-generated code)"
-        print_warning "Continuing with deployment..."
+        # Fallback to manual formatting and linting
+        print_status "Pre-commit not set up, running manual checks..."
+
+        # Format code
+        print_status "Formatting code with Black..."
+        poetry run black src/ tests/
+
+        # Check linting (fix what can be fixed automatically)
+        print_status "Checking and fixing code with Ruff..."
+        poetry run ruff check src/ tests/ --fix || true
+
+        # Check remaining issues (non-blocking for now due to mkinit generated code)
+        print_status "Final code quality check..."
+        if poetry run ruff check src/ tests/ --quiet; then
+            print_success "All code quality checks passed"
+        else
+            print_warning "Some code quality issues remain (mostly from auto-generated code)"
+            print_warning "Continuing with deployment..."
+        fi
     fi
 }
 
 # Function to build documentation
 build_docs() {
     print_status "Building documentation..."
-    
+
     if ! ./build_docs.sh --clean; then
         print_error "Documentation build failed"
         exit 1
     fi
-    
+
     print_success "Documentation built successfully"
 }
 
 # Function to build package
 build_package() {
     print_status "Building package with Poetry..."
-    
+
     # Clean previous builds
     rm -rf dist/
-    
+
     if ! poetry build; then
         print_error "Package build failed"
         exit 1
     fi
-    
+
     print_success "Package built successfully"
-    
+
     # Show build artifacts
     print_status "Build artifacts:"
     ls -la dist/
@@ -170,29 +190,29 @@ build_package() {
 # Function to check package
 check_package() {
     print_status "Checking package with twine..."
-    
+
     if ! poetry run twine check dist/*; then
         print_error "Package check failed"
         exit 1
     fi
-    
+
     print_success "Package check passed"
 }
 
 # Function to deploy to TestPyPI
 deploy_test() {
     print_status "Deploying to TestPyPI..."
-    
+
     if ! poetry config repositories.testpypi https://test.pypi.org/legacy/; then
         print_error "Failed to configure TestPyPI repository"
         exit 1
     fi
-    
+
     if ! poetry publish -r testpypi; then
         print_error "Deployment to TestPyPI failed"
         exit 1
     fi
-    
+
     local version=$(get_current_version)
     print_success "Successfully deployed to TestPyPI"
     print_status "Test installation: pip install -i https://test.pypi.org/simple/ crantpy==$version"
@@ -201,7 +221,7 @@ deploy_test() {
 # Function to deploy to PyPI
 deploy_pypi() {
     print_status "Deploying to PyPI..."
-    
+
     print_warning "This will deploy to the LIVE PyPI repository!"
     read -p "Are you sure you want to continue? (y/N): " -n 1 -r
     echo
@@ -209,12 +229,12 @@ deploy_pypi() {
         print_error "Deployment cancelled"
         exit 1
     fi
-    
+
     if ! poetry publish; then
         print_error "Deployment to PyPI failed"
         exit 1
     fi
-    
+
     local version=$(get_current_version)
     print_success "Successfully deployed to PyPI"
     print_status "Installation: pip install crantpy==$version"
@@ -224,15 +244,15 @@ deploy_pypi() {
 create_git_tag() {
     local version=$(get_current_version)
     local tag="v$version"
-    
+
     print_status "Creating git tag: $tag"
-    
+
     git add .
     git commit -m "chore: bump version to $version" || true
     git tag -a "$tag" -m "Release version $version"
-    
+
     print_success "Git tag created: $tag"
-    
+
     read -p "Push tag to remote? (y/N): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -315,39 +335,39 @@ fi
 # Main execution
 main() {
     print_status "Starting CRANTpy deployment process..."
-    
+
     # Pre-flight checks
     check_poetry
     check_directory
     check_git_status
-    
+
     # Bump version if requested
     if [[ -n "$BUMP_VERSION" ]]; then
         bump_version "$BUMP_VERSION"
     fi
-    
+
     # Update lazy imports (always required)
     update_imports
-    
+
     # Optional quality checks
     if [[ "$SKIP_CHECKS" == false ]]; then
         check_code_quality
     fi
-    
+
     # Optional tests
     if [[ "$SKIP_TESTS" == false ]]; then
         run_tests
     fi
-    
+
     # Optional documentation build
     if [[ "$SKIP_DOCS" == false ]]; then
         build_docs
     fi
-    
+
     # Build package
     build_package
     check_package
-    
+
     # Deploy based on command
     case $COMMAND in
         test-deploy)
@@ -361,7 +381,7 @@ main() {
             print_success "Package built successfully. Files in dist/"
             ;;
     esac
-    
+
     print_success "Deployment process completed!"
 }
 
