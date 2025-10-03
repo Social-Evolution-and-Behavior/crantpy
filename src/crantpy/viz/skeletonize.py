@@ -33,13 +33,14 @@ from ..utils.cave import get_cave_client as create_client
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 
-# Configure matplotlib for proper PDF export 
-plt.rcParams['pdf.fonttype'] = 42
+# Configure matplotlib for proper PDF export
+plt.rcParams["pdf.fonttype"] = 42
 import matplotlib.colors as mcolors
 import requests
 
 # Module logger
 logger = logging.getLogger(__name__)
+
 
 # --- Optional urllib3 warning suppression utilities ---
 def configure_urllib3_warning_suppression(enable: Optional[bool] = None) -> bool:
@@ -74,6 +75,7 @@ def configure_urllib3_warning_suppression(enable: Optional[bool] = None) -> bool
         return True
     return False
 
+
 from contextlib import contextmanager
 
 
@@ -91,6 +93,7 @@ def suppress_urllib3_connectionpool_warnings():
             module=r"urllib3[.]connectionpool",
         )
         yield
+
 
 # Apply suppression if requested via environment variable
 configure_urllib3_warning_suppression()
@@ -248,7 +251,12 @@ def skeletonize_neuron(
 
             return tn
 
-        except (requests.HTTPError, requests.ConnectionError, requests.Timeout, ValueError) as e:
+        except (
+            requests.HTTPError,
+            requests.ConnectionError,
+            requests.Timeout,
+            ValueError,
+        ) as e:
             logger.warning(
                 "pcg_skel failed for %s: %s. Falling back to skeletor.",
                 root_id_int,
@@ -828,9 +836,7 @@ def get_skeletons(
         """Fetch single skeleton with fallback strategies."""
         try:
             try:
-                skel = client.skeleton.get_skeleton(
-                    root_id, output_format="dict"
-                )
+                skel = client.skeleton.get_skeleton(root_id, output_format="dict")
                 if skel is not None:
                     vertices = np.array(skel["vertices"], dtype=float)
                     edges = np.array(skel["edges"], dtype=int)

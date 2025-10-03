@@ -15,7 +15,6 @@ from crantpy.utils.config import CRANT_VALID_DATASETS
 from crantpy.utils.cave import get_cave_client, get_current_cave_token, get_cloudvolume
 
 
-
 @parse_neuroncriteria()
 def parse_root_ids(x: Neurons) -> np.ndarray:
     """
@@ -47,11 +46,10 @@ def parse_root_ids(x: Neurons) -> np.ndarray:
 
     return x.astype(np.int64) if len(x) > 0 else np.array([], dtype=np.int64)
 
+
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 def is_valid_root(
-    x: IDs,
-    dataset: Optional[str] = None,
-    raise_exc: bool = False
+    x: IDs, dataset: Optional[str] = None, raise_exc: bool = False
 ) -> np.ndarray:
     """Check if ID is (potentially) valid root ID.
 
@@ -68,7 +66,7 @@ def is_valid_root(
     -------
     np.ndarray
         A boolean array indicating whether each root ID is valid.
-    
+
     Raises
     ------
     ValueError
@@ -82,10 +80,10 @@ def is_valid_root(
             is_valid = vol.get_chunk_layer(x) == vol.info["graph"]["n_layers"]
         except ValueError:
             is_valid = False
-        
+
         if raise_exc and not is_valid:
             raise ValueError(f"{x} is not a valid root ID")
-        
+
         return is_valid
 
     if navis.utils.is_iterable(x):
@@ -107,7 +105,7 @@ def is_latest_roots(
     progress: bool = True,
     batch_size: int = 100_000,
     validate_ids: bool = True,
-    use_http_session: bool = True
+    use_http_session: bool = True,
 ) -> np.ndarray:
     """
     Check if the given root IDs are the latest based on the timestamp.
@@ -117,7 +115,7 @@ def is_latest_roots(
     x : IDs = str | int | np.int64
         The root IDs to check.
     timestamp : Timestamp = str | int | np.int64 | datetime | np.datetime64 | pd.Timestamp
-        The timestamp to compare against. Can also be "mat" for the latest 
+        The timestamp to compare against. Can also be "mat" for the latest
         materialization timestamp.
     dataset : str, optional
         The dataset to use.
@@ -134,30 +132,30 @@ def is_latest_roots(
     -------
     np.ndarray
         A boolean array indicating whether each root ID is the latest.
-    
+
     Examples
     --------
     >>> from crantpy.utils.cave.helpers import is_latest_roots
     >>> is_latest_roots([123456789, 987654321])
     array([ True, False])
-    
+
     >>> # Check against latest materialization
     >>> is_latest_roots([123456789], timestamp="mat")
     array([ True])
     """
     # Ensure x is iterable and convert to proper format
     x = make_iterable(x, force_type=np.int64)
-    
+
     # Handle empty input
     if len(x) == 0:
         return np.array([], dtype=bool)
-    
+
     # The server doesn't like being asked for zeros - filter them out
     not_zero = x != 0
-    
+
     # Initialize result array
     is_latest = np.ones(len(x), dtype=bool)
-    
+
     # If no valid IDs (all zeros), return early
     if not not_zero.any():
         return np.zeros(len(x), dtype=bool)
@@ -179,7 +177,9 @@ def is_latest_roots(
                 version = int(timestamp.split("_")[1])
                 timestamp = client.materialize.get_timestamp(version)
             except (IndexError, ValueError):
-                raise ValueError(f"Invalid materialization timestamp format: {timestamp}")
+                raise ValueError(
+                    f"Invalid materialization timestamp format: {timestamp}"
+                )
 
     # Parse timestamp using the existing helper function
     if timestamp is not None:
@@ -187,15 +187,14 @@ def is_latest_roots(
 
     # Process in batches with progress bar
     valid_x = x[not_zero]
-    
+
     if use_http_session:
         # Use direct HTTP session for better performance (similar to FlyWire)
         session = requests.Session()
         token = get_current_cave_token()
         session.headers["Authorization"] = f"Bearer {token}"
-        url = (
-            client.chunkedgraph._endpoints["is_latest_roots"]
-            .format_map(client.chunkedgraph.default_url_mapping)
+        url = client.chunkedgraph._endpoints["is_latest_roots"].format_map(
+            client.chunkedgraph.default_url_mapping
         )
 
         # Prepare timestamp parameters for HTTP request
@@ -216,23 +215,23 @@ def is_latest_roots(
         ) as pbar:
             for i in range(0, len(valid_x), batch_size):
                 batch = valid_x[i : i + batch_size]
-                
+
                 # Update progress bar
                 pbar.update(len(batch))
-                
+
                 # Prepare POST request
                 post_data = {"node_ids": batch.tolist()}
-                
+
                 # Make HTTP request with retry logic
                 @retry
                 def make_request():
                     r = session.post(url, json=post_data, params=params)
                     r.raise_for_status()
                     return r.json()["is_latest"]
-                
+
                 batch_result = make_request()
                 batch_result = np.array(batch_result, dtype=bool)
-                
+
                 # Update the result array for valid (non-zero) indices
                 valid_indices = np.where(not_zero)[0][i : i + batch_size]
                 is_latest[valid_indices] = batch_result
@@ -246,29 +245,26 @@ def is_latest_roots(
         ) as pbar:
             for i in range(0, len(valid_x), batch_size):
                 batch = valid_x[i : i + batch_size]
-                
+
                 # Update progress bar
                 pbar.update(len(batch))
-                
+
                 # Check if the root IDs are the latest for this batch
                 is_latest_roots_func = retry(client.chunkedgraph.is_latest_roots)
                 batch_result = is_latest_roots_func(batch, timestamp=timestamp)
-                
+
                 if not isinstance(batch_result, np.ndarray):
                     batch_result = np.array(batch_result, dtype=bool)
-                
+
                 # Update the result array for valid (non-zero) indices
                 valid_indices = np.where(not_zero)[0][i : i + batch_size]
                 is_latest[valid_indices] = batch_result
 
     return is_latest
 
+
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
-def is_valid_supervoxel(
-    x: IDs,
-    dataset: Optional[str] = None,
-    raise_exc: bool = False
-):
+def is_valid_supervoxel(x: IDs, dataset: Optional[str] = None, raise_exc: bool = False):
     """Check if ID is (potentially) valid supervoxel ID.
 
     Parameters
@@ -302,10 +298,10 @@ def is_valid_supervoxel(
             is_valid = vol.get_chunk_layer(x) == 1
         except ValueError:
             is_valid = False
-        
+
         if raise_exc and not is_valid:
             raise ValueError(f"{x} is not a valid supervoxel ID")
-        
+
         return is_valid
 
     if navis.utils.is_iterable(x):
@@ -317,4 +313,3 @@ def is_valid_supervoxel(
         return is_valid
     else:
         return _is_valid(x, raise_exc=raise_exc)
-

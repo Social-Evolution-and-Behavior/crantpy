@@ -18,12 +18,12 @@ from crantpy.utils.config import CRANT_CAVE_SERVER_URL
 def get_current_cave_token() -> str:
     """
     Retrieves the current token from the CAVE client.
-    
+
     Returns
     -------
     str
         The current CAVE token.
-        
+
     Raises
     ------
     ValueError
@@ -37,17 +37,20 @@ def get_current_cave_token() -> str:
         return client.auth.token
 
     # If no token is set, try to find it in the cloudvolume secrets
-    token = cv.secrets.cave_credentials(CRANT_CAVE_SERVER_URL).get('token', None)
+    token = cv.secrets.cave_credentials(CRANT_CAVE_SERVER_URL).get("token", None)
 
     if token:
         return token
 
-    raise ValueError("No token found. Please generate a new token using generate_cave_token().")
+    raise ValueError(
+        "No token found. Please generate a new token using generate_cave_token()."
+    )
+
 
 def set_cave_token(token: str) -> None:
     """
     Sets the CAVE token for the CAVE client.
-    
+
     Parameters
     ----------
     token : str
@@ -69,11 +72,12 @@ def set_cave_token(token: str) -> None:
     reload(cv.secrets)
     reload(cv)
 
+
 def generate_cave_token(save: bool = False) -> None:
     """
     Generates a token for the CAVE client.
     If save is True, the token will be saved (overwriting any existing token).
-    
+
     Parameters
     ----------
     save : bool, default False
@@ -89,4 +93,6 @@ def generate_cave_token(save: bool = False) -> None:
         token = getpass("Enter your CAVE token: ").strip()
         set_cave_token(token)
     else:
-        logging.warning("Token generated but not saved. Use set_cave_token(<token>) to save it.")
+        logging.warning(
+            "Token generated but not saved. Use set_cave_token(<token>) to save it."
+        )

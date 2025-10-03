@@ -18,58 +18,70 @@ import pytz
 import seatable_api
 from seatable_api import Base
 
-from crantpy.utils.config import (ALL_ANNOTATION_FIELDS,
-                                  CRANT_SEATABLE_ANNOTATIONS_TABLES,
-                                  CRANT_SEATABLE_BASENAME,
-                                  CRANT_SEATABLE_SERVER_URL,
-                                  CRANT_SEATABLE_WORKSPACE_ID,
-                                  CRANT_VALID_DATASETS, MAXIMUM_CACHE_DURATION,
-                                  SEARCH_EXCLUDED_ANNOTATION_FIELDS)
+from crantpy.utils.config import (
+    ALL_ANNOTATION_FIELDS,
+    CRANT_SEATABLE_ANNOTATIONS_TABLES,
+    CRANT_SEATABLE_BASENAME,
+    CRANT_SEATABLE_SERVER_URL,
+    CRANT_SEATABLE_WORKSPACE_ID,
+    CRANT_VALID_DATASETS,
+    MAXIMUM_CACHE_DURATION,
+    SEARCH_EXCLUDED_ANNOTATION_FIELDS,
+)
 from crantpy.utils.decorators import cached_result, inject_dataset, parse_neuroncriteria
 from crantpy.utils.helpers import create_sql_query
 
 # get API TOKEN from environment variable
-CRANT_SEATABLE_API_TOKEN = os.getenv('CRANTTABLE_TOKEN')
+CRANT_SEATABLE_API_TOKEN = os.getenv("CRANTTABLE_TOKEN")
 if CRANT_SEATABLE_API_TOKEN is None:
-    raise ValueError("CRANTTABLE_TOKEN environment variable not set. Please set it to your Seatable API token.")
+    raise ValueError(
+        "CRANTTABLE_TOKEN environment variable not set. Please set it to your Seatable API token."
+    )
+
 
 def get_seatable_base_object() -> Base:
     """
     Uses Seatable API to get the base object for the CRANTpy project.
-    
+
     Returns
     -------
     seatable_api.Base
         The authenticated Seatable Base object.
     """
     # Login to seatable
-    ac = seatable_api.Account(login_name=[], password=[], server_url=CRANT_SEATABLE_SERVER_URL)
+    ac = seatable_api.Account(
+        login_name=[], password=[], server_url=CRANT_SEATABLE_SERVER_URL
+    )
     ac.token = CRANT_SEATABLE_API_TOKEN
 
     # Initialize the Base object
-    base = ac.get_base(workspace_id=CRANT_SEATABLE_WORKSPACE_ID, base_name=CRANT_SEATABLE_BASENAME)
+    base = ac.get_base(
+        workspace_id=CRANT_SEATABLE_WORKSPACE_ID, base_name=CRANT_SEATABLE_BASENAME
+    )
     base.auth()
     return base
+
 
 def get_seatable_cache_name(*args, **kwargs) -> str:
     """
     Returns the name of the Seatable cache based on the dataset and proofread_only status.
     """
-    dataset = args[0] if args else kwargs['dataset']
-    proofread_only = args[1] if len(args) > 1 else kwargs['proofread_only']
+    dataset = args[0] if args else kwargs["dataset"]
+    proofread_only = args[1] if len(args) > 1 else kwargs["proofread_only"]
     return f"{dataset}{'_proofread' if proofread_only else ''}"
+
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 @cached_result(
-    cache_name="seatable_annotations", 
+    cache_name="seatable_annotations",
     key_fn=get_seatable_cache_name,
 )
 def get_all_seatable_annotations(
-        dataset: Optional[str] = None,
-        proofread_only: bool = False, 
-        clear_cache: bool = False,
-        check_stale: bool = True,
-    ) -> pd.DataFrame:
+    dataset: Optional[str] = None,
+    proofread_only: bool = False,
+    clear_cache: bool = False,
+    check_stale: bool = True,
+) -> pd.DataFrame:
     """
     Uses Seatable API to get the table object for the CRANTb project.
     Handles pagination to retrieve all rows even if exceeding the API limit.
@@ -102,53 +114,68 @@ def get_all_seatable_annotations(
             table_name=CRANT_SEATABLE_ANNOTATIONS_TABLES[dataset],
             fields=ALL_ANNOTATION_FIELDS,
             start=start,
-            limit=limit
+            limit=limit,
         )
         try:
             results = base.query(sql_query)
         except Exception as e:
-                logging.error(f"Error querying Seatable: {e}")
-                break
+            logging.error(f"Error querying Seatable: {e}")
+            break
 
         if not results:
             logging.debug("No more results found.")
-            break # Exit loop if no results are returned
+            break  # Exit loop if no results are returned
 
         all_results.extend(results)
         logging.debug(f"Retrieved {len(results)} rows in this batch.")
 
         if len(results) < limit:
             logging.debug("Fetched all rows.")
-            break # Exit loop if fewer than 'limit' rows were returned
+            break  # Exit loop if fewer than 'limit' rows were returned
 
-        start += limit # Prepare for the next batch
+        start += limit  # Prepare for the next batch
 
     logging.debug(f"Retrieved a total of {len(all_results)} rows.")
     # Convert the results to a pandas DataFrame
-    df = pd.DataFrame(all_results) if all_results else pd.DataFrame(columns=ALL_ANNOTATION_FIELDS)
+    df = (
+        pd.DataFrame(all_results)
+        if all_results
+        else pd.DataFrame(columns=ALL_ANNOTATION_FIELDS)
+    )
 
     # Apply proofread filter if requested (post-fetch)
-    if proofread_only and 'proofread' in df.columns:
+    if proofread_only and "proofread" in df.columns:
         try:
-            return df[df['proofread'].astype(bool) == True]
+            return df[df["proofread"].astype(bool) == True]
         except Exception as e:
-            logging.warning(f"Could not apply 'proofread' filter due to data type issue: {e}")
-    
+            logging.warning(
+                f"Could not apply 'proofread' filter due to data type issue: {e}"
+            )
+
     # Ensure that positions are integers
-    position_columns = ['position', 'nucleus_position', 'root_position']
+    position_columns = ["position", "nucleus_position", "root_position"]
     for col in position_columns:
         if col in df.columns:
             df[col] = df[col].apply(
-                lambda x: [int(coord.strip()) for coord in str(x).split(',') if coord.strip().isdigit()] if x and pd.notna(x) else []
+                lambda x: (
+                    [
+                        int(coord.strip())
+                        for coord in str(x).split(",")
+                        if coord.strip().isdigit()
+                    ]
+                    if x and pd.notna(x)
+                    else []
+                )
             )
-            
+
     return df
+
 
 # function to check if neurons are proofread
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 @cached_result(
     cache_name="proofread_neurons",
-    key_fn=lambda *args, **kwargs: args[0] if args else kwargs['dataset'],
+    key_fn=lambda *args, **kwargs: args[0] if args else kwargs["dataset"],
 )
 def get_proofread_neurons(
     dataset: Optional[str] = None,
@@ -170,12 +197,16 @@ def get_proofread_neurons(
         Array of root IDs of proofread neurons.
     """
     # Fetch all annotations
-    annotations = get_all_seatable_annotations(proofread_only=True, clear_cache=clear_cache, dataset=dataset)
+    annotations = get_all_seatable_annotations(
+        proofread_only=True, clear_cache=clear_cache, dataset=dataset
+    )
 
     # Check if the 'root_id' column exists
-    if 'root_id' not in annotations.columns:
-        logging.warning("No 'root_id' column found in annotations. Returning empty array.")
+    if "root_id" not in annotations.columns:
+        logging.warning(
+            "No 'root_id' column found in annotations. Returning empty array."
+        )
         return np.array([])
 
     # Return unique root IDs as numpy array
-    return annotations['root_id'].unique().astype(np.int64)
+    return annotations["root_id"].unique().astype(np.int64)
