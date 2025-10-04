@@ -1281,7 +1281,13 @@ def get_voxels(
         resolution = np.array(vol.scale["resolution"])
         if resolution.ndim == 0:
             raise ValueError(
-                f"Resolution at mip={mip} is scalar: {resolution}. Check volume configuration."
+                f"Resolution at mip={mip} is scalar: {resolution}. "
+                "This usually indicates an invalid MIP level or misconfigured volume. "
+                "Troubleshooting steps: "
+                "1) Verify that the requested MIP level is supported for this dataset. "
+                "2) Check that the CloudVolume setup is correct and covers the desired region. "
+                "3) Ensure the dataset name is correct. "
+                "Refer to the documentation for valid MIP levels and volume configuration."
             )
         if resolution.shape[0] != 3:
             raise ValueError(f"Expected 3D resolution, got shape {resolution.shape}")
