@@ -183,7 +183,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Visualizing Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Plotting Neurons</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/morphology.html">Working with Neuron Morphology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/connectivity.html">Analyzing Connectivity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
@@ -221,6 +221,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
 </ul>
 
     </div>
@@ -410,7 +411,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -426,6 +429,26 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-functions">Available Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#coordinate-system-notes">Coordinate System Notes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.find_common_time"><code class="docutils literal notranslate"><span class="pre">find_common_time()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.get_lineage_graph"><code class="docutils literal notranslate"><span class="pre">get_lineage_graph()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.get_segmentation_cutout"><code class="docutils literal notranslate"><span class="pre">get_segmentation_cutout()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.get_voxels"><code class="docutils literal notranslate"><span class="pre">get_voxels()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.locs_to_segments"><code class="docutils literal notranslate"><span class="pre">locs_to_segments()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.locs_to_supervoxels"><code class="docutils literal notranslate"><span class="pre">locs_to_supervoxels()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.neuron_to_segments"><code class="docutils literal notranslate"><span class="pre">neuron_to_segments()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.roots_to_supervoxels"><code class="docutils literal notranslate"><span class="pre">roots_to_supervoxels()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.snap_to_id"><code class="docutils literal notranslate"><span class="pre">snap_to_id()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.supervoxels_to_roots"><code class="docutils literal notranslate"><span class="pre">supervoxels_to_roots()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.update_ids"><code class="docutils literal notranslate"><span class="pre">update_ids()</span></code></a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -435,8 +458,652 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="crantpy-utils-cave-segmentation-module">
-<h1>crantpy.utils.cave.segmentation module<a class="headerlink" href="#crantpy-utils-cave-segmentation-module" title="Link to this heading">#</a></h1>
+  <section id="module-crantpy.utils.cave.segmentation">
+<span id="crantpy-utils-cave-segmentation-module"></span><h1>crantpy.utils.cave.segmentation module<a class="headerlink" href="#module-crantpy.utils.cave.segmentation" title="Link to this heading">#</a></h1>
+<p>This module provides utility functions for cave-related segmentation operations.</p>
+<p>Ported and adapted from fafbseg-py (<a class="github reference external" href="https://github.com/navis-org/fafbseg-py">navis-org/fafbseg-py</a>)
+for use with CRANT datasets.</p>
+<section id="available-functions">
+<h2>Available Functions<a class="headerlink" href="#available-functions" title="Link to this heading">#</a></h2>
+<dl class="simple">
+<dt>Utilities:</dt><dd><ul class="simple">
+<li><p>_check_bounds_coverage: Check if bounds are within CloudVolume coverage (internal)</p></li>
+</ul>
+</dd>
+<dt>Core Segmentation:</dt><dd><ul class="simple">
+<li><p>roots_to_supervoxels: Get supervoxels making up given neurons</p></li>
+<li><p>supervoxels_to_roots: Get root IDs for given supervoxels</p></li>
+<li><p>update_ids: Update root IDs to their latest versions</p></li>
+</ul>
+</dd>
+<dt>Location-based Queries:</dt><dd><ul class="simple">
+<li><p>locs_to_supervoxels: Get supervoxel IDs at given locations</p></li>
+<li><p>locs_to_segments: Get root IDs at given locations</p></li>
+<li><p>snap_to_id: Snap locations to the correct segmentation ID</p></li>
+</ul>
+</dd>
+<dt>Neuron Analysis:</dt><dd><ul class="simple">
+<li><p>neuron_to_segments: Get root IDs overlapping with a neuron</p></li>
+<li><p>get_lineage_graph: Get lineage graph showing edit history</p></li>
+</ul>
+</dd>
+<dt>Voxel Operations:</dt><dd><ul class="simple">
+<li><p>get_voxels: Fetch voxels making up a given root ID</p></li>
+<li><p>get_segmentation_cutout: Fetch cutout of segmentation</p></li>
+</ul>
+</dd>
+<dt>Temporal Analysis:</dt><dd><ul class="simple">
+<li><p>find_common_time: Find time when root IDs co-existed</p></li>
+</ul>
+</dd>
+</dl>
+<p>Note: is_valid_root, is_valid_supervoxel, and is_latest_roots are in helpers.py</p>
+</section>
+<section id="coordinate-system-notes">
+<h2>Coordinate System Notes<a class="headerlink" href="#coordinate-system-notes" title="Link to this heading">#</a></h2>
+<p>Understanding coordinate systems is critical when working with segmentation data:</p>
+<dl class="simple">
+<dt><strong>CAVE API (ChunkedGraph/Materialization):</strong></dt><dd><ul class="simple">
+<li><p>Uses nanometers for all spatial coordinates</p></li>
+<li><p>Base resolution: [8, 8, 42] nm/voxel (X, Y, Z)</p></li>
+<li><p>Full dataset coverage</p></li>
+</ul>
+</dd>
+<dt><strong>CloudVolume API:</strong></dt><dd><ul class="simple">
+<li><p>Works in voxel space at the current MIP (scale) level</p></li>
+<li><p><strong>IMPORTANT</strong>: <cite>vol.bounds</cite> returns voxel coordinates, NOT nanometers</p></li>
+<li><dl class="simple">
+<dt>Resolution varies by MIP level:</dt><dd><ul>
+<li><p>MIP 0: [16, 16, 42] nm/voxel (missing CAVE’s 8nm base layer!)</p></li>
+<li><p>MIP 1: [32, 32, 42] nm/voxel</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Limited spatial coverage: Only ~360 x 344 x 257 µm region</p></li>
+<li><p>Does NOT cover the full CAVE dataset</p></li>
+</ul>
+</dd>
+<dt><strong>Coordinate Conversions:</strong></dt><dd><ul class="simple">
+<li><p>nm → voxels: divide by <cite>vol.scale[“resolution”]</cite></p></li>
+<li><p>voxels → nm: multiply by <cite>vol.scale[“resolution”]</cite></p></li>
+<li><p>Always use CAVE base resolution for voxel coordinate inputs</p></li>
+<li><p>CloudVolume resolution changes with MIP level</p></li>
+</ul>
+</dd>
+<dt><strong>Best Practices:</strong></dt><dd><ol class="arabic simple">
+<li><p>Always provide explicit bounds for voxel operations</p></li>
+<li><p>Use small regions (&lt; 10 µm) for <cite>get_voxels</cite> queries</p></li>
+<li><p>For full neurons, use <cite>get_l2_skeleton</cite> or <cite>get_mesh</cite> instead</p></li>
+<li><p>Test bounds with <cite>get_segmentation_cutout</cite> before large queries</p></li>
+<li><p>When in doubt, use nanometers (the CAVE standard)</p></li>
+</ol>
+</dd>
+</dl>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.segmentation.find_common_time">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.segmentation.</span></span><span class="sig-name descname"><span class="pre">find_common_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/segmentation.html#find_common_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.segmentation.find_common_time" title="Link to this definition">#</a></dt>
+<dd><p>Find a time at which given root IDs co-existed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root_ids</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em> | </em><em>np.ndarray</em>) – Root IDs to check.</p></li>
+<li><p><strong>progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, shows progress bar.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The dataset to use. If not provided, uses the default dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A timestamp when all root IDs existed simultaneously.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)">datetime.datetime</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_common_time</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">common_time</span> <span class="o">=</span> <span class="n">find_common_time</span><span class="p">([</span><span class="mi">123456789</span><span class="p">,</span> <span class="mi">987654321</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.segmentation.get_lineage_graph">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_lineage_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/segmentation.html#get_lineage_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.segmentation.get_lineage_graph" title="Link to this definition">#</a></dt>
+<dd><p>Get lineage graph for given neuron.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – A single root ID.</p></li>
+<li><p><strong>progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, show progress bar.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The dataset to use. If not provided, uses the default dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The lineage graph showing the history of edits for this root ID.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>networkx.DiGraph</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_lineage_graph</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">G</span> <span class="o">=</span> <span class="n">get_lineage_graph</span><span class="p">(</span><span class="mi">720575940621039145</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
+<span class="go">150</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.segmentation.get_segmentation_cutout">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_segmentation_cutout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nm'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/segmentation.html#get_segmentation_cutout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.segmentation.get_segmentation_cutout" title="Link to this definition">#</a></dt>
+<dd><p>Fetch cutout of segmentation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bbox</strong> (<em>array-like</em>) – <dl class="simple">
+<dt>Bounding box for the cutout::</dt><dd><p>[[xmin, xmax], [ymin, ymax], [zmin, zmax]]</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>root_ids</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, will return root IDs. If False, will return
+supervoxel IDs.</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Scale at which to fetch the cutout.</p></li>
+<li><p><strong>coordinates</strong> (<em>&quot;voxel&quot;</em><em> | </em><em>&quot;nm&quot;</em>) – Units in which your coordinates are in.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The dataset to use. If not provided, uses the default dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>cutout</strong> (<em>np.ndarray</em>) – (N, M, P) array of segmentation (root or supervoxel) IDs.</p></li>
+<li><p><strong>resolution</strong> (<em>(3, ) numpy array</em>) – [x, y, z] resolution of voxel in cutout.</p></li>
+<li><p><strong>nm_offset</strong> (<em>(3, ) numpy array</em>) – [x, y, z] offset in nanometers of the cutout with respect
+to the absolute coordinates.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_segmentation_cutout</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bbox</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">100000</span><span class="p">,</span> <span class="mi">100100</span><span class="p">],</span> <span class="p">[</span><span class="mi">50000</span><span class="p">,</span> <span class="mi">50100</span><span class="p">],</span> <span class="p">[</span><span class="mi">3000</span><span class="p">,</span> <span class="mi">3010</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cutout</span><span class="p">,</span> <span class="n">resolution</span><span class="p">,</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">get_segmentation_cutout</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.segmentation.get_voxels">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.segmentation.</span></span><span class="sig-name descname"><span class="pre">get_voxels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sv_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_l2_chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/segmentation.html#get_voxels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.segmentation.get_voxels" title="Link to this definition">#</a></dt>
+<dd><p>Fetch voxels making up a given root ID.</p>
+<p>This function has two modes:
+1. L2 chunk-based (default): Fetches voxels chunk by chunk using L2 IDs
+2. Cutout-based: Downloads entire bounding box and extracts voxels</p>
+<p><strong>IMPORTANT - CloudVolume Limitations:</strong></p>
+<p>CloudVolume has limited spatial coverage (~360 x 344 x 257 µm) and is
+missing CAVE’s highest resolution layer. For most use cases, prefer:
+- <cite>get_l2_skeleton()</cite> for full neuron morphology
+- <cite>get_mesh()</cite> for 3D visualization
+- This function only for specific voxel-level analysis in small regions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – A single root ID.</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Scale at which to fetch voxels. For example, <cite>mip=0</cite> is
+at highest resolution (16x16x42 nm/voxel for CloudVolume).
+Every subsequent <cite>mip</cite> halves the resolution.
+Use higher mip for faster queries: mip=1 is often sufficient.</p></li>
+<li><p><strong>bounds</strong> (<em>(</em><em>3</em><em>, </em><em>2</em><em>) or </em><em>(</em><em>2</em><em>, </em><em>3</em><em>) </em><em>array</em><em>, </em><em>optional</em>) – Bounding box to return voxels in (in nanometers).
+Format: [[xmin, xmax], [ymin, ymax], [zmin, zmax]]
+<strong>REQUIRED in practice</strong> - without bounds, will attempt to
+fetch entire neuron which may exceed CloudVolume coverage.
+Use small regions (&lt; 10 µm per dimension) for best results.</p></li>
+<li><p><strong>sv_map</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, additionally return a map with the supervoxel ID
+for each voxel. Useful for detailed connectivity analysis.</p></li>
+<li><p><strong>thin</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, will remove voxels at the interface of adjacent
+supervoxels that are not supposed to be connected according
+to the L2 graph. Useful for neurons that self-touch.
+<strong>WARNING</strong>: This is computationally expensive!</p></li>
+<li><p><strong>use_l2_chunks</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True (default), fetch voxels chunk by chunk using L2 IDs.
+Faster and more memory efficient for neurons with L2 metadata.
+If False, download entire bounding box as single cutout.</p></li>
+<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Number of parallel threads for CloudVolume operations.
+More threads = faster but more memory usage.</p></li>
+<li><p><strong>progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – Whether to show a progress bar or not.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The dataset to use. If not provided, uses the default dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>voxels</strong> (<em>(N, 3) np.ndarray</em>) – Voxel coordinates in voxel space according to <cite>mip</cite>.
+Each row is [x, y, z] in voxel coordinates.</p></li>
+<li><p><strong>sv_map</strong> (<em>(N, ) np.ndarray</em>) – Supervoxel ID for each voxel. Only if <cite>sv_map=True</cite>.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If bounds exceed CloudVolume coverage or if root ID is invalid.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_voxels</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># RECOMMENDED: Always use explicit bounds within CloudVolume coverage</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bounds</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">100000</span><span class="p">,</span> <span class="mi">105000</span><span class="p">],</span> <span class="p">[</span><span class="mi">50000</span><span class="p">,</span> <span class="mi">55000</span><span class="p">],</span> <span class="p">[</span><span class="mi">3000</span><span class="p">,</span> <span class="mi">3100</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">voxels</span> <span class="o">=</span> <span class="n">get_voxels</span><span class="p">(</span><span class="mi">720575940621039145</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span> <span class="n">mip</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrieved </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">voxels</span><span class="p">)</span><span class="si">}</span><span class="s2"> voxels&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get voxels with supervoxel mapping for detailed analysis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">voxels</span><span class="p">,</span> <span class="n">svids</span> <span class="o">=</span> <span class="n">get_voxels</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="mi">720575940621039145</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">mip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">sv_map</span><span class="o">=</span><span class="kc">True</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Voxels from </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">svids</span><span class="p">))</span><span class="si">}</span><span class="s2"> supervoxels&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Use cutout method for small regions without L2 metadata</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">voxels</span> <span class="o">=</span> <span class="n">get_voxels</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="mi">720575940621039145</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">mip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">use_l2_chunks</span><span class="o">=</span><span class="kc">False</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Notes</p>
+<p><strong>Coordinate System:</strong>
+- Input bounds are in nanometers (CAVE standard)
+- Output voxels are in voxel space at the specified MIP level
+- CloudVolume resolution at MIP 0: [16, 16, 42] nm/voxel
+- To convert voxels to nm: voxels * resolution</p>
+<p><strong>Performance Tips:</strong>
+- Use <cite>mip=1</cite> (32x32x42 nm/voxel) for faster queries when precise</p>
+<blockquote>
+<div><p>resolution isn’t critical</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>Keep bounds small (&lt; 10 µm per dimension) to avoid timeouts</p></li>
+<li><p>Set <cite>use_l2_chunks=True</cite> (default) for neurons with L2 metadata</p></li>
+<li><p>Disable <cite>sv_map</cite> if you don’t need supervoxel IDs (faster)</p></li>
+<li><p>Only use <cite>thin=True</cite> when absolutely necessary (very slow)</p></li>
+</ul>
+<p><strong>Common Issues:</strong>
+- “Bounds exceed CloudVolume coverage”: Your bounds are outside the</p>
+<blockquote>
+<div><p>~360 µm cube that CloudVolume contains. Try smaller bounds or check
+if your neuron is within CloudVolume’s spatial coverage.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>Slow performance: Reduce bounds size, increase mip level, or use
+<cite>get_l2_skeleton()</cite> instead for full neuron morphology.</p></li>
+<li><p>Empty result: The neuron may not have voxels in the specified bounds,
+or bounds may need adjustment.</p></li>
+</ul>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_l2_skeleton</span></code></dt><dd><p>Get skeleton representation (better for full neurons)</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mesh</span></code></dt><dd><p>Get 3D mesh (better for visualization)</p>
+</dd>
+<dt><a class="reference internal" href="#crantpy.utils.cave.segmentation.get_segmentation_cutout" title="crantpy.utils.cave.segmentation.get_segmentation_cutout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_segmentation_cutout</span></code></a></dt><dd><p>Get all segmentation in a region</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.segmentation.locs_to_segments">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.segmentation.</span></span><span class="sig-name descname"><span class="pre">locs_to_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">locs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/segmentation.html#locs_to_segments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.segmentation.locs_to_segments" title="Link to this definition">#</a></dt>
+<dd><p>Retrieve segment (i.e. root) IDs at given location(s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>locs</strong> (<em>array-like</em><em> | </em><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.3)"><em>pandas.DataFrame</em></a>) – Array of x/y/z coordinates. If DataFrame must contain
+‘x’, ‘y’, ‘z’ columns.</p></li>
+<li><p><strong>timestamp</strong> (<em>Timestamp</em><em>, </em><em>optional</em>) – Get roots at given date (and time). Int must be unix
+timestamp. String must be ISO 8601 - e.g. ‘2021-11-15’.
+“mat” will use the timestamp of the most recent
+materialization.</p></li>
+<li><p><strong>coordinates</strong> (<em>&quot;nm&quot;</em><em> | </em><em>&quot;voxel&quot;</em>) – Units in which your coordinates are in.</p></li>
+<li><p><strong>progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, show progress bar.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The dataset to use. If not provided, uses the default dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of root IDs in the same order as <code class="docutils literal notranslate"><span class="pre">locs</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">locs_to_segments</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locs</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">133131</span><span class="p">,</span> <span class="mi">55615</span><span class="p">,</span> <span class="mi">3289</span><span class="p">],</span> <span class="p">[</span><span class="mi">132802</span><span class="p">,</span> <span class="mi">55661</span><span class="p">,</span> <span class="mi">3289</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locs_to_segments</span><span class="p">(</span><span class="n">locs</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="s1">&#39;latest&#39;</span><span class="p">)</span>
+<span class="go">array([720575940631693610, 720575940631693610])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.segmentation.locs_to_supervoxels">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.segmentation.</span></span><span class="sig-name descname"><span class="pre">locs_to_supervoxels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">locs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/segmentation.html#locs_to_supervoxels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.segmentation.locs_to_supervoxels" title="Link to this definition">#</a></dt>
+<dd><p>Retrieve supervoxel IDs at given location(s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>locs</strong> (<em>array-like</em><em> | </em><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.3)"><em>pandas.DataFrame</em></a>) – Array of x/y/z coordinates. If DataFrame must contain
+‘x’, ‘y’, ‘z’ columns.</p></li>
+<li><p><strong>mip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Scale to query. Lower mip = more precise but slower;
+higher mip = faster but less precise. The default is 0
+which is the highest resolution.</p></li>
+<li><p><strong>coordinates</strong> (<em>&quot;nm&quot;</em><em> | </em><em>&quot;voxel&quot;</em>) – Units in which your coordinates are in. “nm” for nanometers,
+“voxel” for voxel coordinates.</p></li>
+<li><p><strong>progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, show progress bar.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The dataset to use. If not provided, uses the default dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of supervoxel IDs in the same order as <code class="docutils literal notranslate"><span class="pre">locs</span></code>.
+Invalid locations will be returned with ID 0.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">locs_to_supervoxels</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locs</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">133131</span><span class="p">,</span> <span class="mi">55615</span><span class="p">,</span> <span class="mi">3289</span><span class="p">],</span> <span class="p">[</span><span class="mi">132802</span><span class="p">,</span> <span class="mi">55661</span><span class="p">,</span> <span class="mi">3289</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locs_to_supervoxels</span><span class="p">(</span><span class="n">locs</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="s1">&#39;latest&#39;</span><span class="p">)</span>
+<span class="go">array([79801454835332154, 79731086091150780], dtype=uint64)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.segmentation.neuron_to_segments">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.segmentation.</span></span><span class="sig-name descname"><span class="pre">neuron_to_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nm'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/segmentation.html#neuron_to_segments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.segmentation.neuron_to_segments" title="Link to this definition">#</a></dt>
+<dd><p>Get root IDs overlapping with a given neuron.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>Neuron/List</em>) – Neurons for which to return root IDs. Neurons must be
+in the correct coordinate space for the dataset.</p></li>
+<li><p><strong>short</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True will only return the top hit for each neuron
+(including a confidence score).</p></li>
+<li><p><strong>coordinates</strong> (<em>&quot;voxel&quot;</em><em> | </em><em>&quot;nm&quot;</em>) – Units the neuron(s) are in.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The dataset to use. If not provided, uses the default dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>overlap_matrix</strong> (<em>pandas.DataFrame</em>) – DataFrame of root IDs (rows) and neuron IDs
+(columns) with overlap in nodes as values.</p></li>
+<li><p><strong>summary</strong> (<em>pandas.DataFrame</em>) – If <code class="docutils literal notranslate"><span class="pre">short=True</span></code>: DataFrame of top hits only.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">neuron_to_segments</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">navis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Assuming you have a neuron in the correct space</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">neuron</span> <span class="o">=</span> <span class="n">navis</span><span class="o">.</span><span class="n">TreeNeuron</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">summary</span> <span class="o">=</span> <span class="n">neuron_to_segments</span><span class="p">(</span><span class="n">neuron</span><span class="p">,</span> <span class="n">short</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.segmentation.roots_to_supervoxels">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.segmentation.</span></span><span class="sig-name descname"><span class="pre">roots_to_supervoxels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">neurons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/segmentation.html#roots_to_supervoxels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.segmentation.roots_to_supervoxels" title="Link to this definition">#</a></dt>
+<dd><p>Get supervoxels making up given neurons.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>neurons</strong> (<em>Neurons = str</em><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> | </em><em>np.int64</em><em> | </em><em>navis.BaseNeuron</em><em> | </em><em>Iterables</em><em> of </em><em>previous types</em><em> | </em><em>navis.NeuronList</em><em> | </em><a class="reference internal" href="crantpy.html#crantpy.NeuronCriteria" title="crantpy.NeuronCriteria"><em>NeuronCriteria</em></a>)</p></li>
+<li><p><strong>clear_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, bypasses the cache and fetches a new volume.</p></li>
+<li><p><strong>progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, show progress bar.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The dataset to use. If not provided, uses the default dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary mapping neuron IDs to lists of supervoxel IDs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">roots_to_supervoxels</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">roots_to_supervoxels</span><span class="p">([</span><span class="mi">123456</span><span class="p">,</span> <span class="mi">789012</span><span class="p">],</span> <span class="n">dataset</span><span class="o">=</span><span class="s1">&#39;latest&#39;</span><span class="p">)</span>
+<span class="go">{123456: [1, 2, 3], 789012: [4, 5, 6]}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.segmentation.snap_to_id">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.segmentation.</span></span><span class="sig-name descname"><span class="pre">snap_to_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">locs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snap_zero</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">160</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/segmentation.html#snap_to_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.segmentation.snap_to_id" title="Link to this definition">#</a></dt>
+<dd><p>Snap locations to the correct segmentation ID.</p>
+<p>This function is useful for correcting imprecise coordinate annotations
+(e.g., from manual annotation, image registration, or synapse detection)
+to ensure they map to the expected neuron/segment.</p>
+<dl class="simple">
+<dt><strong>How it works:</strong></dt><dd><ol class="arabic simple">
+<li><p>Check segmentation ID at each location</p></li>
+<li><p>For locations with wrong ID: search within radius for correct ID</p></li>
+<li><p>Snap to closest voxel with correct ID</p></li>
+</ol>
+</dd>
+</dl>
+<p><strong>IMPORTANT - CloudVolume Coverage:</strong>
+This function requires CloudVolume segmentation data at the target locations.
+Locations outside CloudVolume’s spatial coverage (~360 µm cube) cannot be
+snapped and will be returned as [0, 0, 0].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>locs</strong> (<em>(</em><em>N</em><em>, </em><em>3</em><em>) </em><em>array</em>) – Array of x/y/z coordinates to snap.</p></li>
+<li><p><strong>id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Expected/target segmentation ID at each location.
+Typically a root ID of the neuron of interest.</p></li>
+<li><p><strong>snap_zero</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If False (default), we will not snap locations that map to
+segment ID 0 (i.e., no segmentation / background).
+Set to True to attempt snapping even for background locations.</p></li>
+<li><p><strong>search_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Radius [nm] around a location to search for a voxel with
+the correct ID. Larger radius = more likely to find match
+but slower. Default 160 nm is usually sufficient for small
+annotation errors. Increase to 500-1000 nm for larger errors.</p></li>
+<li><p><strong>coordinates</strong> (<em>&quot;voxel&quot;</em><em> | </em><em>&quot;nm&quot;</em>) – Coordinate system of <cite>locs</cite>. Default “nm” (nanometers).</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, will print summary of snapping results and any
+errors encountered.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The dataset to use. If not provided, uses the default dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Snapped x/y/z locations guaranteed to map to the correct ID
+(or [0, 0, 0] for locations that couldn’t be snapped).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(N, 3) array</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If search region exceeds CloudVolume coverage for any location.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">snap_to_id</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Example: Fix slightly misaligned synapse annotations</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">synapse_locs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">100050</span><span class="p">,</span> <span class="mi">50025</span><span class="p">,</span> <span class="mi">3005</span><span class="p">],</span>  <span class="c1"># Slightly off target</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">100150</span><span class="p">,</span> <span class="mi">50125</span><span class="p">,</span> <span class="mi">3015</span><span class="p">],</span>
+<span class="gp">... </span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target_neuron_id</span> <span class="o">=</span> <span class="mi">720575940621039145</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Snap to nearest voxel on target neuron</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">corrected_locs</span> <span class="o">=</span> <span class="n">snap_to_id</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">synapse_locs</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="nb">id</span><span class="o">=</span><span class="n">target_neuron_id</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">search_radius</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>  <span class="c1"># Search within 200nm</span>
+<span class="gp">... </span>    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Output: 2 of 2 locations needed to be snapped.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#         Of these 0 locations could not be snapped...</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Example: Quality control for traced neuron nodes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">navis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">neuron</span> <span class="o">=</span> <span class="n">navis</span><span class="o">.</span><span class="n">TreeNeuron</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>  <span class="c1"># Your neuron reconstruction</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expected_root_id</span> <span class="o">=</span> <span class="mi">720575940621039145</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Snap all nodes to ensure they&#39;re on the correct segment</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">corrected_nodes</span> <span class="o">=</span> <span class="n">snap_to_id</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">neuron</span><span class="o">.</span><span class="n">nodes</span><span class="p">[[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="nb">id</span><span class="o">=</span><span class="n">expected_root_id</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">search_radius</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">coordinates</span><span class="o">=</span><span class="s2">&quot;nm&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Update neuron with corrected coordinates</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">neuron</span><span class="o">.</span><span class="n">nodes</span><span class="p">[[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">corrected_nodes</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Example: Handle locations in background (ID 0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">locs_with_background</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">100000</span><span class="p">,</span> <span class="mi">50000</span><span class="p">,</span> <span class="mi">3000</span><span class="p">],</span>  <span class="c1"># On neuron</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">999999</span><span class="p">,</span> <span class="mi">999999</span><span class="p">,</span> <span class="mi">9999</span><span class="p">],</span>  <span class="c1"># In background (ID 0)</span>
+<span class="gp">... </span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># By default, won&#39;t try to snap background locations</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">snapped</span> <span class="o">=</span> <span class="n">snap_to_id</span><span class="p">(</span><span class="n">locs_with_background</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">target_neuron_id</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Background location will remain unchanged</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Force snapping even for background (use with caution!)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">snapped</span> <span class="o">=</span> <span class="n">snap_to_id</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">locs_with_background</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="nb">id</span><span class="o">=</span><span class="n">target_neuron_id</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">snap_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Try to snap background too</span>
+<span class="gp">... </span>    <span class="n">search_radius</span><span class="o">=</span><span class="mi">1000</span>  <span class="c1"># Larger search needed</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Notes</p>
+<p><strong>When to use this function:</strong>
+- Synapse annotation QC: Ensure synapses are on correct pre/postsynaptic neurons
+- Image registration errors: Fix coordinate misalignment after registration
+- Manual annotation cleanup: Correct imprecise manual annotations
+- Traced neuron validation: Ensure skeleton nodes are on correct segment</p>
+<p><strong>Performance considerations:</strong>
+- Each location requiring snapping fetches a small segmentation cutout
+- Larger <cite>search_radius</cite> = slower (more data to fetch and search)
+- Locations already on correct ID are very fast (no cutout needed)
+- For many locations, consider parallelizing or batching</p>
+<p><strong>Common issues:</strong>
+- <strong>“No voxels found in search region”</strong>: The target ID doesn’t exist</p>
+<blockquote>
+<div><p>within <cite>search_radius</cite>. Try increasing search_radius or verify the
+expected ID is correct.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p><strong>“Bounds exceed CloudVolume coverage”</strong>: Location is outside the
+~360 µm region covered by CloudVolume. These locations cannot be snapped.</p></li>
+<li><p><strong>Many failures</strong>: Check if your locations and target ID are in the
+same coordinate space and if the neuron actually exists at those locations.</p></li>
+</ul>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#crantpy.utils.cave.segmentation.locs_to_segments" title="crantpy.utils.cave.segmentation.locs_to_segments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">locs_to_segments</span></code></a></dt><dd><p>Check which segment IDs are at given locations</p>
+</dd>
+<dt><a class="reference internal" href="#crantpy.utils.cave.segmentation.get_segmentation_cutout" title="crantpy.utils.cave.segmentation.get_segmentation_cutout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_segmentation_cutout</span></code></a></dt><dd><p>Get segmentation in a region</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.segmentation.supervoxels_to_roots">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.segmentation.</span></span><span class="sig-name descname"><span class="pre">supervoxels_to_roots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/segmentation.html#supervoxels_to_roots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.segmentation.supervoxels_to_roots" title="Link to this definition">#</a></dt>
+<dd><p>Get root(s) for given supervoxel(s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ids</strong> (<em>IDs = str</em><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> | </em><em>np.int64</em><em> | </em><em>Iterables</em><em> of </em><em>previous types</em>) – Supervoxel ID(s) to find the root(s) for. Also works for e.g. L2 IDs.</p></li>
+<li><p><strong>timestamp</strong> (<em>Timestamp = str</em><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> | </em><em>np.int64</em><em> | </em><em>datetime</em><em> | </em><em>np.datetime64</em><em> | </em><em>pd.Timestamp</em><em> or </em><em>str starting with &quot;mat&quot;</em>) – Get roots at given date (and time). Int must be unix timestamp. String must be ISO 8601 - e.g. ‘2021-11-15’.
+“mat” will use the timestamp of the most recent materialization. You can also use e.g. “mat_&lt;version&gt;” to get the
+root ID at a specific materialization.</p></li>
+<li><p><strong>clear_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, bypasses the cache and fetches a new volume.</p></li>
+<li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Max number of supervoxel IDs per query. Reduce batch size if you experience time outs.</p></li>
+<li><p><strong>stop_layer</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Set e.g. to <code class="docutils literal notranslate"><span class="pre">2</span></code> to get L2 IDs instead of root IDs.</p></li>
+<li><p><strong>retry</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – Whether to retry if a batched query fails.</p></li>
+<li><p><strong>progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, show progress bar.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The dataset to use. If not provided, uses the default dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>roots</strong> – Roots corresponding to supervoxels in <cite>x</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy array</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">supervoxels_to_roots</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">supervoxels_to_roots</span><span class="p">([</span><span class="mi">123456</span><span class="p">,</span> <span class="mi">789012</span><span class="p">],</span> <span class="n">dataset</span><span class="o">=</span><span class="s1">&#39;latest&#39;</span><span class="p">)</span>
+<span class="go">[1, 2]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.segmentation.update_ids">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.segmentation.</span></span><span class="sig-name descname"><span class="pre">update_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supervoxels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_annotations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/segmentation.html#update_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.segmentation.update_ids" title="Link to this definition">#</a></dt>
+<dd><p>Update root IDs to their latest versions.</p>
+<p>This function prioritizes using supervoxel IDs from annotations when available,
+falling back to chunkedgraph methods only when necessary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>Neurons</em><em> or </em><em>pd.DataFrame</em>) – Root IDs to update. If DataFrame, must contain ‘root_id’ column and
+optionally ‘supervoxel_id’ column.</p></li>
+<li><p><strong>supervoxels</strong> (<em>IDs</em><em>, </em><em>optional</em>) – Supervoxel IDs corresponding to the root IDs. If provided, these will
+be used instead of looking up annotations.</p></li>
+<li><p><strong>timestamp</strong> (<em>Timestamp</em><em>, </em><em>optional</em>) – Target timestamp. Can be “mat” for latest materialization.</p></li>
+<li><p><strong>stop_layer</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>default 2</em>) – Stop layer for chunkedgraph operations when supervoxels unavailable.</p></li>
+<li><p><strong>progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default True</em>) – Whether to show progress bar.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Dataset to use.</p></li>
+<li><p><strong>use_annotations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default True</em>) – Whether to look up supervoxels from annotations when not provided.</p></li>
+<li><p><strong>clear_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to clear annotation cache.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame with columns: old_id, new_id, confidence, changed</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">update_ids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">update_ids</span><span class="p">([</span><span class="mi">123456789</span><span class="p">,</span> <span class="mi">987654321</span><span class="p">])</span>
+<span class="go">   old_id      new_id  confidence  changed</span>
+<span class="go">0  123456789  123456789     1.0     False</span>
+<span class="go">1  987654321  999999999     0.85    True</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># With supervoxels</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">update_ids</span><span class="p">([</span><span class="mi">123456789</span><span class="p">],</span> <span class="n">supervoxels</span><span class="o">=</span><span class="p">[</span><span class="mi">111222333</span><span class="p">])</span>
+<span class="go">   old_id      new_id  confidence  changed</span>
+<span class="go">0  123456789  123456789     1.0     False</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </section>
 
     <script type="text/x-thebe-config">
@@ -493,6 +1160,33 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-functions">Available Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#coordinate-system-notes">Coordinate System Notes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.find_common_time"><code class="docutils literal notranslate"><span class="pre">find_common_time()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.get_lineage_graph"><code class="docutils literal notranslate"><span class="pre">get_lineage_graph()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.get_segmentation_cutout"><code class="docutils literal notranslate"><span class="pre">get_segmentation_cutout()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.get_voxels"><code class="docutils literal notranslate"><span class="pre">get_voxels()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.locs_to_segments"><code class="docutils literal notranslate"><span class="pre">locs_to_segments()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.locs_to_supervoxels"><code class="docutils literal notranslate"><span class="pre">locs_to_supervoxels()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.neuron_to_segments"><code class="docutils literal notranslate"><span class="pre">neuron_to_segments()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.roots_to_supervoxels"><code class="docutils literal notranslate"><span class="pre">roots_to_supervoxels()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.snap_to_id"><code class="docutils literal notranslate"><span class="pre">snap_to_id()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.supervoxels_to_roots"><code class="docutils literal notranslate"><span class="pre">supervoxels_to_roots()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.segmentation.update_ids"><code class="docutils literal notranslate"><span class="pre">update_ids()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

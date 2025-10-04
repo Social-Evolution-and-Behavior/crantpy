@@ -183,7 +183,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Visualizing Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Plotting Neurons</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/morphology.html">Working with Neuron Morphology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/connectivity.html">Analyzing Connectivity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
@@ -221,6 +221,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
 </ul>
 
     </div>
@@ -410,7 +411,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -426,6 +429,14 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.config.set_default_dataset"><code class="docutils literal notranslate"><span class="pre">set_default_dataset()</span></code></a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -435,8 +446,21 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="crantpy-utils-config-module">
-<h1>crantpy.utils.config module<a class="headerlink" href="#crantpy-utils-config-module" title="Link to this heading">#</a></h1>
+  <section id="module-crantpy.utils.config">
+<span id="crantpy-utils-config-module"></span><h1>crantpy.utils.config module<a class="headerlink" href="#module-crantpy.utils.config" title="Link to this heading">#</a></h1>
+<p>This module contains configuration settings for CRANTpy.
+It includes the default dataset, CRANT data stacks, and Seatable server details.
+It also provides a decorator to inject the current default dataset into functions.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.config.set_default_dataset">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.config.</span></span><span class="sig-name descname"><span class="pre">set_default_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/config.html#set_default_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.config.set_default_dataset" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
     <script type="text/x-thebe-config">
@@ -493,6 +517,21 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.config.set_default_dataset"><code class="docutils literal notranslate"><span class="pre">set_default_dataset()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

@@ -183,7 +183,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
-<li class="toctree-l1"><a class="reference internal" href="deep_dive/visualization.html">Visualizing Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_dive/visualization.html">Plotting Neurons</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deep_dive/morphology.html">Working with Neuron Morphology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deep_dive/connectivity.html">Analyzing Connectivity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
@@ -221,6 +221,7 @@
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgements.html">Acknowledgements</a></li>
 </ul>
 
     </div>
@@ -488,7 +489,6 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#working-with-precomputed-neuron-skeleton-and-mesh">4. Working with Precomputed Neuron Skeleton and Mesh</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id-management-and-updates">6. ID Management and Updates</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-and-next-steps">10. Summary and Next Steps</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#whats-next">What’s Next?</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#resources">Resources</a></li>
 </ul>
 </li>
@@ -620,8 +620,8 @@ Server: https://proofreading.zetta.ai
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Total neurons in dataset: 6,066
-Dataset shape: (6066, 30)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Total neurons in dataset: 6,072
+Dataset shape: (6072, 30)
 
 First few rows:
 </pre></div>
@@ -821,14 +821,14 @@ olfactory_projection_neuron    109
 descending_neuron              108
 ER_input                        95
 FBt                             91
-PBt                             63
+PBt                             64
 pars_intercerebralis            58
 EBc                             48
 spiny_kenyon_cell               29
 Name: count, dtype: int64
 </pre></div>
 </div>
-<img alt="_images/0148e727bec9701f1a98838a200aa4a6f25a843ce058c106f48e5130eb452d35.png" src="_images/0148e727bec9701f1a98838a200aa4a6f25a843ce058c106f48e5130eb452d35.png" />
+<img alt="_images/f0c766ca96a1bd75c9b47aa83a9e5364c1e91d25f9e2fef3a37f12dc1c837164.png" src="_images/f0c766ca96a1bd75c9b47aa83a9e5364c1e91d25f9e2fef3a37f12dc1c837164.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -856,7 +856,7 @@ Name: count, dtype: int64
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="_images/5641f311fcb5c9453d3f94fd93f9a3fad170337b080f364b8bb5e7b34c4799b9.png" src="_images/5641f311fcb5c9453d3f94fd93f9a3fad170337b080f364b8bb5e7b34c4799b9.png" />
+<img alt="_images/4137411580953e338a6395823bd8f53711ae58cd79c8ba7bcef6c6137d4f2ef7.png" src="_images/4137411580953e338a6395823bd8f53711ae58cd79c8ba7bcef6c6137d4f2ef7.png" />
 </div>
 </div>
 </section>
@@ -929,8 +929,6 @@ Name: count, dtype: int64
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skeleton properties:&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Nodes: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">skeleton</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Cable length: </span><span class="si">{</span><span class="n">skeleton</span><span class="o">.</span><span class="n">cable_length</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Branch points: </span><span class="si">{</span><span class="n">skeleton</span><span class="o">.</span><span class="n">n_branch_points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  End points: </span><span class="si">{</span><span class="n">skeleton</span><span class="o">.</span><span class="n">n_endpoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -938,8 +936,6 @@ Name: count, dtype: int64
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Skeleton properties:
   Nodes: 221
   Cable length: 1075895.125 nm
-  Branch points: 0
-  End points: None
 </pre></div>
 </div>
 </div>
@@ -976,7 +972,7 @@ Name: count, dtype: int64
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mesh properties:&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Vertices: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertices</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Faces: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">faces</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Volume: </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">volume</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> cubic microns&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Volume: </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">volume</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> cubic nanometers&quot;</span><span class="p">)</span>
 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;⚠ Could not get mesh for neuron </span><span class="si">{</span><span class="n">sample_neuron_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This may be due to mesh configuration issues in the dataset.&quot;</span><span class="p">)</span>
@@ -987,7 +983,7 @@ Name: count, dtype: int64
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Mesh properties:
   Vertices: 238,432
   Faces: 478,609
-  Volume: 135639679325.33 cubic microns
+  Volume: 135639679325.33 cubic nanometers
 </pre></div>
 </div>
 </div>
@@ -1005,7 +1001,7 @@ Name: count, dtype: int64
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="_images/aee336e0b867bba2b44f21e41f38caf523f74b9f8ccd4f5cf75bc94d2776a054.png" src="_images/aee336e0b867bba2b44f21e41f38caf523f74b9f8ccd4f5cf75bc94d2776a054.png" />
+<img alt="_images/4e25acb56fbe895ca625429d339f7360dcc9fc23b1e193513903a9142da3b66f.png" src="_images/4e25acb56fbe895ca625429d339f7360dcc9fc23b1e193513903a9142da3b66f.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -1149,31 +1145,31 @@ Name: count, dtype: int64
     <tr>
       <th>0</th>
       <td>576460752700282748</td>
-      <td>0.958041</td>
+      <td>-1.085126</td>
     </tr>
     <tr>
       <th>1</th>
       <td>576460752681552812</td>
-      <td>-0.840693</td>
+      <td>-2.401884</td>
     </tr>
     <tr>
       <th>2</th>
       <td>576460752722405178</td>
-      <td>-1.318761</td>
+      <td>0.262163</td>
     </tr>
     <tr>
       <th>3</th>
       <td>576460752773799604</td>
-      <td>0.965966</td>
+      <td>-0.319966</td>
     </tr>
     <tr>
       <th>4</th>
       <td>576460752656800770</td>
-      <td>0.707600</td>
+      <td>0.893296</td>
     </tr>
   </tbody>
 </table>
-</div></div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2025-10-03 12:31:29 - WARNING - Multiple supervoxel IDs found for 130 root IDs. Using first occurrence for each.
+</div></div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2025-10-04 19:44:48 - WARNING - Multiple supervoxel IDs found for 130 root IDs. Using first occurrence for each.
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Updated DataFrame (showing ID update info):
@@ -1271,31 +1267,31 @@ Name: count, dtype: int64
     <tr>
       <th>0</th>
       <td>576460752700282748</td>
-      <td>0.958041</td>
+      <td>-1.085126</td>
       <td>576460752700282748</td>
     </tr>
     <tr>
       <th>1</th>
       <td>576460752681552812</td>
-      <td>-0.840693</td>
+      <td>-2.401884</td>
       <td>576460752681552812</td>
     </tr>
     <tr>
       <th>2</th>
       <td>576460752722405178</td>
-      <td>-1.318761</td>
+      <td>0.262163</td>
       <td>576460752722405178</td>
     </tr>
     <tr>
       <th>3</th>
       <td>576460752773799604</td>
-      <td>0.965966</td>
+      <td>-0.319966</td>
       <td>576460752773799604</td>
     </tr>
     <tr>
       <th>4</th>
       <td>576460752656800770</td>
-      <td>0.707600</td>
+      <td>0.893296</td>
       <td>576460752656800770</td>
     </tr>
   </tbody>
@@ -1310,18 +1306,9 @@ Name: count, dtype: int64
 ✅ <strong>Exploring the dataset structure</strong><br />
 ✅ <strong>Querying neurons with NeuronCriteria</strong><br />
 ✅ <strong>Accessing morphological data (meshes and skeletons)</strong><br />
-✅ <strong>3D visualization</strong><br />
+✅ <strong>2D visualization</strong><br />
 ✅ <strong>ID management and updates</strong><br />
 ✅ <strong>Advanced querying techniques</strong></p>
-<section id="whats-next">
-<h3>What’s Next?<a class="headerlink" href="#whats-next" title="Link to this heading">#</a></h3>
-<ul class="simple">
-<li><p><strong>Connectivity Analysis</strong>: Explore synaptic connections between neurons</p></li>
-<li><p><strong>Circuit Analysis</strong>: Identify and analyze neural circuits</p></li>
-<li><p><strong>Comparative Studies</strong>: Compare different brain regions or neuron types</p></li>
-<li><p><strong>Custom Analysis</strong>: Develop your own analysis pipelines</p></li>
-</ul>
-</section>
 <section id="resources">
 <h3>Resources<a class="headerlink" href="#resources" title="Link to this heading">#</a></h3>
 <ul class="simple">
@@ -1405,7 +1392,6 @@ Name: count, dtype: int64
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#working-with-precomputed-neuron-skeleton-and-mesh">4. Working with Precomputed Neuron Skeleton and Mesh</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id-management-and-updates">6. ID Management and Updates</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-and-next-steps">10. Summary and Next Steps</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#whats-next">What’s Next?</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#resources">Resources</a></li>
 </ul>
 </li>

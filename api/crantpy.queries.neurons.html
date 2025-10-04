@@ -183,7 +183,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Visualizing Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Plotting Neurons</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/morphology.html">Working with Neuron Morphology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/connectivity.html">Analyzing Connectivity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
@@ -221,6 +221,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
 </ul>
 
     </div>
@@ -410,7 +411,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -426,6 +429,23 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.NeuronCriteria"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.NeuronCriteria.annotations"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria.annotations</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.NeuronCriteria.available_fields"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria.available_fields()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.NeuronCriteria.get_roots"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria.get_roots()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.NeuronCriteria.is_empty"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria.is_empty</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.get_annotations"><code class="docutils literal notranslate"><span class="pre">get_annotations()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.is_proofread"><code class="docutils literal notranslate"><span class="pre">is_proofread()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.parse_neuroncriteria"><code class="docutils literal notranslate"><span class="pre">parse_neuroncriteria()</span></code></a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -435,8 +455,196 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="crantpy-queries-neurons-module">
-<h1>crantpy.queries.neurons module<a class="headerlink" href="#crantpy-queries-neurons-module" title="Link to this heading">#</a></h1>
+  <section id="module-crantpy.queries.neurons">
+<span id="crantpy-queries-neurons-module"></span><h1>crantpy.queries.neurons module<a class="headerlink" href="#module-crantpy.queries.neurons" title="Link to this heading">#</a></h1>
+<p>NeuronCriteria class for filtering neurons based on Seatable annotations.
+This class allows filtering neurons based on various criteria defined in the
+Seatable annotations table. Filtering for multiple criteria is done using a
+logical AND, i.e. only neurons that match all criteria will be selected.
+Not providing any criteria will return all neurons in the annotations table.
+This class is part of the CRANTB project and is designed to work with
+Seatable’s API to fetch and filter neuron data.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="crantpy.queries.neurons.NeuronCriteria">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">crantpy.queries.neurons.</span></span><span class="sig-name descname"><span class="pre">NeuronCriteria</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">criteria</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/neurons.html#NeuronCriteria"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.neurons.NeuronCriteria" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Parses filter queries into root IDs using Seatable.</p>
+<p>This class allows filtering neurons based on various criteria defined in the
+Seatable annotations table.</p>
+<p>Filtering for multiple criteria is done using a logical AND, i.e.
+only neurons that match all criteria will be selected.</p>
+<p>Not providing any criteria will return all neurons in the annotations table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>regex</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to interpret string criteria as regex.</p></li>
+<li><p><strong>case</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to interpret string criteria as case sensitive (only applies
+when <cite>regex=True</cite>).</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to print information about the query process.</p></li>
+<li><p><strong>clear_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to force reloading annotations from Seatable, bypassing the cache.</p></li>
+<li><p><strong>match_all</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – When filtering by a list of values on a column that contains lists
+(e.g., <cite>status=[‘DAMAGED’, ‘TRACING_ISSUE’]</cite>), setting <cite>match_all=True</cite>
+will only return neurons where the column contains <em>all</em> the specified values.
+If <cite>False</cite> (default), it returns neurons where the column contains <em>any</em>
+of the specified values.</p></li>
+<li><p><strong>exact</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default True</em>) – Whether to match values exactly. If <cite>False</cite>, substring matching is enabled.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The dataset to fetch annotations from.</p></li>
+<li><p><strong>**criteria</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Filtering criteria where keys are column names from <cite>NeuronCriteria.available_fields()</cite>
+and values are the desired values or lists of values to filter by.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">crantbseg.crantb.annotations</span><span class="w"> </span><span class="kn">import</span> <span class="n">NeuronCriteria</span> <span class="k">as</span> <span class="n">NC</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Check available fields</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">NC</span><span class="o">.</span><span class="n">available_fields</span><span class="p">()</span>
+<span class="go">[&#39;root_id&#39;, &#39;nucleus_id&#39;, ...]</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get all neurons (will print a warning)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">all_neurons</span> <span class="o">=</span> <span class="n">NC</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get neurons by cell class</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ol_neurons</span> <span class="o">=</span> <span class="n">NC</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;olfactory_projection_neuron&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get neurons by multiple cell types using regex</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pns</span> <span class="o">=</span> <span class="n">NC</span><span class="p">(</span><span class="n">cell_type</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PN_.*&#39;</span><span class="p">,</span> <span class="s1">&#39;mPN_.*&#39;</span><span class="p">],</span> <span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get neurons by side and status (any status in the list)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">left_proofread</span> <span class="o">=</span> <span class="n">NC</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;BACKBONE_PROOFREAD&#39;</span><span class="p">,</span> <span class="s1">&#39;PRELIM_PROOFREAD&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Get neurons by side and status (must have BOTH statuses)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">left_damaged_and_tracing</span> <span class="o">=</span> <span class="n">NC</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DAMAGED&#39;</span><span class="p">,</span> <span class="s1">&#39;TRACING_ISSUE&#39;</span><span class="p">],</span> <span class="n">match_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Use in functions expecting root IDs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">neuron_data</span> <span class="o">=</span> <span class="n">some_function</span><span class="p">(</span><span class="n">NC</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;picky_neuron&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.neurons.NeuronCriteria.annotations">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">annotations</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.3)"><span class="pre">pandas.DataFrame</span></a></em><a class="headerlink" href="#crantpy.queries.neurons.NeuronCriteria.annotations" title="Link to this definition">#</a></dt>
+<dd><p>Return annotations table (DataFrame), loading if necessary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame containing the annotations from Seatable.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.neurons.NeuronCriteria.available_fields">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">available_fields</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/neurons.html#NeuronCriteria.available_fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.neurons.NeuronCriteria.available_fields" title="Link to this definition">#</a></dt>
+<dd><p>Return all available fields for selection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of field names that can be used for filtering.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.neurons.NeuronCriteria.get_roots">
+<span class="sig-name descname"><span class="pre">get_roots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/neurons.html#NeuronCriteria.get_roots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.neurons.NeuronCriteria.get_roots" title="Link to this definition">#</a></dt>
+<dd><p>Return all root IDs matching the given criteria.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Array of root IDs matching the given criteria.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)">numpy.ndarray</a></p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="crantpy.html#crantpy.NoMatchesError" title="crantpy.NoMatchesError"><strong>NoMatchesError</strong></a> – If no neurons are found matching the given criteria.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.neurons.NeuronCriteria.is_empty">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_empty</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><a class="headerlink" href="#crantpy.queries.neurons.NeuronCriteria.is_empty" title="Link to this definition">#</a></dt>
+<dd><p>Returns True if no criteria are specified.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if no criteria are specified, False otherwise.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.queries.neurons.get_annotations">
+<span class="sig-prename descclassname"><span class="pre">crantpy.queries.neurons.</span></span><span class="sig-name descname"><span class="pre">get_annotations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">neurons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proofread_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/neurons.html#get_annotations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.neurons.get_annotations" title="Link to this definition">#</a></dt>
+<dd><p>Get annotations from Seatable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>neurons</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em> of </em><em>int/str</em><em>, or </em><a class="reference internal" href="#crantpy.queries.neurons.NeuronCriteria" title="crantpy.queries.neurons.NeuronCriteria"><em>NeuronCriteria</em></a>) – Neuron root ID(s) or a NeuronCriteria instance specifying which neurons to fetch.
+Accepts a single ID, a list/array of IDs, or a NeuronCriteria object.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Dataset to fetch annotations from.</p></li>
+<li><p><strong>clear_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to force reloading annotations from Seatable, bypassing the cache.</p></li>
+<li><p><strong>proofread_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to return only annotations marked as proofread.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame containing the annotations for the specified neurons.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If the input type is invalid.</p></li>
+<li><p><a class="reference internal" href="crantpy.html#crantpy.NoMatchesError" title="crantpy.NoMatchesError"><strong>NoMatchesError</strong></a> – If no matching neurons are found.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.queries.neurons.is_proofread">
+<span class="sig-prename descclassname"><span class="pre">crantpy.queries.neurons.</span></span><span class="sig-name descname"><span class="pre">is_proofread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">neurons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/neurons.html#is_proofread"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.neurons.is_proofread" title="Link to this definition">#</a></dt>
+<dd><p>Check if the specified neurons are proofread.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>neurons</strong> (<em>Neurons = Neurons = str</em><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> | </em><em>np.int64</em><em> | </em><em>navis.BaseNeuron</em><em> | </em><em>Iterables</em><em> of </em><em>previous types</em><em> | </em><em>navis.NeuronList</em><em> | </em><a class="reference internal" href="#crantpy.queries.neurons.NeuronCriteria" title="crantpy.queries.neurons.NeuronCriteria"><em>NeuronCriteria</em></a>) – Neurons to check for proofread status.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Dataset to fetch annotations from.</p></li>
+<li><p><strong>clear_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to force updating annotations from Seatable, bypassing the cache.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A boolean array indicating whether each neuron is proofread.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.queries.neurons.parse_neuroncriteria">
+<span class="sig-prename descclassname"><span class="pre">crantpy.queries.neurons.</span></span><span class="sig-name descname"><span class="pre">parse_neuroncriteria</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#crantpy.queries.neurons.parse_neuroncriteria" title="Link to this definition">#</a></dt>
+<dd><p>Deprecated: parse_neuroncriteria has moved to crantpy.utils.decorators.</p>
+<p>This function will be removed in a future version. Please update your imports:</p>
+<p>OLD: from crantpy.queries.neurons import parse_neuroncriteria
+NEW: from crantpy.utils.decorators import parse_neuroncriteria</p>
+</dd></dl>
+
 </section>
 
     <script type="text/x-thebe-config">
@@ -493,6 +701,30 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.NeuronCriteria"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.NeuronCriteria.annotations"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria.annotations</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.NeuronCriteria.available_fields"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria.available_fields()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.NeuronCriteria.get_roots"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria.get_roots()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.NeuronCriteria.is_empty"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria.is_empty</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.get_annotations"><code class="docutils literal notranslate"><span class="pre">get_annotations()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.is_proofread"><code class="docutils literal notranslate"><span class="pre">is_proofread()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.neurons.parse_neuroncriteria"><code class="docutils literal notranslate"><span class="pre">parse_neuroncriteria()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

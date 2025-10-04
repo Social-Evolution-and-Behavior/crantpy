@@ -183,7 +183,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Visualizing Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Plotting Neurons</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/morphology.html">Working with Neuron Morphology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/connectivity.html">Analyzing Connectivity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
@@ -221,6 +221,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
 </ul>
 
     </div>
@@ -410,7 +411,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -426,6 +429,17 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.helpers.is_latest_roots"><code class="docutils literal notranslate"><span class="pre">is_latest_roots()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.helpers.is_valid_root"><code class="docutils literal notranslate"><span class="pre">is_valid_root()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.helpers.is_valid_supervoxel"><code class="docutils literal notranslate"><span class="pre">is_valid_supervoxel()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.helpers.parse_root_ids"><code class="docutils literal notranslate"><span class="pre">parse_root_ids()</span></code></a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -435,8 +449,118 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="crantpy-utils-cave-helpers-module">
-<h1>crantpy.utils.cave.helpers module<a class="headerlink" href="#crantpy-utils-cave-helpers-module" title="Link to this heading">#</a></h1>
+  <section id="module-crantpy.utils.cave.helpers">
+<span id="crantpy-utils-cave-helpers-module"></span><h1>crantpy.utils.cave.helpers module<a class="headerlink" href="#module-crantpy.utils.cave.helpers" title="Link to this heading">#</a></h1>
+<p>This module provides utility functions for cave-related helpers.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.helpers.is_latest_roots">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.helpers.</span></span><span class="sig-name descname"><span class="pre">is_latest_roots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_http_session</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/helpers.html#is_latest_roots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.helpers.is_latest_roots" title="Link to this definition">#</a></dt>
+<dd><p>Check if the given root IDs are the latest based on the timestamp.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>IDs = str</em><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> | </em><em>np.int64</em>) – The root IDs to check.</p></li>
+<li><p><strong>timestamp</strong> (<em>Timestamp = str</em><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> | </em><em>np.int64</em><em> | </em><em>datetime</em><em> | </em><em>np.datetime64</em><em> | </em><em>pd.Timestamp</em>) – The timestamp to compare against. Can also be “mat” for the latest
+materialization timestamp.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The dataset to use.</p></li>
+<li><p><strong>progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default True</em>) – Whether to show progress bar for large batches.</p></li>
+<li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>default 100_000</em>) – Batch size for processing large numbers of IDs.</p></li>
+<li><p><strong>validate_ids</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default True</em>) – Whether to validate root IDs before processing.</p></li>
+<li><p><strong>use_http_session</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default True</em>) – Whether to use direct HTTP session for better performance.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A boolean array indicating whether each root ID is the latest.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_latest_roots</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_latest_roots</span><span class="p">([</span><span class="mi">123456789</span><span class="p">,</span> <span class="mi">987654321</span><span class="p">])</span>
+<span class="go">array([ True, False])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Check against latest materialization</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">is_latest_roots</span><span class="p">([</span><span class="mi">123456789</span><span class="p">],</span> <span class="n">timestamp</span><span class="o">=</span><span class="s2">&quot;mat&quot;</span><span class="p">)</span>
+<span class="go">array([ True])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.helpers.is_valid_root">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.helpers.</span></span><span class="sig-name descname"><span class="pre">is_valid_root</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raise_exc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/helpers.html#is_valid_root"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.helpers.is_valid_root" title="Link to this definition">#</a></dt>
+<dd><p>Check if ID is (potentially) valid root ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>IDs = str</em><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> | </em><em>np.int64</em>) – The root IDs to check.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The dataset to use.</p></li>
+<li><p><strong>raise_exc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to raise an exception if invalid IDs are found.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A boolean array indicating whether each root ID is valid.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If raise_exc is True and invalid IDs are found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.helpers.is_valid_supervoxel">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.helpers.</span></span><span class="sig-name descname"><span class="pre">is_valid_supervoxel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raise_exc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/helpers.html#is_valid_supervoxel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.helpers.is_valid_supervoxel" title="Link to this definition">#</a></dt>
+<dd><p>Check if ID is (potentially) valid supervoxel ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>IDs = str</em><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> | </em><em>np.int64</em>) – The supervoxel IDs to check.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The dataset to use.</p></li>
+<li><p><strong>raise_exc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – Whether to raise an exception if invalid IDs are found.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>If x is a single ID, returns bool. If x is iterable, returns array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a> or np.ndarray</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If raise_exc is True and invalid IDs are found.</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#crantpy.utils.cave.helpers.is_valid_root" title="crantpy.utils.cave.helpers.is_valid_root"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_valid_root</span></code></a></dt><dd><p>Use this function to check if a root ID is valid.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.helpers.parse_root_ids">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.helpers.</span></span><span class="sig-name descname"><span class="pre">parse_root_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/helpers.html#parse_root_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.helpers.parse_root_ids" title="Link to this definition">#</a></dt>
+<dd><p>Parse root IDs from various input formats to a list of np.int64.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Neurons = str</em><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> | </em><em>np.int64</em><em> | </em><em>navis.BaseNeuron</em><em> | </em><em>Iterables</em><em> of </em><em>previous types</em><em> | </em><em>navis.NeuronList</em><em> | </em><a class="reference internal" href="crantpy.html#crantpy.NeuronCriteria" title="crantpy.NeuronCriteria"><em>NeuronCriteria</em></a>) – The input to parse. Can be a single ID, a list of IDs, or a navis neuron object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy array of root IDs as np.int64.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
     <script type="text/x-thebe-config">
@@ -493,6 +617,24 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.helpers.is_latest_roots"><code class="docutils literal notranslate"><span class="pre">is_latest_roots()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.helpers.is_valid_root"><code class="docutils literal notranslate"><span class="pre">is_valid_root()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.helpers.is_valid_supervoxel"><code class="docutils literal notranslate"><span class="pre">is_valid_supervoxel()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.helpers.parse_root_ids"><code class="docutils literal notranslate"><span class="pre">parse_root_ids()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

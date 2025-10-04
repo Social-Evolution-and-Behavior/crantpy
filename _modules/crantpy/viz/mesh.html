@@ -1,0 +1,852 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>crantpy.viz.mesh &#8212; CRANTpy Documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/crantpy/viz/mesh';</script>
+    <link rel="icon" href="../../../_static/logo.png"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">📚 Tutorials available! Check out the Deep Dive Gallery.</div>
+</aside>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/logo.png" class="logo__image only-light" alt="CRANTpy Documentation - Home"/>
+    <script>document.write(`<img src="../../../_static/logo.png" class="logo__image only-dark" alt="CRANTpy Documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation &amp; Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">Quickstart Tutorial</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/visualization.html">Plotting Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/morphology.html">Working with Neuron Morphology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/connectivity.html">Analyzing Connectivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/modules.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/crantpy.html">crantpy package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/crantpy.queries.html">crantpy.queries package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.queries.connections.html">crantpy.queries.connections module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.queries.neurons.html">crantpy.queries.neurons module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/crantpy.utils.html">crantpy.utils package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.cave.html">crantpy.utils.cave package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.config.html">crantpy.utils.config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.decorators.html">crantpy.utils.decorators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.exceptions.html">crantpy.utils.exceptions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.helpers.html">crantpy.utils.helpers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.seatable.html">crantpy.utils.seatable module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.types.html">crantpy.utils.types module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/crantpy.viz.html">crantpy.viz package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.viz.l2.html">crantpy.viz.l2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.viz.mesh.html">crantpy.viz.mesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.viz.skeletonize.html">crantpy.viz.skeletonize module</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy/issues/new?title=Issue%20on%20page%20%2F_modules/crantpy/viz/mesh.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for crantpy.viz.mesh</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;Mesh module for CRANTBpy.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Any</span><span class="p">,</span>
+    <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">Dict</span><span class="p">,</span>
+    <span class="n">Iterable</span><span class="p">,</span>
+    <span class="n">Iterator</span><span class="p">,</span>
+    <span class="n">List</span><span class="p">,</span>
+    <span class="n">Optional</span><span class="p">,</span>
+    <span class="n">Type</span><span class="p">,</span>
+    <span class="n">TypeVar</span><span class="p">,</span>
+    <span class="n">Union</span><span class="p">,</span>
+    <span class="n">cast</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">navis</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">skeletor</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_cave_client</span><span class="p">,</span> <span class="n">get_cloudvolume</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">trimesh</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CRANT_VALID_DATASETS</span><span class="p">,</span>
+    <span class="n">SCALE_X</span><span class="p">,</span>
+    <span class="n">SCALE_Y</span><span class="p">,</span>
+    <span class="n">SCALE_Z</span><span class="p">,</span>
+    <span class="n">WHOLE_BRAIN_TISSUE_MESH_URL</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">inject_dataset</span><span class="p">,</span> <span class="n">parse_neuroncriteria</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.queries.neurons</span><span class="w"> </span><span class="kn">import</span> <span class="n">NeuronCriteria</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_root_ids</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">neuroglancer_scripts.mesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_precomputed_mesh</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyvista</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pv</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+
+
+<div class="viewcode-block" id="get_mesh_neuron">
+<a class="viewcode-back" href="../../../api/crantpy.viz.mesh.html#crantpy.get_mesh_neuron">[docs]</a>
+<span class="nd">@inject_dataset</span><span class="p">(</span><span class="n">allowed</span><span class="o">=</span><span class="n">CRANT_VALID_DATASETS</span><span class="p">)</span>
+<span class="nd">@parse_neuroncriteria</span><span class="p">()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_mesh_neuron</span><span class="p">(</span>
+    <span class="n">neurons</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="s2">&quot;NeuronCriteria&quot;</span><span class="p">],</span>
+    <span class="n">dataset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">omit_failures</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="n">progress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;navis.MeshNeuron&quot;</span><span class="p">,</span> <span class="s2">&quot;navis.NeuronList&quot;</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fetch one or more CRANTB neurons as navis.MeshNeuron objects.</span>
+
+<span class="sd">    This function retrieves mesh representations for the specified neuron(s) from the selected dataset.</span>
+<span class="sd">    It supports batch queries, parallel fetching, and flexible error handling.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    neurons : int, str, list of int/str, or NeuronCriteria</span>
+<span class="sd">        Neuron root ID(s) or a NeuronCriteria instance specifying which neurons to fetch.</span>
+<span class="sd">        Accepts a single ID, a list/array of IDs, or a NeuronCriteria object.</span>
+<span class="sd">    dataset : str, optional</span>
+<span class="sd">        Dataset to fetch info from. If None, uses the default dataset.</span>
+<span class="sd">    omit_failures : bool, optional</span>
+<span class="sd">        Behavior when mesh download fails:</span>
+<span class="sd">            - None (default): raise an exception</span>
+<span class="sd">            - True: skip the offending neuron (may result in empty NeuronList)</span>
+<span class="sd">            - False: return an empty MeshNeuron for failed fetches</span>
+<span class="sd">    threads : int, optional</span>
+<span class="sd">        Number of parallel threads to use for batch queries. Default is 5.</span>
+<span class="sd">    progress : bool, optional</span>
+<span class="sd">        Whether to show a progress bar during batch fetching. Default is True.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    navis.MeshNeuron or navis.NeuronList</span>
+<span class="sd">        MeshNeuron if a single neuron is requested, or NeuronList for multiple neurons.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">omit_failures</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;`omit_failures` must be either None, True or False. &quot;</span>
+            <span class="sa">f</span><span class="s1">&#39;Got &quot;</span><span class="si">{</span><span class="n">omit_failures</span><span class="si">}</span><span class="s1">&quot;.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Normalize input</span>
+    <span class="n">root_ids</span> <span class="o">=</span> <span class="n">parse_root_ids</span><span class="p">(</span><span class="n">neurons</span><span class="p">)</span>
+
+    <span class="c1"># Convert to list of ints</span>
+    <span class="n">root_ids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">rid</span><span class="p">)</span> <span class="k">for</span> <span class="n">rid</span> <span class="ow">in</span> <span class="n">root_ids</span><span class="p">]</span>
+
+    <span class="c1"># Batch mode: multiple root IDs</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">root_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">get_mesh</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+            <span class="n">get_mesh_neuron</span><span class="p">,</span>
+            <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+            <span class="n">omit_failures</span><span class="o">=</span><span class="n">omit_failures</span><span class="p">,</span>
+            <span class="n">threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">threads</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+            <span class="n">futures</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_mesh</span><span class="p">,</span> <span class="n">root_ids</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">f</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">navis</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span>
+                    <span class="n">futures</span><span class="p">,</span>
+                    <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Fetching meshes&quot;</span><span class="p">,</span>
+                    <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">root_ids</span><span class="p">),</span>
+                    <span class="n">disable</span><span class="o">=</span><span class="ow">not</span> <span class="n">progress</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">root_ids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">leave</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">return</span> <span class="n">navis</span><span class="o">.</span><span class="n">NeuronList</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+
+    <span class="c1"># Single root ID</span>
+    <span class="n">root_id</span> <span class="o">=</span> <span class="n">root_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Get/Initialize the CAVE client</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">get_cave_client</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">)</span>
+    <span class="n">vol</span> <span class="o">=</span> <span class="n">get_cloudvolume</span><span class="p">()</span>
+
+    <span class="c1"># Set logging level for urllib3 to suppress warnings</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;urllib3.connectionpool&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">vol</span><span class="o">.</span><span class="n">parallel</span> <span class="o">=</span> <span class="n">threads</span> <span class="k">if</span> <span class="n">threads</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="n">mesh</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">vol</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;graphene&quot;</span><span class="p">):</span>
+            <span class="n">mesh</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">root_id</span><span class="p">,</span> <span class="n">deduplicate_chunk_boundaries</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="n">root_id</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">vol</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;precomputed&quot;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mesh</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">root_id</span><span class="p">)[</span><span class="n">root_id</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No mesh for id </span><span class="si">{</span><span class="n">root_id</span><span class="si">}</span><span class="s2"> found&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">if</span> <span class="n">mesh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No mesh for id </span><span class="si">{</span><span class="n">root_id</span><span class="si">}</span><span class="s2"> found&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+        <span class="k">raise</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to fetch mesh for root_id </span><span class="si">{</span><span class="n">root_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">omit_failures</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span>
+        <span class="k">elif</span> <span class="n">omit_failures</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">navis</span><span class="o">.</span><span class="n">NeuronList</span><span class="p">([])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">navis</span><span class="o">.</span><span class="n">MeshNeuron</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">root_id</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;nm&quot;</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">)</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="n">navis</span><span class="o">.</span><span class="n">MeshNeuron</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">root_id</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;nm&quot;</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">n</span></div>
+
+
+
+<div class="viewcode-block" id="detect_soma">
+<a class="viewcode-back" href="../../../api/crantpy.viz.mesh.html#crantpy.detect_soma">[docs]</a>
+<span class="nd">@inject_dataset</span><span class="p">(</span><span class="n">allowed</span><span class="o">=</span><span class="n">CRANT_VALID_DATASETS</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">detect_soma</span><span class="p">(</span>
+    <span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+        <span class="nb">int</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">,</span>
+        <span class="n">tm</span><span class="o">.</span><span class="n">Trimesh</span><span class="p">,</span>
+        <span class="n">navis</span><span class="o">.</span><span class="n">MeshNeuron</span><span class="p">,</span>
+        <span class="n">navis</span><span class="o">.</span><span class="n">NeuronList</span><span class="p">,</span>
+        <span class="s2">&quot;NeuronCriteria&quot;</span><span class="p">,</span>
+        <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tm</span><span class="o">.</span><span class="n">Trimesh</span><span class="p">,</span> <span class="n">navis</span><span class="o">.</span><span class="n">MeshNeuron</span><span class="p">,</span> <span class="s2">&quot;NeuronCriteria&quot;</span><span class="p">]],</span>
+    <span class="p">],</span>
+    <span class="n">dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_rad</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+    <span class="n">N</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Detect the soma (cell body) location of a neuron based on mesh radius.</span>
+
+<span class="sd">    This function attempts to identify the soma by finding regions of the mesh with a sufficiently large radius.</span>
+<span class="sd">    It supports both single neurons and batch input.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : int, str, trimesh.Trimesh, navis.MeshNeuron, or list/array-like</span>
+<span class="sd">        Neuron ID, mesh, or list thereof. Meshes must not be downsampled. If a list/array is provided, returns coordinates for each.</span>
+<span class="sd">    dataset : str, optional</span>
+<span class="sd">        Dataset to query. If None, falls back to the default dataset.</span>
+<span class="sd">    min_rad : float, optional</span>
+<span class="sd">        Minimum radius for a node to be considered a soma candidate. Default is 800.</span>
+<span class="sd">    N : int, optional</span>
+<span class="sd">        Number of consecutive vertices with radius &gt; `min_rad` to consider as soma candidates. Default is 3.</span>
+<span class="sd">    progress : bool, optional</span>
+<span class="sd">        Whether to show a progress bar for batch input. Default is True.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        If input is a single neuron, returns a (3,) array of x, y, z coordinates of the detected soma.</span>
+<span class="sd">        If input is a list/array, returns (N, 3) array of coordinates for each neuron.</span>
+<span class="sd">        If no soma is found, returns [None, None, None] for that neuron.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Normalize input: handle batch mode</span>
+    <span class="c1"># Accept navis.NeuronList, list, or np.ndarray, but not single neuron objects</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">navis</span><span class="o">.</span><span class="n">NeuronList</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">tm</span><span class="o">.</span><span class="n">Trimesh</span><span class="p">,</span> <span class="n">navis</span><span class="o">.</span><span class="n">MeshNeuron</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">NeuronCriteria</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">detect_soma</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">min_rad</span><span class="o">=</span><span class="n">min_rad</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Detecting soma&quot;</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="ow">not</span> <span class="n">progress</span><span class="p">,</span> <span class="n">leave</span><span class="o">=</span><span class="kc">False</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Single mesh or neuron</span>
+    <span class="n">mesh</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">tm</span><span class="o">.</span><span class="n">Trimesh</span><span class="p">):</span>
+        <span class="n">mesh</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">navis</span><span class="o">.</span><span class="n">MeshNeuron</span><span class="p">):</span>
+        <span class="n">mesh</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">trimesh</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mesh</span> <span class="o">=</span> <span class="n">get_mesh_neuron</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">)</span><span class="o">.</span><span class="n">trimesh</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to fetch mesh for soma detection: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">centers</span><span class="p">,</span> <span class="n">radii</span><span class="p">,</span> <span class="n">G</span> <span class="o">=</span> <span class="n">sk</span><span class="o">.</span><span class="n">skeletonize</span><span class="o">.</span><span class="n">wave</span><span class="o">.</span><span class="n">_cast_waves</span><span class="p">(</span>
+            <span class="n">mesh</span><span class="p">,</span> <span class="n">waves</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to compute skeleton/waves for soma detection: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
+
+    <span class="n">is_big</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">radii</span> <span class="o">&gt;=</span> <span class="n">min_rad</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">is_big</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
+
+    <span class="c1"># Find stretches of consecutive above-threshold radii</span>
+    <span class="n">candidates</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">stretch</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">is_big</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">is_big</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stretch</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">N</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">candidates</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stretch</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">candidates</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
+
+    <span class="c1"># Find the largest candidate</span>
+    <span class="n">candidates</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">idx</span><span class="p">:</span> <span class="n">radii</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+
+    <span class="c1"># Convert to integer coordinates</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">centers</span><span class="p">[</span><span class="n">candidates</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="p">[</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">SCALE_X</span><span class="p">,</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">SCALE_Y</span><span class="p">,</span> <span class="n">center</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">SCALE_Z</span><span class="p">]</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">coord</span><span class="p">))</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">center</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">center</span></div>
+
+
+
+<div class="viewcode-block" id="load_whole_brain_mesh">
+<a class="viewcode-back" href="../../../api/crantpy.viz.mesh.html#crantpy.load_whole_brain_mesh">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_whole_brain_mesh</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">tm</span><span class="o">.</span><span class="n">Trimesh</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Download and decode a whole-brain tissue mesh.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    trimesh.Trimesh</span>
+<span class="sd">        The whole-brain tissue mesh.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">WHOLE_BRAIN_TISSUE_MESH_URL</span><span class="p">)</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="n">vertices</span><span class="p">,</span> <span class="n">faces</span> <span class="o">=</span> <span class="n">read_precomputed_mesh</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">))</span>
+    <span class="c1"># Ensure canonical dtypes</span>
+    <span class="n">vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">faces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+    <span class="c1"># Convert to trimesh</span>
+    <span class="n">brain_trimesh</span> <span class="o">=</span> <span class="n">tm</span><span class="o">.</span><span class="n">Trimesh</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="n">vertices</span><span class="p">,</span> <span class="n">faces</span><span class="o">=</span><span class="n">faces</span><span class="p">,</span> <span class="n">process</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">brain_trimesh</span></div>
+
+
+
+<div class="viewcode-block" id="get_brain_mesh_scene">
+<a class="viewcode-back" href="../../../api/crantpy.viz.mesh.html#crantpy.get_brain_mesh_scene">[docs]</a>
+<span class="nd">@inject_dataset</span><span class="p">(</span><span class="n">allowed</span><span class="o">=</span><span class="n">CRANT_VALID_DATASETS</span><span class="p">)</span>
+<span class="nd">@parse_neuroncriteria</span><span class="p">()</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_brain_mesh_scene</span><span class="p">(</span>
+    <span class="n">neurons</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+        <span class="nb">int</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">,</span>
+        <span class="n">tm</span><span class="o">.</span><span class="n">Trimesh</span><span class="p">,</span>
+        <span class="n">navis</span><span class="o">.</span><span class="n">MeshNeuron</span><span class="p">,</span>
+        <span class="n">navis</span><span class="o">.</span><span class="n">NeuronList</span><span class="p">,</span>
+        <span class="s2">&quot;NeuronCriteria&quot;</span><span class="p">,</span>
+        <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tm</span><span class="o">.</span><span class="n">Trimesh</span><span class="p">,</span> <span class="n">navis</span><span class="o">.</span><span class="n">MeshNeuron</span><span class="p">,</span> <span class="s2">&quot;NeuronCriteria&quot;</span><span class="p">]],</span>
+    <span class="p">],</span>
+    <span class="n">dataset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">omit_failures</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="n">progress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">brain_mesh_color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;grey&quot;</span><span class="p">,</span>
+    <span class="n">brain_mesh_alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">neuron_mesh_alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;client&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a 3D scene of the brain mesh with the specified neurons in random colors.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    neurons : Union[int, str, tm.Trimesh, navis.MeshNeuron, navis.NeuronList, &#39;NeuronCriteria&#39;, List[Union[int, str, tm.Trimesh, navis.MeshNeuron, &#39;NeuronCriteria&#39;]]]</span>
+<span class="sd">        The neurons to highlight in the scene.</span>
+<span class="sd">    dataset : Optional[str], optional</span>
+<span class="sd">        The dataset to use for fetching neuron meshes, by default None</span>
+<span class="sd">    omit_failures : Optional[bool], optional</span>
+<span class="sd">        Whether to omit neurons that fail to load, by default None</span>
+<span class="sd">    threads : int, optional</span>
+<span class="sd">        The number of threads to use for loading meshes, by default 5</span>
+<span class="sd">    progress : bool, optional</span>
+<span class="sd">        Whether to show a progress bar, by default True</span>
+<span class="sd">    brain_mesh_color : Optional[str], optional</span>
+<span class="sd">        The color of the brain mesh, by default &quot;grey&quot;</span>
+<span class="sd">    brain_mesh_alpha : Optional[float], optional</span>
+<span class="sd">        The transparency of the brain mesh, by default 0.1</span>
+<span class="sd">    neuron_mesh_alpha : Optional[float], optional</span>
+<span class="sd">        The transparency of the neuron meshes, by default 1</span>
+<span class="sd">    backend : Optional[str], optional</span>
+<span class="sd">        The pyvista backend to use (&#39;static&#39;, &#39;trame&#39;, &#39;client&#39;), by default &#39;client&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pv.Plotter</span>
+<span class="sd">        The 3D scene containing the brain mesh and highlighted neurons.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Load the whole brain mesh</span>
+    <span class="n">brain_trimesh</span> <span class="o">=</span> <span class="n">load_whole_brain_mesh</span><span class="p">()</span>
+
+    <span class="c1"># Load neuron meshes</span>
+    <span class="n">neuron_meshes</span> <span class="o">=</span> <span class="n">get_mesh_neuron</span><span class="p">(</span>
+        <span class="n">neurons</span><span class="p">,</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="n">omit_failures</span><span class="o">=</span><span class="n">omit_failures</span><span class="p">,</span>
+        <span class="n">threads</span><span class="o">=</span><span class="n">threads</span><span class="p">,</span>
+        <span class="n">progress</span><span class="o">=</span><span class="n">progress</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Convert to Trimesh objects</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">neuron_meshes</span><span class="p">,</span> <span class="n">navis</span><span class="o">.</span><span class="n">MeshNeuron</span><span class="p">):</span>
+        <span class="n">neuron_meshes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">tm</span><span class="o">.</span><span class="n">Trimesh</span><span class="p">(</span>
+                <span class="n">vertices</span><span class="o">=</span><span class="n">neuron_meshes</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span>
+                <span class="n">faces</span><span class="o">=</span><span class="n">neuron_meshes</span><span class="o">.</span><span class="n">faces</span><span class="p">,</span>
+                <span class="n">process</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">neuron_meshes</span><span class="p">,</span> <span class="n">navis</span><span class="o">.</span><span class="n">NeuronList</span><span class="p">):</span>
+        <span class="n">neuron_meshes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">tm</span><span class="o">.</span><span class="n">Trimesh</span><span class="p">(</span><span class="n">vertices</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="n">faces</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">faces</span><span class="p">,</span> <span class="n">process</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">neuron_meshes</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Throw error if unexpected type</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unexpected type for neuron_meshes&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Convert to pv.PolyData</span>
+    <span class="n">brain_pv</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">PolyData</span><span class="p">(</span>
+        <span class="n">brain_trimesh</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">brain_trimesh</span><span class="o">.</span><span class="n">faces</span><span class="p">),</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span> <span class="n">brain_trimesh</span><span class="o">.</span><span class="n">faces</span><span class="p">)),</span>
+    <span class="p">)</span>
+    <span class="n">neuron_meshes_pv</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">pv</span><span class="o">.</span><span class="n">PolyData</span><span class="p">(</span>
+            <span class="n">neuron</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">neuron</span><span class="o">.</span><span class="n">faces</span><span class="p">),</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span> <span class="n">neuron</span><span class="o">.</span><span class="n">faces</span><span class="p">)),</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">neuron</span> <span class="ow">in</span> <span class="n">neuron_meshes</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Set backend for pyvista (local or trame)</span>
+    <span class="n">pv</span><span class="o">.</span><span class="n">set_jupyter_backend</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
+
+    <span class="c1"># Create a PyVista plotter</span>
+    <span class="n">plotter</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span><span class="p">()</span>
+
+    <span class="c1"># Add the brain mesh</span>
+    <span class="n">plotter</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">brain_pv</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">brain_mesh_color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">brain_mesh_alpha</span><span class="p">)</span>
+
+    <span class="c1"># Generate random colors for neurons</span>
+    <span class="n">neuron_colors</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">color_palette</span><span class="p">(</span><span class="s2">&quot;bright&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">neuron_meshes_pv</span><span class="p">))</span>
+    <span class="c1"># Add the neuron meshes</span>
+    <span class="k">for</span> <span class="n">neuron_pv</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">neuron_meshes_pv</span><span class="p">,</span> <span class="n">neuron_colors</span><span class="p">):</span>
+        <span class="n">plotter</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">neuron_pv</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">neuron_mesh_alpha</span><span class="p">)</span>
+
+    <span class="c1"># Set camera position</span>
+    <span class="n">plotter</span><span class="o">.</span><span class="n">view_xy</span><span class="p">(</span><span class="n">negative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">plotter</span><span class="o">.</span><span class="n">set_viewup</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">plotter</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By CRANTb Community
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

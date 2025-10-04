@@ -183,7 +183,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Visualizing Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Plotting Neurons</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/morphology.html">Working with Neuron Morphology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/connectivity.html">Analyzing Connectivity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
@@ -221,6 +221,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
 </ul>
 
     </div>
@@ -410,7 +411,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -426,6 +429,22 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.create_sql_query"><code class="docutils literal notranslate"><span class="pre">create_sql_query()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.filter_df"><code class="docutils literal notranslate"><span class="pre">filter_df()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.make_iterable"><code class="docutils literal notranslate"><span class="pre">make_iterable()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.match_dtype"><code class="docutils literal notranslate"><span class="pre">match_dtype()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.parse_root_ids"><code class="docutils literal notranslate"><span class="pre">parse_root_ids()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.parse_timestamp"><code class="docutils literal notranslate"><span class="pre">parse_timestamp()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.plot_em_image"><code class="docutils literal notranslate"><span class="pre">plot_em_image()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.retry"><code class="docutils literal notranslate"><span class="pre">retry()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.set_logging_level"><code class="docutils literal notranslate"><span class="pre">set_logging_level()</span></code></a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -435,8 +454,201 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="crantpy-utils-helpers-module">
-<h1>crantpy.utils.helpers module<a class="headerlink" href="#crantpy-utils-helpers-module" title="Link to this heading">#</a></h1>
+  <section id="module-crantpy.utils.helpers">
+<span id="crantpy-utils-helpers-module"></span><h1>crantpy.utils.helpers module<a class="headerlink" href="#module-crantpy.utils.helpers" title="Link to this heading">#</a></h1>
+<p>This module contains helper functions for crantpy.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.helpers.create_sql_query">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.helpers.</span></span><span class="sig-name descname"><span class="pre">create_sql_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/helpers.html#create_sql_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.helpers.create_sql_query" title="Link to this definition">#</a></dt>
+<dd><p>Creates a SQL query to get the specified fields from the specified table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The name of the table to query.</p></li>
+<li><p><strong>fields</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>) – The list of field names to include in the query.</p></li>
+<li><p><strong>condition</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The WHERE clause of the query.</p></li>
+<li><p><strong>limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – The maximum number of rows to return.</p></li>
+<li><p><strong>start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – The number of rows to skip (OFFSET).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The constructed SQL query string.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.helpers.filter_df">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.helpers.</span></span><span class="sig-name descname"><span class="pre">filter_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">case</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/helpers.html#filter_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.helpers.filter_df" title="Link to this definition">#</a></dt>
+<dd><p>This function filters a df based on a column and a value.
+It can handle string, numeric, and list-containing columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>(</strong><strong>pd.DataFrame</strong><strong>)</strong> (<em>df</em>)</p></li>
+<li><p><strong>(</strong><strong>str</strong><strong>)</strong> (<em>column</em>)</p></li>
+<li><p><strong>(</strong><strong>Any</strong><strong>)</strong> (<em>value</em>)</p></li>
+<li><p><strong>(</strong><strong>bool</strong><strong>)</strong> (<em>exact</em>)</p></li>
+<li><p><strong>(</strong><strong>bool</strong><strong>)</strong></p></li>
+<li><p><strong>(</strong><strong>bool</strong><strong>)</strong> – if True, requires all filter values to be present in the cell’s list.
+If False, requires at least one filter value to be present.
+Defaults to False.</p></li>
+<li><p><strong>(</strong><strong>bool</strong><strong>)</strong></p></li>
+<li><p><strong>df</strong> (<a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.3.3)"><em>pandas.DataFrame</em></a>)</p></li>
+<li><p><strong>column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a>)</p></li>
+<li><p><strong>regex</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
+<li><p><strong>case</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
+<li><p><strong>match_all</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
+<li><p><strong>exact</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>pd.DataFrame</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The filtered df.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.helpers.make_iterable">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.helpers.</span></span><span class="sig-name descname"><span class="pre">make_iterable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/helpers.html#make_iterable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.helpers.make_iterable" title="Link to this definition">#</a></dt>
+<dd><p>Convert input to an numpy array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>Any</em>) – The input to convert.</p></li>
+<li><p><strong>force_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><em>type</em></a><em>]</em>) – If specified, the input will be cast to this type.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The converted numpy array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.helpers.match_dtype">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.helpers.</span></span><span class="sig-name descname"><span class="pre">match_dtype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/helpers.html#match_dtype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.helpers.match_dtype" title="Link to this definition">#</a></dt>
+<dd><p>Match the dtype of a value to a given dtype.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<em>Any</em>) – The value to convert.</p></li>
+<li><p><strong>dtype</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><em>type</em></a>) – The target dtype to convert to.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The converted value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If the dtype is not supported.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.helpers.parse_root_ids">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.helpers.</span></span><span class="sig-name descname"><span class="pre">parse_root_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">neurons</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/helpers.html#parse_root_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.helpers.parse_root_ids" title="Link to this definition">#</a></dt>
+<dd><p>Parse various neuron input types to a list of root ID strings.
+:param neurons: The neuron(s) to parse. Can be a single root ID (int or str),</p>
+<blockquote>
+<div><p>a list of root IDs, or a NeuronCriteria object.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of root ID strings.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>]</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>neurons</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>List</em><em>[</em><em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em><em>]</em><em>, </em><a class="reference internal" href="crantpy.html#crantpy.NeuronCriteria" title="crantpy.NeuronCriteria"><em>NeuronCriteria</em></a><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.helpers.parse_timestamp">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.helpers.</span></span><span class="sig-name descname"><span class="pre">parse_timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/helpers.html#parse_timestamp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.helpers.parse_timestamp" title="Link to this definition">#</a></dt>
+<dd><p>Parse a timestamp string to Unix timestamp.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Timestamp</em>) – The timestamp string to parse. Int must be unix timestamp. String must be ISO 8601 - e.g. ‘2021-11-15’. datetime, np.datetime64, pd.Timestamp are also accepted.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The Unix timestamp.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.helpers.plot_em_image">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.helpers.</span></span><span class="sig-name descname"><span class="pre">plot_em_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/helpers.html#plot_em_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.helpers.plot_em_image" title="Link to this definition">#</a></dt>
+<dd><p>Fetch and return an EM image slice from the precomputed CloudVolume.
+Currently only supports slices through the Z axis (i.e. XY plane).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – The x coordinate of the center of the image slice.</p></li>
+<li><p><strong>y</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – The y coordinate of the center of the image slice.</p></li>
+<li><p><strong>z</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – The z coordinate of the image slice.</p></li>
+<li><p><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – The size of the image slice (default is 1000).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The EM image slice as a numpy array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.helpers.retry">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.helpers.</span></span><span class="sig-name descname"><span class="pre">retry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cooldown</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/helpers.html#retry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.helpers.retry" title="Link to this definition">#</a></dt>
+<dd><p>Retry function on HTTPError.</p>
+<p>This also suppresses UserWarnings (commonly raised by l2 cache requests)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cooldown</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Cooldown period in seconds between attempts.</p></li>
+<li><p><strong>retries</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Number of retries before we give up. Every subsequent retry
+will delay by an additional <cite>retry</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.helpers.set_logging_level">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.helpers.</span></span><span class="sig-name descname"><span class="pre">set_logging_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/helpers.html#set_logging_level"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.helpers.set_logging_level" title="Link to this definition">#</a></dt>
+<dd><p>Sets the logging level for the logger.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>level</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The logging level to set. Options are ‘DEBUG’, ‘INFO’, ‘WARNING’, ‘ERROR’, ‘CRITICAL’.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
     <script type="text/x-thebe-config">
@@ -493,6 +705,29 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.create_sql_query"><code class="docutils literal notranslate"><span class="pre">create_sql_query()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.filter_df"><code class="docutils literal notranslate"><span class="pre">filter_df()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.make_iterable"><code class="docutils literal notranslate"><span class="pre">make_iterable()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.match_dtype"><code class="docutils literal notranslate"><span class="pre">match_dtype()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.parse_root_ids"><code class="docutils literal notranslate"><span class="pre">parse_root_ids()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.parse_timestamp"><code class="docutils literal notranslate"><span class="pre">parse_timestamp()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.plot_em_image"><code class="docutils literal notranslate"><span class="pre">plot_em_image()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.retry"><code class="docutils literal notranslate"><span class="pre">retry()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.helpers.set_logging_level"><code class="docutils literal notranslate"><span class="pre">set_logging_level()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

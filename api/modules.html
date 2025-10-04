@@ -183,7 +183,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Visualizing Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Plotting Neurons</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/morphology.html">Working with Neuron Morphology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/connectivity.html">Analyzing Connectivity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
@@ -221,6 +221,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
 </ul>
 
     </div>
@@ -443,23 +444,103 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="crantpy.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="crantpy.queries.html">crantpy.queries package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="crantpy.queries.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="crantpy.queries.html#module-contents">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.queries.html#module-crantpy.queries">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="crantpy.utils.html">crantpy.utils package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="crantpy.utils.html#subpackages">Subpackages</a></li>
 <li class="toctree-l4"><a class="reference internal" href="crantpy.utils.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="crantpy.utils.html#module-contents">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.utils.html#module-crantpy.utils">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="crantpy.viz.html">crantpy.viz package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="crantpy.viz.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="crantpy.viz.html#module-contents">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.viz.html#module-crantpy.viz">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="crantpy.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crantpy.html#module-crantpy">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.FilteringError"><code class="docutils literal notranslate"><span class="pre">FilteringError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.NeuronCriteria"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.html#crantpy.NeuronCriteria.annotations"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria.annotations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.html#crantpy.NeuronCriteria.available_fields"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria.available_fields()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.html#crantpy.NeuronCriteria.get_roots"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria.get_roots()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.html#crantpy.NeuronCriteria.is_empty"><code class="docutils literal notranslate"><span class="pre">NeuronCriteria.is_empty</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.NoMatchesError"><code class="docutils literal notranslate"><span class="pre">NoMatchesError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.cached_result"><code class="docutils literal notranslate"><span class="pre">cached_result()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.chunks_to_nm"><code class="docutils literal notranslate"><span class="pre">chunks_to_nm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.clear_all_caches"><code class="docutils literal notranslate"><span class="pre">clear_all_caches()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.clear_cave_client_cache"><code class="docutils literal notranslate"><span class="pre">clear_cave_client_cache()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.clear_cloudvolume_cache"><code class="docutils literal notranslate"><span class="pre">clear_cloudvolume_cache()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.clear_global_cache"><code class="docutils literal notranslate"><span class="pre">clear_global_cache()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.configure_urllib3_warning_suppression"><code class="docutils literal notranslate"><span class="pre">configure_urllib3_warning_suppression()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.create_sql_query"><code class="docutils literal notranslate"><span class="pre">create_sql_query()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.detect_soma"><code class="docutils literal notranslate"><span class="pre">detect_soma()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.detect_soma_mesh"><code class="docutils literal notranslate"><span class="pre">detect_soma_mesh()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.detect_soma_skeleton"><code class="docutils literal notranslate"><span class="pre">detect_soma_skeleton()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.divide_local_neighbourhood"><code class="docutils literal notranslate"><span class="pre">divide_local_neighbourhood()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.filter_df"><code class="docutils literal notranslate"><span class="pre">filter_df()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.find_anchor_loc"><code class="docutils literal notranslate"><span class="pre">find_anchor_loc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.find_common_time"><code class="docutils literal notranslate"><span class="pre">find_common_time()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.generate_cave_token"><code class="docutils literal notranslate"><span class="pre">generate_cave_token()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_all_seatable_annotations"><code class="docutils literal notranslate"><span class="pre">get_all_seatable_annotations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_annotations"><code class="docutils literal notranslate"><span class="pre">get_annotations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_brain_mesh_scene"><code class="docutils literal notranslate"><span class="pre">get_brain_mesh_scene()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_cave_client"><code class="docutils literal notranslate"><span class="pre">get_cave_client()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_cave_datastacks"><code class="docutils literal notranslate"><span class="pre">get_cave_datastacks()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_cloudvolume"><code class="docutils literal notranslate"><span class="pre">get_cloudvolume()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_current_cave_token"><code class="docutils literal notranslate"><span class="pre">get_current_cave_token()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_dataset_segmentation_source"><code class="docutils literal notranslate"><span class="pre">get_dataset_segmentation_source()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_datastack_segmentation_source"><code class="docutils literal notranslate"><span class="pre">get_datastack_segmentation_source()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_global_cache"><code class="docutils literal notranslate"><span class="pre">get_global_cache()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_l2_chunk_info"><code class="docutils literal notranslate"><span class="pre">get_l2_chunk_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_l2_dotprops"><code class="docutils literal notranslate"><span class="pre">get_l2_dotprops()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_l2_graph"><code class="docutils literal notranslate"><span class="pre">get_l2_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_l2_info"><code class="docutils literal notranslate"><span class="pre">get_l2_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_l2_meshes"><code class="docutils literal notranslate"><span class="pre">get_l2_meshes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_l2_skeleton"><code class="docutils literal notranslate"><span class="pre">get_l2_skeleton()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_lineage_graph"><code class="docutils literal notranslate"><span class="pre">get_lineage_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_mesh_neuron"><code class="docutils literal notranslate"><span class="pre">get_mesh_neuron()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_proofread_neurons"><code class="docutils literal notranslate"><span class="pre">get_proofread_neurons()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_seatable_base_object"><code class="docutils literal notranslate"><span class="pre">get_seatable_base_object()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_seatable_cache_name"><code class="docutils literal notranslate"><span class="pre">get_seatable_cache_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_segmentation_cutout"><code class="docutils literal notranslate"><span class="pre">get_segmentation_cutout()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_skeletons"><code class="docutils literal notranslate"><span class="pre">get_skeletons()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_soma_from_annotations"><code class="docutils literal notranslate"><span class="pre">get_soma_from_annotations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.get_voxels"><code class="docutils literal notranslate"><span class="pre">get_voxels()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.inject_dataset"><code class="docutils literal notranslate"><span class="pre">inject_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.is_latest_roots"><code class="docutils literal notranslate"><span class="pre">is_latest_roots()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.is_proofread"><code class="docutils literal notranslate"><span class="pre">is_proofread()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.is_valid_root"><code class="docutils literal notranslate"><span class="pre">is_valid_root()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.is_valid_supervoxel"><code class="docutils literal notranslate"><span class="pre">is_valid_supervoxel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.load_whole_brain_mesh"><code class="docutils literal notranslate"><span class="pre">load_whole_brain_mesh()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.locs_to_segments"><code class="docutils literal notranslate"><span class="pre">locs_to_segments()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.locs_to_supervoxels"><code class="docutils literal notranslate"><span class="pre">locs_to_supervoxels()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.make_iterable"><code class="docutils literal notranslate"><span class="pre">make_iterable()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.match_dtype"><code class="docutils literal notranslate"><span class="pre">match_dtype()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.neuron_to_segments"><code class="docutils literal notranslate"><span class="pre">neuron_to_segments()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.parse_neuroncriteria"><code class="docutils literal notranslate"><span class="pre">parse_neuroncriteria()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.parse_root_ids"><code class="docutils literal notranslate"><span class="pre">parse_root_ids()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.parse_timestamp"><code class="docutils literal notranslate"><span class="pre">parse_timestamp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.plot_em_image"><code class="docutils literal notranslate"><span class="pre">plot_em_image()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.retry"><code class="docutils literal notranslate"><span class="pre">retry()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.retry_func"><code class="docutils literal notranslate"><span class="pre">retry_func()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.roots_to_supervoxels"><code class="docutils literal notranslate"><span class="pre">roots_to_supervoxels()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.set_cave_token"><code class="docutils literal notranslate"><span class="pre">set_cave_token()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.set_default_dataset"><code class="docutils literal notranslate"><span class="pre">set_default_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.set_logging_level"><code class="docutils literal notranslate"><span class="pre">set_logging_level()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.skeletonize_neuron"><code class="docutils literal notranslate"><span class="pre">skeletonize_neuron()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.skeletonize_neurons_parallel"><code class="docutils literal notranslate"><span class="pre">skeletonize_neurons_parallel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.snap_to_id"><code class="docutils literal notranslate"><span class="pre">snap_to_id()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.supervoxels_to_roots"><code class="docutils literal notranslate"><span class="pre">supervoxels_to_roots()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.suppress_urllib3_connectionpool_warnings"><code class="docutils literal notranslate"><span class="pre">suppress_urllib3_connectionpool_warnings()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.update_ids"><code class="docutils literal notranslate"><span class="pre">update_ids()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="crantpy.html#crantpy.validate_cave_client"><code class="docutils literal notranslate"><span class="pre">validate_cave_client()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

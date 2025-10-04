@@ -47,6 +47,10 @@ For R users, check out our sister project **crantr** which provides R-based acce
 
 We welcome contributions! Please see our [GitHub repository](https://github.com/Social-Evolution-and-Behavior/crantpy) for guidelines on how to contribute to the project.
 
+## 🙏 Acknowledgements
+
+CRANTpy is heavily derived from the excellent work by **Dr. Philipp Schlegel** and the FlyWire project. See our [full acknowledgements](acknowledgements.md) for complete contributor information.
+
 ## 📄 Citation
 
 If you use CRANTpy in your research, please cite:
@@ -59,6 +63,8 @@ If you use CRANTpy in your research, please cite:
   year={2025}
 }
 ```
+
+**Note:** CRANTpy is built upon [fafbseg-py](https://github.com/flyconnectome/fafbseg-py) by Dr. Philipp Schlegel. Please try to also cite the [FlyWire project papers](acknowledgements.html#flywire-project-citations) when using this tool.
 
 ## 📞 Support
 

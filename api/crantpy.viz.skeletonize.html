@@ -183,7 +183,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Visualizing Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Plotting Neurons</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/morphology.html">Working with Neuron Morphology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/connectivity.html">Analyzing Connectivity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
@@ -221,6 +221,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
 </ul>
 
     </div>
@@ -410,7 +411,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -426,6 +429,23 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.chunks_to_nm"><code class="docutils literal notranslate"><span class="pre">chunks_to_nm()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.configure_urllib3_warning_suppression"><code class="docutils literal notranslate"><span class="pre">configure_urllib3_warning_suppression()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.detect_soma_mesh"><code class="docutils literal notranslate"><span class="pre">detect_soma_mesh()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.detect_soma_skeleton"><code class="docutils literal notranslate"><span class="pre">detect_soma_skeleton()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.divide_local_neighbourhood"><code class="docutils literal notranslate"><span class="pre">divide_local_neighbourhood()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.get_skeletons"><code class="docutils literal notranslate"><span class="pre">get_skeletons()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.get_soma_from_annotations"><code class="docutils literal notranslate"><span class="pre">get_soma_from_annotations()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.skeletonize_neuron"><code class="docutils literal notranslate"><span class="pre">skeletonize_neuron()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.skeletonize_neurons_parallel"><code class="docutils literal notranslate"><span class="pre">skeletonize_neurons_parallel()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.suppress_urllib3_connectionpool_warnings"><code class="docutils literal notranslate"><span class="pre">suppress_urllib3_connectionpool_warnings()</span></code></a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -435,8 +455,243 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="crantpy-viz-skeletonize-module">
-<h1>crantpy.viz.skeletonize module<a class="headerlink" href="#crantpy-viz-skeletonize-module" title="Link to this heading">#</a></h1>
+  <section id="module-crantpy.viz.skeletonize">
+<span id="crantpy-viz-skeletonize-module"></span><h1>crantpy.viz.skeletonize module<a class="headerlink" href="#module-crantpy.viz.skeletonize" title="Link to this heading">#</a></h1>
+<p>Neuron skeletonization tools.</p>
+<p>This module offers optional suppression of urllib3 connection pool warnings
+that can appear when downloading mesh data during skeletonization. These specific
+messages are cosmetic and do not affect functionality, but can be noisy. Suppression
+is opt-in via a function call or the environment variable
+“CRANTPY_SUPPRESS_URLLIB3_WARNINGS”.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.viz.skeletonize.chunks_to_nm">
+<span class="sig-prename descclassname"><span class="pre">crantpy.viz.skeletonize.</span></span><span class="sig-name descname"><span class="pre">chunks_to_nm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyz_ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[4,</span> <span class="pre">4,</span> <span class="pre">40]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/viz/skeletonize.html#chunks_to_nm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.viz.skeletonize.chunks_to_nm" title="Link to this definition">#</a></dt>
+<dd><p>Map a chunk location to Euclidean space. CV workaround Implemented here after Giacomo’s suggestion</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xyz_ch</strong> (<em>array-like</em>) – (N, 3) array of chunk indices.</p></li>
+<li><p><strong>vol</strong> (<em>cloudvolume.CloudVolume</em>) – CloudVolume object associated with the chunked space.</p></li>
+<li><p><strong>voxel_resolution</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>, </em><em>optional</em>) – Voxel resolution.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(N, 3) array of spatial points.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.viz.skeletonize.configure_urllib3_warning_suppression">
+<span class="sig-prename descclassname"><span class="pre">crantpy.viz.skeletonize.</span></span><span class="sig-name descname"><span class="pre">configure_urllib3_warning_suppression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">enable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/viz/skeletonize.html#configure_urllib3_warning_suppression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.viz.skeletonize.configure_urllib3_warning_suppression" title="Link to this definition">#</a></dt>
+<dd><p>Enable suppression of known cosmetic urllib3 warnings.</p>
+<p>Trade-offs: Hiding warnings can make it harder to notice real connectivity
+issues. When enabled, only the specific connection pool message is filtered;
+other warnings remain visible. Does not call urllib3.disable_warnings().</p>
+<p>Control via <cite>enable</cite> or environment variable <cite>CRANTPY_SUPPRESS_URLLIB3_WARNINGS</cite>.</p>
+<p>Returns True if suppression is enabled, False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>enable</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em> | </em><em>None</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.viz.skeletonize.detect_soma_mesh">
+<span class="sig-prename descclassname"><span class="pre">crantpy.viz.skeletonize.</span></span><span class="sig-name descname"><span class="pre">detect_soma_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/viz/skeletonize.html#detect_soma_mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.viz.skeletonize.detect_soma_mesh" title="Link to this definition">#</a></dt>
+<dd><p>Try detecting the soma based on vertex clusters.</p>
+<p>Identifies dense vertex clusters that likely represent the soma.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mesh</strong> (<em>trimesh.Trimesh</em>) – Coordinates in nanometers. Mesh must not be downsampled for
+accurate detection.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of vertex indices that belong to the detected soma region.
+Returns empty array if no soma is detected.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.viz.skeletonize.detect_soma_skeleton">
+<span class="sig-prename descclassname"><span class="pre">crantpy.viz.skeletonize.</span></span><span class="sig-name descname"><span class="pre">detect_soma_skeleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_rad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">800</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/viz/skeletonize.html#detect_soma_skeleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.viz.skeletonize.detect_soma_skeleton" title="Link to this definition">#</a></dt>
+<dd><p>Try detecting the soma based on radii.</p>
+<p>Looks for consecutive nodes with large radii to identify soma. Includes
+additional checks to ensure the skeleton is valid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> (<em>navis.TreeNeuron</em>) – The skeleton to analyze for soma detection.</p></li>
+<li><p><strong>min_rad</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>default 800</em>) – Minimum radius for a node to be considered a soma candidate (in nm).</p></li>
+<li><p><strong>N</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>default 3</em>) – Number of consecutive nodes with radius &gt; <cite>min_rad</cite> needed
+to consider them soma candidates.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Node ID of the detected soma, or None if no soma found.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a> or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.viz.skeletonize.divide_local_neighbourhood">
+<span class="sig-prename descclassname"><span class="pre">crantpy.viz.skeletonize.</span></span><span class="sig-name descname"><span class="pre">divide_local_neighbourhood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/viz/skeletonize.html#divide_local_neighbourhood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.viz.skeletonize.divide_local_neighbourhood" title="Link to this definition">#</a></dt>
+<dd><p>Divide the mesh into locally connected patches of a given size (overlapping).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh</strong> (<em>trimesh.Trimesh</em>) – The mesh to divide.</p></li>
+<li><p><strong>radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – The radius (in mesh units) for local neighborhoods.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Each set contains vertex indices belonging to a local patch.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a> of sets</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.viz.skeletonize.get_skeletons">
+<span class="sig-prename descclassname"><span class="pre">crantpy.viz.skeletonize.</span></span><span class="sig-name descname"><span class="pre">get_skeletons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omit_failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/viz/skeletonize.html#get_skeletons"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.viz.skeletonize.get_skeletons" title="Link to this definition">#</a></dt>
+<dd><p>Fetch skeletons for multiple neurons.</p>
+<p>Tries to get precomputed skeletons first, then falls back to
+on-demand skeletonization if needed. if id more than one root_id, it will use the parallel skeletonization function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root_ids</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><em>np.ndarray</em>) – Root IDs of neurons to fetch skeletons for.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>default 'latest'</em>) – Dataset to query against.</p></li>
+<li><p><strong>progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default True</em>) – Show progress during fetching.</p></li>
+<li><p><strong>omit_failures</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – None: raise exception on failures
+True: skip failed neurons
+False: return empty TreeNeuron for failed cases</p></li>
+<li><p><strong>max_threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>default 6</em>) – Number of parallel threads for fetching skeletons.</p></li>
+<li><p><strong>**kwargs</strong> – Additional arguments passed to skeletonization if needed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of successfully fetched/generated skeletons.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>navis.NeuronList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.viz.skeletonize.get_soma_from_annotations">
+<span class="sig-prename descclassname"><span class="pre">crantpy.viz.skeletonize.</span></span><span class="sig-name descname"><span class="pre">get_soma_from_annotations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/viz/skeletonize.html#get_soma_from_annotations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.viz.skeletonize.get_soma_from_annotations" title="Link to this definition">#</a></dt>
+<dd><p>Try to get soma location from nucleus annotations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Root ID of the neuron to get soma information for.</p></li>
+<li><p><strong>client</strong> (<em>CAVEclient</em>) – CAVE client for data access.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Dataset identifier (handled by decorators if not provided).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(x, y, z) coordinates of the soma in nanometers, or None if not found.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a> or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.viz.skeletonize.skeletonize_neuron">
+<span class="sig-prename descclassname"><span class="pre">crantpy.viz.skeletonize.</span></span><span class="sig-name descname"><span class="pre">skeletonize_neuron</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shave_skeleton</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_soma_hairball</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assert_id_match</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_pcg_skel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/viz/skeletonize.html#skeletonize_neuron"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.viz.skeletonize.skeletonize_neuron" title="Link to this definition">#</a></dt>
+<dd><p>Skeletonize a neuron the main function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>client</strong> (<em>CAVEclient</em>) – CAVE client for data access.</p></li>
+<li><p><strong>root_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Root ID of the neuron to skeletonize.</p></li>
+<li><p><strong>shave_skeleton</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default True</em>) – Remove small protrusions and bristles from skeleton (from my understanding).</p></li>
+<li><p><strong>remove_soma_hairball</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – Remove the hairball mesh from the soma</p></li>
+<li><p><strong>assert_id_match</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – Verify skeleton nodes map to correct segment ID.</p></li>
+<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>default 2</em>) – Number of parallel threads for mesh processing.</p></li>
+<li><p><strong>save_to</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Save skeleton as SWC file to this path.</p></li>
+<li><p><strong>progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default True</em>) – Show progress bars during processing.</p></li>
+<li><p><strong>use_pcg_skel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – Try pcg_skel first before skeletor (CAVE-client skeletonization).</p></li>
+<li><p><strong>**kwargs</strong> – Additional arguments for skeletonization algorithms.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>navis.TreeNeuron</em> – The skeletonized neuron.</p></li>
+<li><p><em># TODOs from fafbseg</em></p></li>
+<li><p><em># - Use synapse locations as constraints</em></p></li>
+<li><p><em># - Mesh preprocessing options</em></p></li>
+<li><p><em># - Chunked skeletonization for large meshes</em></p></li>
+<li><p><em># - Use soma annotations from external sources</em></p></li>
+<li><p><em># - Better error handling/logging</em></p></li>
+<li><p><em># - Allow user-supplied soma location/radius</em></p></li>
+<li><p><em># - Option to return intermediate results</em></p></li>
+<li><p><em># - Support more skeletonization algorithms</em></p></li>
+<li><p><em># - Merge disconnected skeletons</em></p></li>
+<li><p><em># - Custom node/edge attributes</em></p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>navis.TreeNeuron | navis.NeuronList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.viz.skeletonize.skeletonize_neurons_parallel">
+<span class="sig-prename descclassname"><span class="pre">crantpy.viz.skeletonize.</span></span><span class="sig-name descname"><span class="pre">skeletonize_neurons_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/viz/skeletonize.html#skeletonize_neurons_parallel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.viz.skeletonize.skeletonize_neurons_parallel" title="Link to this definition">#</a></dt>
+<dd><p>Skeletonize multiple neurons in parallel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>client</strong> (<em>CAVEclient</em>) – CAVE client for data access.</p></li>
+<li><p><strong>root_ids</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> or </em><em>np.ndarray</em>) – Root IDs of neurons to skeletonize.</p></li>
+<li><p><strong>n_cores</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Number of cores to use. If None, uses half of available cores.</p></li>
+<li><p><strong>progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default True</em>) – Show progress bars during processing.</p></li>
+<li><p><strong>color_map</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Generate colors for each neuron using this colormap.
+Returns tuple of (neurons, colors) instead of just neurons.</p></li>
+<li><p><strong>**kwargs</strong> – Additional arguments passed to skeletonize_neuron.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>NeuronList of skeletonized neurons, or tuple of (NeuronList, colors)
+if color_map is specified.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>navis.NeuronList or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.viz.skeletonize.suppress_urllib3_connectionpool_warnings">
+<span class="sig-prename descclassname"><span class="pre">crantpy.viz.skeletonize.</span></span><span class="sig-name descname"><span class="pre">suppress_urllib3_connectionpool_warnings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/viz/skeletonize.html#suppress_urllib3_connectionpool_warnings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.viz.skeletonize.suppress_urllib3_connectionpool_warnings" title="Link to this definition">#</a></dt>
+<dd><p>Context manager to temporarily suppress urllib3 connectionpool messages.</p>
+<p>Only filters the specific “Connection pool is full, discarding connection”
+warnings while inside the context.</p>
+</dd></dl>
+
 </section>
 
     <script type="text/x-thebe-config">
@@ -493,6 +748,30 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.chunks_to_nm"><code class="docutils literal notranslate"><span class="pre">chunks_to_nm()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.configure_urllib3_warning_suppression"><code class="docutils literal notranslate"><span class="pre">configure_urllib3_warning_suppression()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.detect_soma_mesh"><code class="docutils literal notranslate"><span class="pre">detect_soma_mesh()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.detect_soma_skeleton"><code class="docutils literal notranslate"><span class="pre">detect_soma_skeleton()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.divide_local_neighbourhood"><code class="docutils literal notranslate"><span class="pre">divide_local_neighbourhood()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.get_skeletons"><code class="docutils literal notranslate"><span class="pre">get_skeletons()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.get_soma_from_annotations"><code class="docutils literal notranslate"><span class="pre">get_soma_from_annotations()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.skeletonize_neuron"><code class="docutils literal notranslate"><span class="pre">skeletonize_neuron()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.skeletonize_neurons_parallel"><code class="docutils literal notranslate"><span class="pre">skeletonize_neurons_parallel()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.viz.skeletonize.suppress_urllib3_connectionpool_warnings"><code class="docutils literal notranslate"><span class="pre">suppress_urllib3_connectionpool_warnings()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

@@ -183,7 +183,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Visualizing Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Plotting Neurons</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/morphology.html">Working with Neuron Morphology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/connectivity.html">Analyzing Connectivity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
@@ -221,6 +221,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
 </ul>
 
     </div>
@@ -410,7 +411,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -426,6 +429,22 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.clear_all_caches"><code class="docutils literal notranslate"><span class="pre">clear_all_caches()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.clear_cave_client_cache"><code class="docutils literal notranslate"><span class="pre">clear_cave_client_cache()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.clear_cloudvolume_cache"><code class="docutils literal notranslate"><span class="pre">clear_cloudvolume_cache()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.get_cave_client"><code class="docutils literal notranslate"><span class="pre">get_cave_client()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.get_cave_datastacks"><code class="docutils literal notranslate"><span class="pre">get_cave_datastacks()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.get_cloudvolume"><code class="docutils literal notranslate"><span class="pre">get_cloudvolume()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.get_dataset_segmentation_source"><code class="docutils literal notranslate"><span class="pre">get_dataset_segmentation_source()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.get_datastack_segmentation_source"><code class="docutils literal notranslate"><span class="pre">get_datastack_segmentation_source()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.validate_cave_client"><code class="docutils literal notranslate"><span class="pre">validate_cave_client()</span></code></a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -435,8 +454,128 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="crantpy-utils-cave-load-module">
-<h1>crantpy.utils.cave.load module<a class="headerlink" href="#crantpy-utils-cave-load-module" title="Link to this heading">#</a></h1>
+  <section id="module-crantpy.utils.cave.load">
+<span id="crantpy-utils-cave-load-module"></span><h1>crantpy.utils.cave.load module<a class="headerlink" href="#module-crantpy.utils.cave.load" title="Link to this heading">#</a></h1>
+<p>This module provides utility functions for cave-related loading and caching.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.load.clear_all_caches">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.load.</span></span><span class="sig-name descname"><span class="pre">clear_all_caches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/load.html#clear_all_caches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.load.clear_all_caches" title="Link to this definition">#</a></dt>
+<dd><p>Clears all caches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.load.clear_cave_client_cache">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.load.</span></span><span class="sig-name descname"><span class="pre">clear_cave_client_cache</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/load.html#clear_cave_client_cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.load.clear_cave_client_cache" title="Link to this definition">#</a></dt>
+<dd><p>Clears the CAVE client cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.load.clear_cloudvolume_cache">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.load.</span></span><span class="sig-name descname"><span class="pre">clear_cloudvolume_cache</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/load.html#clear_cloudvolume_cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.load.clear_cloudvolume_cache" title="Link to this definition">#</a></dt>
+<dd><p>Clears the cloudvolume cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.load.get_cave_client">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.load.</span></span><span class="sig-name descname"><span class="pre">get_cave_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_stale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/load.html#get_cave_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.load.get_cave_client" title="Link to this definition">#</a></dt>
+<dd><p>Returns a CAVE client instance.
+If a token is already set, it will be used for authentication.
+Otherwise, a new token will be generated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clear_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default False</em>) – If True, bypasses the cache and fetches a new client.</p></li>
+<li><p><strong>check_stale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default True</em>) – If True, checks if the cached client is stale based on materialization and maximum cache duration.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The dataset to use. If not provided, uses the default dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A CAVE client instance authenticated with the token.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>CAVEclient</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If no token is found after attempting to generate one.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.load.get_cave_datastacks">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.load.</span></span><span class="sig-name descname"><span class="pre">get_cave_datastacks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/load.html#get_cave_datastacks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.load.get_cave_datastacks" title="Link to this definition">#</a></dt>
+<dd><p>Get available CAVE datastacks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.load.get_cloudvolume">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.load.</span></span><span class="sig-name descname"><span class="pre">get_cloudvolume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_stale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/load.html#get_cloudvolume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.load.get_cloudvolume" title="Link to this definition">#</a></dt>
+<dd><p>Returns a cloudvolume instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>clear_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
+<li><p><strong>check_stale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>caveclient.CAVEclient</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.load.get_dataset_segmentation_source">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.load.</span></span><span class="sig-name descname"><span class="pre">get_dataset_segmentation_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/load.html#get_dataset_segmentation_source"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.load.get_dataset_segmentation_source" title="Link to this definition">#</a></dt>
+<dd><p>Get segmentation source for given dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.load.get_datastack_segmentation_source">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.load.</span></span><span class="sig-name descname"><span class="pre">get_datastack_segmentation_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datastack</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/load.html#get_datastack_segmentation_source"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.load.get_datastack_segmentation_source" title="Link to this definition">#</a></dt>
+<dd><p>Get segmentation source for given CAVE datastack.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crantpy.utils.cave.load.validate_cave_client">
+<span class="sig-prename descclassname"><span class="pre">crantpy.utils.cave.load.</span></span><span class="sig-name descname"><span class="pre">validate_cave_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/utils/cave/load.html#validate_cave_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.utils.cave.load.validate_cave_client" title="Link to this definition">#</a></dt>
+<dd><p>Validate if a cached CAVE client is still valid.</p>
+</dd></dl>
+
 </section>
 
     <script type="text/x-thebe-config">
@@ -493,6 +632,29 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.clear_all_caches"><code class="docutils literal notranslate"><span class="pre">clear_all_caches()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.clear_cave_client_cache"><code class="docutils literal notranslate"><span class="pre">clear_cave_client_cache()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.clear_cloudvolume_cache"><code class="docutils literal notranslate"><span class="pre">clear_cloudvolume_cache()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.get_cave_client"><code class="docutils literal notranslate"><span class="pre">get_cave_client()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.get_cave_datastacks"><code class="docutils literal notranslate"><span class="pre">get_cave_datastacks()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.get_cloudvolume"><code class="docutils literal notranslate"><span class="pre">get_cloudvolume()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.get_dataset_segmentation_source"><code class="docutils literal notranslate"><span class="pre">get_dataset_segmentation_source()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.get_datastack_segmentation_source"><code class="docutils literal notranslate"><span class="pre">get_datastack_segmentation_source()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.utils.cave.load.validate_cave_client"><code class="docutils literal notranslate"><span class="pre">validate_cave_client()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>
