@@ -495,8 +495,9 @@ def plot_em_image(x: int, y: int, z: int, size: Optional[int] = 1000) -> np.ndar
         raise ValueError("Size must be between 100 and 5000.")
 
     # Calculate bounding box coordinates
-    x_start, x_end = (x - size) // 2, (x + size) // 2
-    y_start, y_end = (y - size) // 2, (y + size) // 2
+    half_size = size // 2
+    x_start, x_end = x - half_size, x + half_size
+    y_start, y_end = y - half_size, y + half_size
     z_start, z_end = z, z + 1
 
     # Initialize CloudVolume
