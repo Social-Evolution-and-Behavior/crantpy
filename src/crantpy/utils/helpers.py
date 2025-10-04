@@ -345,7 +345,9 @@ def make_iterable(x: Any, force_type: Optional[type] = None) -> np.ndarray:
             arr = np.array(x, dtype=force_type)
         except Exception as e:
             raise ValueError(f"Cannot convert {x} of type {type(x)} to {force_type}.")
-    return arr
+        return arr
+    else:
+        return np.array(x)
 
 
 def parse_timestamp(x: Timestamp) -> str:
