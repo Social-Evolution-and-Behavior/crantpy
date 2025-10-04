@@ -1325,7 +1325,10 @@ def get_voxels(
                 if progress:
                     print(f"Determined bounds from L2 skeleton: {bounds.T}")
             else:
-                raise ValueError(f"Could not fetch L2 skeleton for root ID {x}")
+                raise ValueError(
+                    f"Could not fetch L2 skeleton for root ID {x}. "
+                    "Please check if the root ID is valid, or provide explicit bounds to proceed."
+                )
 
         # Ensure bounds are in the right format
         bounds = np.asarray(bounds)
