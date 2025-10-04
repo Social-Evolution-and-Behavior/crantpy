@@ -494,7 +494,11 @@ def update_ids(
         try:
             raw_supervoxels = np.asarray(raw_supervoxels)
         except Exception as e:
-            logging.warning(f"Failed to convert supervoxels to array: {e}")
+            logging.warning(
+                f"Failed to convert supervoxels to array: {e}. "
+                "Expected input: a list, numpy array, or pandas Series of integer supervoxel IDs (not None, NaN, or zero). "
+                "Example: [12345, 67890, 13579]. Please check your input format."
+            )
             raw_supervoxels = None
 
         # Check length match
