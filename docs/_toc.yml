@@ -21,8 +21,8 @@ parts:
     title: Working with Neuron Morphology
   - file: deep_dive/connectivity
     title: Analyzing Connectivity
-  - file: deep_dive/advanced
-    title: Advanced Topics
+  - file: deep_dive/segmentation
+    title: Using EM Segmentation Data
 
 - caption: Reference
   chapters:
