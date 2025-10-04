@@ -435,7 +435,10 @@ def get_l2_skeleton(
     # Batch mode: multiple root IDs
     if len(root_ids) > 1:
         logging.info(f"Fetching L2 skeletons for {len(root_ids)} root IDs.")
-        ids_unique = np.unique(root_ids)
+        # Get unique IDs while preserving order
+        ids_unique, unique_indices = np.unique(root_ids, return_index=True)
+        ids_unique = ids_unique[np.argsort(unique_indices)]
+
         with ThreadPoolExecutor(max_workers=max_threads) as pool:
             futures = pool.map(
                 lambda rid: get_l2_skeleton(
@@ -460,8 +463,14 @@ def get_l2_skeleton(
                     leave=False,
                 )
             ]
-        # Combine into a NeuronList
-        nl = navis.NeuronList(results)
+
+        # Map results back to original order (handle duplicates)
+        result_dict = {
+            int(n.id): n for n in results if n is not None and hasattr(n, "id")
+        }
+        nl = navis.NeuronList(
+            [result_dict.get(int(rid)) for rid in root_ids if int(rid) in result_dict]
+        )
         return nl
 
     # Single root ID

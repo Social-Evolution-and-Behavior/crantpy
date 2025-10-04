@@ -502,10 +502,6 @@ def plot_em_image(x: int, y: int, z: int, size: Optional[int] = 1000) -> np.ndar
     # Initialize CloudVolume
     vol = cv.CloudVolume(ALIGNED_EM_URL, mip=0, use_https=True)
 
-    # Check if volume exists
-    if not vol.exists():
-        raise ValueError("CloudVolume does not exist at the specified URL.")
-
     # If coordinates are out of bounds, raise error
     if (
         x_start < 0
