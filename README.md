@@ -69,6 +69,12 @@ We welcome contributions! See our [contribution guidelines](docs/contribute.md) 
 }
 ```
 
+**Important:** CRANTpy is built upon [fafbseg-py](https://github.com/flyconnectome/fafbseg-py) by Dr. Philipp Schlegel from the FlyWire Drosophila Connectome Project. Please try to also cite the [FlyWire project papers](https://social-evolution-and-behavior.github.io/crantpy/acknowledgements.html) when using this tool.
+
+## 🙏 Acknowledgements
+
+We gratefully acknowledge **Dr. Philipp Schlegel** (MRC Laboratory of Molecular Biology, Cambridge) for developing fafbseg-py, upon which CRANTpy is based. See our [full acknowledgements](https://social-evolution-and-behavior.github.io/crantpy/acknowledgements.html) for complete contributor information.
+
 ## 📄 License
 
 GNU General Public License v3.0 - see [LICENSE](LICENSE) for details.

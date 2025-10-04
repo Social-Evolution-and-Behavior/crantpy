@@ -16,7 +16,7 @@ parts:
   - file: deep_dive/advanced_queries
     title: Advanced Neuron Querying
   - file: deep_dive/visualization
-    title: Visualizing Neurons
+    title: Plotting Neurons
   - file: deep_dive/morphology
     title: Working with Neuron Morphology
   - file: deep_dive/connectivity
@@ -36,3 +36,5 @@ parts:
     title: FAQ
   - file: contribute
     title: Contributing
+  - file: acknowledgements
+    title: Acknowledgements
