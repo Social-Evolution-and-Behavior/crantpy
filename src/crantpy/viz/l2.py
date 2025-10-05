@@ -206,9 +206,9 @@ def get_l2_chunk_info(
             {
                 "root_id": rid,
                 "l2_id": l2_keys,
-                "x": (pts[:, 0] / 4).astype(int),
-                "y": (pts[:, 1] / 4).astype(int),
-                "z": (pts[:, 2] / 40).astype(int),
+                "x": (pts[:, 0] / SCALE_X).astype(int),
+                "y": (pts[:, 1] / SCALE_Y).astype(int),
+                "z": (pts[:, 2] / SCALE_Z).astype(int),
                 "vec_x": vec[:, 0],
                 "vec_y": vec[:, 1],
                 "vec_z": vec[:, 2],
