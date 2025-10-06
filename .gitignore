@@ -181,3 +181,14 @@ cython_debug/
 
 # VS Code
 .vscode/
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# node_modules
+node_modules/

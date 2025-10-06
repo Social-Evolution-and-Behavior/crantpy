@@ -3,8 +3,19 @@
 
 import functools
 import logging
-from typing import (Any, Callable, Dict, Iterable, Iterator, List, Optional,
-                    Type, TypeVar, Union, cast)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 import numpy as np
 import pandas as pd
@@ -18,26 +29,33 @@ from crantpy.utils.cave import get_cave_client, get_cloudvolume
 import trimesh as tm
 from tqdm import tqdm
 
-from crantpy.utils.config import CRANT_VALID_DATASETS, SCALE_X, SCALE_Y, SCALE_Z, WHOLE_BRAIN_TISSUE_MESH_URL
+from crantpy.utils.config import (
+    CRANT_VALID_DATASETS,
+    SCALE_X,
+    SCALE_Y,
+    SCALE_Z,
+    WHOLE_BRAIN_TISSUE_MESH_URL,
+)
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
-from crantpy.queries.neurons import NeuronCriteria 
+from crantpy.queries.neurons import NeuronCriteria
 from crantpy.utils.helpers import parse_root_ids
 
 from neuroglancer_scripts.mesh import read_precomputed_mesh
 import requests
-import io 
+import io
 import pyvista as pv
-import seaborn as sns   
+import seaborn as sns
+
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 @parse_neuroncriteria()
 def get_mesh_neuron(
-    neurons: Union[int, str, List[Union[int, str]], 'NeuronCriteria'],
+    neurons: Union[int, str, List[Union[int, str]], "NeuronCriteria"],
     dataset: Optional[str] = None,
     omit_failures: Optional[bool] = None,
     threads: int = 5,
     progress: bool = True,
-) -> Union['navis.MeshNeuron', 'navis.NeuronList']:
+) -> Union["navis.MeshNeuron", "navis.NeuronList"]:
     """
     Fetch one or more CRANTB neurons as navis.MeshNeuron objects.
 
@@ -68,29 +86,37 @@ def get_mesh_neuron(
 
     """
     if omit_failures not in (None, True, False):
-        raise ValueError("`omit_failures` must be either None, True or False. "
-                         f'Got "{omit_failures}".')
+        raise ValueError(
+            "`omit_failures` must be either None, True or False. "
+            f'Got "{omit_failures}".'
+        )
 
     # Normalize input
-    root_ids = parse_root_ids(neurons) 
+    root_ids = parse_root_ids(neurons)
 
     # Convert to list of ints
     root_ids = [int(rid) for rid in root_ids]
 
     # Batch mode: multiple root IDs
     if len(root_ids) > 1:
-        get_mesh = partial(get_mesh_neuron, dataset=dataset, omit_failures=omit_failures, 
-                           threads=None, progress=False)
+        get_mesh = partial(
+            get_mesh_neuron,
+            dataset=dataset,
+            omit_failures=omit_failures,
+            threads=None,
+            progress=False,
+        )
         results = []
         with ThreadPoolExecutor(max_workers=threads) as pool:
             futures = pool.map(get_mesh, root_ids)
             results = [
-                f for f in navis.config.tqdm(
+                f
+                for f in navis.config.tqdm(
                     futures,
                     desc="Fetching meshes",
                     total=len(root_ids),
                     disable=not progress or len(root_ids) == 1,
-                    leave=False
+                    leave=False,
                 )
             ]
         return navis.NeuronList(results)
@@ -132,13 +158,22 @@ def get_mesh_neuron(
 
     return n
 
+
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 def detect_soma(
-    x: Union[int, str, tm.Trimesh, navis.MeshNeuron, navis.NeuronList, 'NeuronCriteria', List[Union[int, str, tm.Trimesh, navis.MeshNeuron, 'NeuronCriteria']]],
+    x: Union[
+        int,
+        str,
+        tm.Trimesh,
+        navis.MeshNeuron,
+        navis.NeuronList,
+        "NeuronCriteria",
+        List[Union[int, str, tm.Trimesh, navis.MeshNeuron, "NeuronCriteria"]],
+    ],
     dataset=None,
     min_rad=800,
     N=3,
-    progress=True
+    progress=True,
 ) -> np.ndarray:
     """
     Detect the soma (cell body) location of a neuron based on mesh radius.
@@ -169,16 +204,17 @@ def detect_soma(
     """
     # Normalize input: handle batch mode
     # Accept navis.NeuronList, list, or np.ndarray, but not single neuron objects
-    if (
-        isinstance(x, (list, np.ndarray, navis.NeuronList))
-        and not isinstance(x, (tm.Trimesh, navis.MeshNeuron, int, str, NeuronCriteria))
+    if isinstance(x, (list, np.ndarray, navis.NeuronList)) and not isinstance(
+        x, (tm.Trimesh, navis.MeshNeuron, int, str, NeuronCriteria)
     ):
-        return np.vstack([
-            detect_soma(n, min_rad=min_rad, N=N, progress=False, dataset=dataset)
-            for n in tqdm(
-                x, desc="Detecting soma", disable=not progress, leave=False
-            )
-        ])
+        return np.vstack(
+            [
+                detect_soma(n, min_rad=min_rad, N=N, progress=False, dataset=dataset)
+                for n in tqdm(
+                    x, desc="Detecting soma", disable=not progress, leave=False
+                )
+            ]
+        )
 
     # Single mesh or neuron
     mesh = None
@@ -220,7 +256,7 @@ def detect_soma(
 
     # Convert to integer coordinates
     center = centers[candidates[-1]]
-    center = [center[0]/SCALE_X, center[1]/SCALE_Y, center[2]/SCALE_Z]
+    center = [center[0] / SCALE_X, center[1] / SCALE_Y, center[2] / SCALE_Z]
     center = np.array([int(round(coord)) for coord in center], dtype=int)
 
     return center
@@ -246,10 +282,19 @@ def load_whole_brain_mesh() -> tm.Trimesh:
     brain_trimesh = tm.Trimesh(vertices=vertices, faces=faces, process=False)
     return brain_trimesh
 
+
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 @parse_neuroncriteria()
 def get_brain_mesh_scene(
-    neurons: Union[int, str, tm.Trimesh, navis.MeshNeuron, navis.NeuronList, 'NeuronCriteria', List[Union[int, str, tm.Trimesh, navis.MeshNeuron, 'NeuronCriteria']]], 
+    neurons: Union[
+        int,
+        str,
+        tm.Trimesh,
+        navis.MeshNeuron,
+        navis.NeuronList,
+        "NeuronCriteria",
+        List[Union[int, str, tm.Trimesh, navis.MeshNeuron, "NeuronCriteria"]],
+    ],
     dataset: Optional[str] = None,
     omit_failures: Optional[bool] = None,
     threads: int = 5,
@@ -257,10 +302,10 @@ def get_brain_mesh_scene(
     brain_mesh_color: str = "grey",
     brain_mesh_alpha: float = 0.1,
     neuron_mesh_alpha: float = 1,
-    backend: str = 'client'
+    backend: str = "client",
 ) -> pv.Plotter:
     """
-    Create a 3D scene of the brain mesh with the specified neurons in random colors. 
+    Create a 3D scene of the brain mesh with the specified neurons in random colors.
 
     Parameters
     ----------
@@ -288,7 +333,7 @@ def get_brain_mesh_scene(
     pv.Plotter
         The 3D scene containing the brain mesh and highlighted neurons.
     """
-    # Load the whole brain mesh 
+    # Load the whole brain mesh
     brain_trimesh = load_whole_brain_mesh()
 
     # Load neuron meshes
@@ -297,21 +342,39 @@ def get_brain_mesh_scene(
         dataset=dataset,
         omit_failures=omit_failures,
         threads=threads,
-        progress=progress
+        progress=progress,
     )
 
     # Convert to Trimesh objects
     if isinstance(neuron_meshes, navis.MeshNeuron):
-        neuron_meshes = [tm.Trimesh(vertices=neuron_meshes.vertices, faces=neuron_meshes.faces, process=False)]
+        neuron_meshes = [
+            tm.Trimesh(
+                vertices=neuron_meshes.vertices,
+                faces=neuron_meshes.faces,
+                process=False,
+            )
+        ]
     elif isinstance(neuron_meshes, navis.NeuronList):
-        neuron_meshes = [tm.Trimesh(vertices=n.vertices, faces=n.faces, process=False) for n in neuron_meshes]
+        neuron_meshes = [
+            tm.Trimesh(vertices=n.vertices, faces=n.faces, process=False)
+            for n in neuron_meshes
+        ]
     else:
         # Throw error if unexpected type
         raise ValueError("Unexpected type for neuron_meshes")
 
-    # Convert to pv.PolyData 
-    brain_pv = pv.PolyData(brain_trimesh.vertices, np.hstack((np.full((len(brain_trimesh.faces),1),3), brain_trimesh.faces)))
-    neuron_meshes_pv = [pv.PolyData(neuron.vertices, np.hstack((np.full((len(neuron.faces),1),3), neuron.faces))) for neuron in neuron_meshes]
+    # Convert to pv.PolyData
+    brain_pv = pv.PolyData(
+        brain_trimesh.vertices,
+        np.hstack((np.full((len(brain_trimesh.faces), 1), 3), brain_trimesh.faces)),
+    )
+    neuron_meshes_pv = [
+        pv.PolyData(
+            neuron.vertices,
+            np.hstack((np.full((len(neuron.faces), 1), 3), neuron.faces)),
+        )
+        for neuron in neuron_meshes
+    ]
 
     # Set backend for pyvista (local or trame)
     pv.set_jupyter_backend(backend)
