@@ -92,7 +92,7 @@ def get_synapses(
     post_ids : int, str, list of int/str, NeuronCriteria, optional
         Post-synaptic neuron root ID(s) to include. Can be a single ID, list of IDs,
         or NeuronCriteria object.
-    threshold : int, default 3
+    threshold : int, default 1
         Minimum number of synapses required for a partner to be retained.
         Currently we don't know what a good threshold is.
     min_size : int, optional
