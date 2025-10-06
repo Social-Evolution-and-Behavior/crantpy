@@ -28,14 +28,14 @@ We also acknowledge the following foundational papers for the FAFB dataset:
 
 ### Project Leadership & Core Development
 
-**Lindsey Lopes**  
+**Lindsey Lopes, PhD**  
 Laboratory of Social Evolution and Behavior, The Rockefeller University, New York, NY, USA  
 Howard Hughes Medical Institute, New York, NY, USA  
 ORCID: [0009-0006-5716-4518](https://orcid.org/0009-0006-5716-4518)  
 *Contributions: EM volume generation, umbrella project direction, olfaction project direction, initial codebase, light microscopy registration, synaptic connectivity integration*
 
 **Hannah Haberkern, PhD**  
-Laboratory of Behavioral Physiology & Sociobiology, University of Würzburg, Würzburg, Bavaria, DE  
+Department of Behavioral Physiology & Sociobiology (Zoology 2), Biocenter, University of Würzburg, Würzburg, DE  
 ORCID: [0000-0002-6135-131X](https://orcid.org/0000-0002-6135-131X)  
 *Contributions: CX project direction*
 
@@ -61,7 +61,7 @@ ORCID: [0000-0002-1396-3215](https://orcid.org/0000-0002-1396-3215)
 *Contributions: CAVE integration, Seatable integration, documentation management and quality assurance*
 
 **Yigit Yargili**  
-Laboratory of Behavioral Physiology & Sociobiology, University of Würzburg, Würzburg, Bavaria, DE  
+Department of Behavioral Physiology & Sociobiology (Zoology 2), Biocenter, University of Würzburg, Würzburg, DE
 ORCID: [0009-0007-8727-7553](https://orcid.org/0009-0007-8727-7553)  
 *Contributions: Skeletonization and synaptic connectivity*
 
@@ -73,7 +73,7 @@ The CRANTb project is supported by:
 
 - Howard Hughes Medical Institute
 - The Rockefeller University
-- University of Würzburg
+- Emmy-Noether grant from the Deutsche Forschungsgemeinschaft (DFG, 513850388) to Hannah Haberkern
 - MRC Laboratory of Molecular Biology
 
 ---
