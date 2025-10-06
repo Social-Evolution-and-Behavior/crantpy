@@ -2,6 +2,47 @@
 """
 This module provides functions for querying synaptic connectivity in the CRANTb dataset.
 Adapted from fafbseg-py (Philipp Schlegel) and the-BANC-fly-connectome (Jasper Phelps).
+
+Function Overview
+-----------------
+This module contains three main functions for connectivity analysis, each serving
+different use cases:
+
+get_synapses()
+    Returns individual synaptic connections as a detailed DataFrame.
+    
+    Use when you need:
+    - Raw synapse-level data with all available columns (coordinates, scores, etc.)
+    - Fine-grained analysis of individual synaptic connections
+    - Custom aggregation or filtering of synapses
+    - Access to synapse metadata (synapse_size, coordinates, quality scores)
+    
+    Returns: DataFrame with one row per synapse
+
+get_adjacency()
+    Returns a structured adjacency matrix showing connection strengths.
+    
+    Use when you need:
+    - Matrix-based connectivity analysis
+    - Network analysis with standard matrix operations
+    - Symmetric connectivity matrices for undirected analysis
+    - Integration with graph theory libraries (NetworkX, igraph)
+    - Direct input for clustering or community detection algorithms
+    
+    Returns: DataFrame adjacency matrix (neurons x neurons)
+
+get_connectivity()
+    Returns aggregated connectivity as a simple edge list.
+    
+    Use when you need:
+    - High-level connectivity overview between neurons
+    - Partner analysis (finding strongest connections)
+    - Simple edge lists for network visualization
+    - Quick connectivity summaries without detailed synapse info
+    - Input for graph visualization tools (Cytoscape, Gephi)
+    
+    Returns: DataFrame with columns [pre, post, weight]
+
 """
 
 import datetime
@@ -11,7 +52,7 @@ import numpy as np
 from crantpy.utils.cave.load import get_cave_client
 from crantpy.utils.config import CRANT_VALID_DATASETS
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
-from crantpy.utils.helpers import parse_root_ids
+from crantpy.utils.helpers import parse_root_ids, retry
 
 if TYPE_CHECKING:
     from crantpy.queries.neurons import NeuronCriteria
@@ -74,14 +115,14 @@ def get_synapses(
         filter_in_dict['post_pt_root_id'] = parsed_post_ids
 
     if materialization == 'live':
-        syn = client.materialize.live_query(
+        syn = retry(client.materialize.live_query)(
             table='synapses_v2',
             timestamp=datetime.datetime.now(datetime.timezone.utc),
             filter_in_dict=filter_in_dict
         )
     elif materialization == 'latest':
-        materialization = client.materialize.most_recent_version()
-        syn = client.materialize.query_table(
+        materialization = retry(client.materialize.most_recent_version)()
+        syn = retry(client.materialize.query_table)(
             table='synapses_v2',
             materialization_version=materialization,
             filter_in_dict=filter_in_dict
@@ -102,7 +143,7 @@ def get_synapses(
     # Filter to keep only pairs that meet the threshold
     syn = syn.set_index(['pre_pt_root_id', 'post_pt_root_id'])
     syn = syn.loc[syn.index.isin(valid_pairs)]
-    syn = syn.reset_index(drop=True)
+    syn = syn.reset_index()  # This preserves the columns instead of dropping them
 
     return syn
 
@@ -278,8 +319,6 @@ def get_connectivity(
     min_size: Optional[int] = None,
     materialization: Optional[str] = 'latest',
     clean: bool = True,
-    batch_size: int = 1000,
-    progress: bool = True,
     dataset: Optional[str] = None
 ) -> pd.DataFrame:
     """
@@ -309,10 +348,6 @@ def get_connectivity(
         Whether to perform cleanup of the connectivity data:
         - Remove autapses (self-connections)
         - Remove connections involving neuron ID 0 (background)
-    batch_size : int, default 1000
-        Number of IDs to query per batch. Currently not functional.
-    progress : bool, default True
-        Whether to show progress. Currently not functional.
     dataset : str, optional
         Dataset to use for the query.
 
@@ -389,15 +424,11 @@ def get_connectivity(
     
     synapses = pd.concat(synapses_list, ignore_index=True)
     
-    # Remove duplicates (in case same synapse appears in both upstream/downstream)
-    if 'id' in synapses.columns:
-        synapses = synapses.drop_duplicates('id')
-    else:
-        # Fallback if no id column
-        synapses = synapses.drop_duplicates(['pre_pt_root_id', 'post_pt_root_id'])
-    
     if synapses.empty:
         return pd.DataFrame(columns=['pre', 'post', 'weight'])
+
+    # Remove duplicates (in case same synapse appears in both upstream/downstream)
+    synapses = synapses.drop_duplicates('id')
     
     # Rename columns for consistency
     synapses = synapses.rename(columns={
