@@ -298,9 +298,9 @@ def test_plot_em_image_default_size(mock_cloudvolume) -> None:
     # Verify exists() was called
     mock_vol.exists.assert_called_once()
 
-    # Verify the slice coordinates (x_start=(1000-1000)//2=0, x_end=(1000+1000)//2=1000, etc.)
+    # Verify the slice coordinates (x_start=1000-500=500, x_end=1000+500=1500, etc.)
     mock_vol.__getitem__.assert_called_once_with(
-        (slice(0, 1000), slice(500, 1500), slice(100, 101))
+        (slice(500, 1500), slice(1500, 2500), slice(100, 101))
     )
 
     # Verify result
@@ -332,9 +332,9 @@ def test_plot_em_image_custom_size(mock_cloudvolume) -> None:
     # Call the function with custom size
     result = plot_em_image(500, 600, 50, size=200)
 
-    # Verify the slice coordinates (x_start=(500-200)//2=150, x_end=(500+200)//2=350, etc.)
+    # Verify the slice coordinates (x_start=500-100=400, x_end=500+100=600, etc.)
     mock_vol.__getitem__.assert_called_once_with(
-        (slice(150, 350), slice(200, 400), slice(50, 51))
+        (slice(400, 600), slice(500, 700), slice(50, 51))
     )
 
     # Verify result
@@ -364,9 +364,9 @@ def test_plot_em_image_size_none() -> None:
         # Call with size=None
         plot_em_image(1000, 2000, 100, size=None)
 
-        # Should use default size=1000 (x_start=(1000-1000)//2=0, x_end=(1000+1000)//2=1000, etc.)
+        # Should use default size=1000 (x_start=1000-500=500, x_end=1000+500=1500, etc.)
         mock_vol.__getitem__.assert_called_once_with(
-            (slice(0, 1000), slice(500, 1500), slice(100, 101))
+            (slice(500, 1500), slice(1500, 2500), slice(100, 101))
         )
 
 
@@ -424,9 +424,9 @@ def test_plot_em_image_coordinate_boundaries_valid(mock_cloudvolume) -> None:
     # Test with coordinates that will be within bounds
     plot_em_image(500, 500, 500, size=100)
 
-    # Verify the slice coordinates (x_start=(500-100)//2=200, x_end=(500+100)//2=300, etc.)
+    # Verify the slice coordinates (x_start=500-50=450, x_end=500+50=550, etc.)
     mock_vol.__getitem__.assert_called_with(
-        (slice(200, 300), slice(200, 300), slice(500, 501))
+        (slice(450, 550), slice(450, 550), slice(500, 501))
     )
 
 
@@ -454,9 +454,9 @@ def test_plot_em_image_large_coordinates(mock_cloudvolume) -> None:
     # Test with large coordinates
     plot_em_image(100000, 200000, 5000, size=2000)
 
-    # Verify the slice coordinates (x_start=(100000-2000)//2=49000, x_end=(100000+2000)//2=51000, etc.)
+    # Verify the slice coordinates (x_start=100000-1000=99000, x_end=100000+1000=101000, etc.)
     mock_vol.__getitem__.assert_called_with(
-        (slice(49000, 51000), slice(99000, 101000), slice(5000, 5001))
+        (slice(99000, 101000), slice(199000, 201000), slice(5000, 5001))
     )
 
 

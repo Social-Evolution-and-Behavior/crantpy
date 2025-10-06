@@ -496,14 +496,18 @@ def plot_em_image(x: int, y: int, z: int, size: Optional[int] = 1000) -> np.ndar
     elif size < 100 or size > 5000:
         raise ValueError("Size must be between 100 and 5000.")
 
+    # Initialize CloudVolume
+    vol = cv.CloudVolume(ALIGNED_EM_URL, mip=0, use_https=True)
+    
+    # Check if CloudVolume exists
+    if not vol.exists():
+        raise ValueError("CloudVolume does not exist at the specified URL.")
+
     # Calculate bounding box coordinates
     half_size = size // 2
     x_start, x_end = x - half_size, x + half_size
     y_start, y_end = y - half_size, y + half_size
     z_start, z_end = z, z + 1
-
-    # Initialize CloudVolume
-    vol = cv.CloudVolume(ALIGNED_EM_URL, mip=0, use_https=True)
 
     # If coordinates are out of bounds, raise error
     if (
