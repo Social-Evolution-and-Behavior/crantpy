@@ -205,11 +205,10 @@ def get_adjacency(
         Materialization version to use. 'latest' (default) or 'live' for live table.
     symmetric : bool, default False
         If True, return a symmetric adjacency matrix with the same set of IDs on
-        both rows and columns. The neuron set is determined as follows:
-        - If both pre_ids and post_ids are provided: use their union
-        - If only one is provided: use that set
-        - If neither is provided: use all neurons that appear in the synapses
-        Only neurons that actually appear in the synapses data will be included.
+        both rows and columns. The neuron set includes all neurons that appear
+        in the filtered synapses data (union of all pre- and post-synaptic neurons).
+        This provides a complete view of connectivity among all neurons involved
+        in the queried connections.
         If False (default), rows represent pre-synaptic neurons and columns 
         represent post-synaptic neurons from the actual synapses data.
     dataset : str, optional
@@ -239,8 +238,8 @@ def get_adjacency(
     - This function uses get_synapses() internally to retrieve synaptic connections
     - If both pre_ids and post_ids are None, this will query all synapses in the dataset
     - The threshold parameter filters connection pairs, not individual synapses
-    - When symmetric=True, the resulting matrix has the same neurons on rows and columns,
-      ensuring that adj[i,j] and adj[j,i] positions both exist (though values may differ)
+    - When symmetric=True, the resulting matrix includes all neurons that appear in the
+      filtered synapses data, ensuring complete connectivity visualization
     - When symmetric=False, the matrix may be rectangular with different neuron sets
       for rows (pre-synaptic) and columns (post-synaptic)
     """
