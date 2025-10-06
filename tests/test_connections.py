@@ -5,7 +5,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from unittest.mock import Mock, patch, MagicMock
-from crantpy.queries.connections import get_synapses, get_adjacency, get_connectivity
+from crantpy.queries.connections import get_synapses, get_adjacency, get_connectivity, get_synapse_counts
 from typing import List, Union
 
 
@@ -594,23 +594,248 @@ class TestGetConnectivity:
             assert call[1]['min_size'] == 10
 
 
+class TestGetSynapseCounts:
+    """Test cases for get_synapse_counts function."""
+    
+    @patch('crantpy.queries.connections.get_connectivity')
+    def test_get_synapse_counts_single_neuron(self, mock_get_connectivity):
+        """Test get_synapse_counts with a single neuron ID."""
+        # Mock connectivity data showing neuron 1 has 2 pre and 3 post connections
+        mock_connectivity_data = pd.DataFrame({
+            'pre': [1, 1, 2, 3, 4],
+            'post': [2, 3, 1, 1, 1],
+            'weight': [5, 3, 4, 2, 1]
+        })
+        mock_get_connectivity.return_value = mock_connectivity_data
+        
+        result = get_synapse_counts(1)
+        
+        # Check that get_connectivity was called with correct parameters
+        mock_get_connectivity.assert_called_once_with(
+            neuron_ids=1,
+            upstream=True,
+            downstream=True,
+            threshold=1,
+            min_size=None,
+            materialization='latest',
+            clean=True,
+            dataset='latest'
+        )
+        
+        # Check result structure
+        assert isinstance(result, pd.DataFrame)
+        assert list(result.columns) == ['pre', 'post']
+        assert result.index.name == 'neuron_id'
+        assert 1 in result.index
+        
+        # Check counts: neuron 1 appears as pre 2 times, as post 3 times
+        assert result.loc[1, 'pre'] == 2  # 1->2, 1->3
+        assert result.loc[1, 'post'] == 3  # 2->1, 3->1, 4->1
+    
+    @patch('crantpy.queries.connections.get_connectivity')
+    def test_get_synapse_counts_multiple_neurons(self, mock_get_connectivity):
+        """Test get_synapse_counts with multiple neuron IDs."""
+        mock_connectivity_data = pd.DataFrame({
+            'pre': [1, 1, 2, 3, 4],
+            'post': [2, 3, 1, 1, 5],
+            'weight': [5, 3, 4, 2, 1]
+        })
+        mock_get_connectivity.return_value = mock_connectivity_data
+        
+        result = get_synapse_counts([1, 2, 5])
+        
+        # Check result structure
+        assert len(result) == 3
+        assert all(nid in result.index for nid in [1, 2, 5])
+        
+        # Check counts
+        assert result.loc[1, 'pre'] == 2  # 1->2, 1->3
+        assert result.loc[1, 'post'] == 2  # 2->1, 3->1
+        assert result.loc[2, 'pre'] == 1  # 2->1
+        assert result.loc[2, 'post'] == 1  # 1->2
+        assert result.loc[5, 'pre'] == 0  # No outgoing
+        assert result.loc[5, 'post'] == 1  # 4->5
+    
+    @patch('crantpy.queries.connections.get_connectivity')
+    def test_get_synapse_counts_empty_connectivity(self, mock_get_connectivity):
+        """Test get_synapse_counts when no connectivity data is found."""
+        mock_get_connectivity.return_value = pd.DataFrame(columns=['pre', 'post', 'weight'])
+        
+        result = get_synapse_counts([1, 2])
+        
+        # Check result structure
+        assert isinstance(result, pd.DataFrame)
+        assert len(result) == 2
+        assert all(result.values.flatten() == 0)  # All counts should be zero
+        assert result.loc[1, 'pre'] == 0
+        assert result.loc[1, 'post'] == 0
+        assert result.loc[2, 'pre'] == 0
+        assert result.loc[2, 'post'] == 0
+    
+    @patch('crantpy.queries.connections.get_connectivity')
+    def test_get_synapse_counts_with_threshold(self, mock_get_connectivity):
+        """Test get_synapse_counts with threshold parameter."""
+        mock_connectivity_data = pd.DataFrame({
+            'pre': [1, 1, 2],
+            'post': [2, 3, 1],
+            'weight': [5, 3, 4]
+        })
+        mock_get_connectivity.return_value = mock_connectivity_data
+        
+        result = get_synapse_counts(1, threshold=4)
+        
+        # Check that threshold was passed to get_connectivity
+        mock_get_connectivity.assert_called_once_with(
+            neuron_ids=1,
+            upstream=True,
+            downstream=True,
+            threshold=4,
+            min_size=None,
+            materialization='latest',
+            clean=True,
+            dataset='latest'
+        )
+    
+    @patch('crantpy.queries.connections.get_connectivity')
+    def test_get_synapse_counts_with_min_size(self, mock_get_connectivity):
+        """Test get_synapse_counts with min_size parameter."""
+        mock_connectivity_data = pd.DataFrame({
+            'pre': [1, 2],
+            'post': [2, 1],
+            'weight': [5, 4]
+        })
+        mock_get_connectivity.return_value = mock_connectivity_data
+        
+        result = get_synapse_counts(1, min_size=10)
+        
+        # Check that min_size was passed to get_connectivity
+        mock_get_connectivity.assert_called_once_with(
+            neuron_ids=1,
+            upstream=True,
+            downstream=True,
+            threshold=1,
+            min_size=10,
+            materialization='latest',
+            clean=True,
+            dataset='latest'
+        )
+    
+    @patch('crantpy.queries.connections.get_connectivity')
+    def test_get_synapse_counts_live_materialization(self, mock_get_connectivity):
+        """Test get_synapse_counts with live materialization."""
+        mock_connectivity_data = pd.DataFrame({
+            'pre': [1, 2],
+            'post': [2, 1],
+            'weight': [5, 4]
+        })
+        mock_get_connectivity.return_value = mock_connectivity_data
+        
+        result = get_synapse_counts(1, materialization='live')
+        
+        # Check that materialization was passed correctly
+        mock_get_connectivity.assert_called_once_with(
+            neuron_ids=1,
+            upstream=True,
+            downstream=True,
+            threshold=1,
+            min_size=None,
+            materialization='live',
+            clean=True,
+            dataset='latest'
+        )
+    
+    @patch('crantpy.queries.connections.get_connectivity')
+    def test_get_synapse_counts_with_dataset(self, mock_get_connectivity):
+        """Test get_synapse_counts with specific dataset."""
+        mock_connectivity_data = pd.DataFrame({
+            'pre': [1, 2],
+            'post': [2, 1],
+            'weight': [5, 4]
+        })
+        mock_get_connectivity.return_value = mock_connectivity_data
+        
+        result = get_synapse_counts(1, dataset='sandbox')
+        
+        # Check that dataset was passed correctly
+        mock_get_connectivity.assert_called_once_with(
+            neuron_ids=1,
+            upstream=True,
+            downstream=True,
+            threshold=1,
+            min_size=None,
+            materialization='latest',
+            clean=True,
+            dataset='sandbox'
+        )
+    
+    @patch('crantpy.queries.connections.get_connectivity')
+    def test_get_synapse_counts_neuron_criteria(self, mock_get_connectivity):
+        """Test get_synapse_counts with NeuronCriteria input."""
+        mock_connectivity_data = pd.DataFrame({
+            'pre': [1, 2],
+            'post': [2, 1],
+            'weight': [5, 4]
+        })
+        mock_get_connectivity.return_value = mock_connectivity_data
+        
+        # Mock NeuronCriteria that resolves to [1, 2]
+        with patch('crantpy.queries.connections.parse_root_ids') as mock_parse:
+            mock_parse.return_value = ['1', '2']
+            
+            result = get_synapse_counts("mock_criteria")
+            
+            # Check that parse_root_ids was called
+            mock_parse.assert_called_once_with("mock_criteria")
+            
+            # Check result structure
+            assert len(result) == 2
+            assert 1 in result.index and 2 in result.index
+    
+    @patch('crantpy.queries.connections.get_connectivity')
+    def test_get_synapse_counts_integer_conversion(self, mock_get_connectivity):
+        """Test that neuron IDs are properly converted to integers."""
+        mock_connectivity_data = pd.DataFrame({
+            'pre': [123, 456],
+            'post': [456, 123],
+            'weight': [5, 4]
+        })
+        mock_get_connectivity.return_value = mock_connectivity_data
+        
+        with patch('crantpy.queries.connections.parse_root_ids') as mock_parse:
+            mock_parse.return_value = ['123', '456']  # Return as strings
+            
+            result = get_synapse_counts(['123', '456'])
+            
+            # Check that IDs were converted to integers in the index
+            assert result.index.dtype == int
+            assert 123 in result.index and 456 in result.index
+    
+    @patch('crantpy.queries.connections.get_connectivity')
+    def test_get_synapse_counts_no_self_connections(self, mock_get_connectivity):
+        """Test that autapses are properly excluded via clean=True."""
+        # Connectivity data without autapses (clean=True should remove them)
+        mock_connectivity_data = pd.DataFrame({
+            'pre': [1, 2],
+            'post': [2, 1],
+            'weight': [5, 4]
+        })
+        mock_get_connectivity.return_value = mock_connectivity_data
+        
+        result = get_synapse_counts([1, 2])
+        
+        # Verify clean=True was passed to get_connectivity
+        mock_get_connectivity.assert_called_once_with(
+            neuron_ids=[1, 2],
+            upstream=True,
+            downstream=True,
+            threshold=1,
+            min_size=None,
+            materialization='latest',
+            clean=True,
+            dataset='latest'
+        )
+
+
 if __name__ == '__main__':
     pytest.main([__file__])
-    
-    def test_get_adjacency_zero_entries(self):
-        """Test that get_adjacency correctly sets zero entries."""
-        pre_ids: List[Union[int, str]] = [1, 2]
-        post_ids: List[Union[int, str]] = [3, 4]  # No connections between pre and post
-        
-        result = get_adjacency(pre_ids, post_ids)
-        
-        # Should have zeros for non-existing connections
-        assert result.loc[1, 3] == 1
-        assert result.loc[2, 4] == 1
-        # These connections don't exist in the data, so should remain 0
-        assert result.loc[1, 4] == 0
-        assert result.loc[2, 3] == 0
-
-
-if __name__ == '__main__':
     pytest.main([__file__])

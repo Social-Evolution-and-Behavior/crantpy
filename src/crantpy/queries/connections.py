@@ -5,7 +5,7 @@ Adapted from fafbseg-py (Philipp Schlegel) and the-BANC-fly-connectome (Jasper P
 
 Function Overview
 -----------------
-This module contains three main functions for connectivity analysis, each serving
+This module contains four main functions for connectivity analysis, each serving
 different use cases:
 
 get_synapses()
@@ -43,6 +43,18 @@ get_connectivity()
     
     Returns: DataFrame with columns [pre, post, weight]
 
+get_synapse_counts()
+    Returns summary statistics of synaptic connections per neuron.
+    
+    Use when you need:
+    - Quick overview of neuron connectivity profiles
+    - Total incoming and outgoing connection counts
+    - Comparative analysis of neuron connectivity levels
+    - Filtering neurons by connectivity thresholds
+    - Summary statistics for large neuron populations
+    
+    Returns: DataFrame with columns [pre, post] indexed by neuron ID
+
 """
 
 import datetime
@@ -50,7 +62,7 @@ from typing import List, Optional, Union, TYPE_CHECKING
 import pandas as pd
 import numpy as np
 from crantpy.utils.cave.load import get_cave_client
-from crantpy.utils.config import CRANT_VALID_DATASETS
+from crantpy.utils.config import CRANT_VALID_DATASETS, SCALE_X, SCALE_Y, SCALE_Z
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.utils.helpers import parse_root_ids, retry
 
@@ -66,6 +78,7 @@ def get_synapses(
     threshold: int = 1,
     min_size: Optional[int] = None,
     materialization: Optional[str] = 'latest',
+    return_pixels: bool = True,
     dataset: Optional[str] = None
 ) -> pd.DataFrame:
     """
@@ -86,6 +99,11 @@ def get_synapses(
         Minimum size for filtering synapses. Currently we don't know what a good size is.
     materialization : str, default 'latest'
         Materialization version to use. 'latest' (default) or 'live' for live table.
+    return_pixels : bool, default True
+        Whether to convert coordinate columns from nanometers to pixels.
+        If True (default), coordinates in ctr_pt_position, pre_pt_position, and
+        post_pt_position are converted using dataset scale factors.
+        If False, coordinates remain in nanometer units.
     dataset : str, optional
         Dataset to use for the query.
 
@@ -144,6 +162,10 @@ def get_synapses(
     syn = syn.set_index(['pre_pt_root_id', 'post_pt_root_id'])
     syn = syn.loc[syn.index.isin(valid_pairs)]
     syn = syn.reset_index()  # This preserves the columns instead of dropping them
+
+    # Convert coordinates to pixels if requested
+    if return_pixels:
+        syn = _convert_coordinates_to_pixels(syn)
 
     return syn
 
@@ -457,3 +479,147 @@ def get_connectivity(
     connectivity = connectivity.sort_values('weight', ascending=False).reset_index(drop=True)
     
     return connectivity
+
+
+
+@parse_neuroncriteria()
+@inject_dataset(allowed=CRANT_VALID_DATASETS)
+def get_synapse_counts(
+    neuron_ids: Union[int, str, List[Union[int, str]], 'NeuronCriteria'],
+    threshold: int = 1,
+    min_size: Optional[int] = None,
+    materialization: Optional[str] = 'latest',
+    dataset: Optional[str] = None
+) -> pd.DataFrame:
+    """
+    Get synapse counts (pre and post) for given neuron IDs in CRANTb.
+
+    This function returns the total number of presynaptic and postsynaptic
+    connections for each specified neuron, aggregated across all their partners.
+
+    Parameters
+    ----------
+    neuron_ids : int, str, list, NeuronCriteria
+        Neuron root ID(s) to get synapse counts for. Can be a single ID,
+        list of IDs, or NeuronCriteria object.
+    threshold : int, default 1
+        Minimum number of synapses required between a pair to be counted
+        towards the total. Pairs with fewer synapses are excluded.
+    min_size : int, optional
+        Minimum size for filtering individual synapses before counting.
+    materialization : str, default 'latest'
+        Materialization version to use. 'latest' (default) or 'live' for live table.
+    dataset : str, optional
+        Dataset to use for the query.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with columns:
+        - index: neuron IDs
+        - 'pre': number of presynaptic connections (outgoing)
+        - 'post': number of postsynaptic connections (incoming)
+
+    Examples
+    --------
+    >>> import crantpy as cp
+    >>> # Get synapse counts for a single neuron
+    >>> counts = cp.get_synapse_counts(576460752641833774)
+    >>> 
+    >>> # Get counts for multiple neurons with threshold
+    >>> counts = cp.get_synapse_counts([576460752641833774, 576460752777916050], threshold=3)
+
+    Notes
+    -----
+    - This function uses get_connectivity() internally to get connection data
+    - Counts represent the number of distinct synaptic partners, not individual synapses
+    - The threshold is applied at the connection level (pairs of neurons)
+    """
+    # Parse neuron IDs
+    query_ids = [int(x) for x in parse_root_ids(neuron_ids)]
+    
+    # Get connectivity for all query neurons (both upstream and downstream)
+    connectivity = get_connectivity(
+        neuron_ids=neuron_ids,
+        upstream=True,
+        downstream=True,
+        threshold=threshold,
+        min_size=min_size,
+        materialization=materialization,
+        clean=True,  # Remove autapses and background connections
+        dataset=dataset
+    )
+    
+    # Initialize counts DataFrame with zeros
+    counts = pd.DataFrame(
+        index=pd.Index(query_ids, name='neuron_id'),
+        columns=['pre', 'post'],
+        data=0,
+        dtype=int
+    )
+    
+    if connectivity.empty:
+        return counts
+    
+    # Count presynaptic connections (outgoing from query neurons)
+    pre_counts = connectivity[connectivity['pre'].isin(query_ids)].groupby('pre').size()
+    pre_counts.name = 'pre'
+    
+    # Count postsynaptic connections (incoming to query neurons)
+    post_counts = connectivity[connectivity['post'].isin(query_ids)].groupby('post').size()
+    post_counts.name = 'post'
+    
+    # Update counts DataFrame
+    for neuron_id in query_ids:
+        if neuron_id in pre_counts.index:
+            counts.loc[neuron_id, 'pre'] = pre_counts[neuron_id]
+        if neuron_id in post_counts.index:
+            counts.loc[neuron_id, 'post'] = post_counts[neuron_id]
+    
+    return counts
+
+
+def _convert_coordinates_to_pixels(synapses_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert synapse coordinates from nanometers to pixels.
+    
+    This function converts the coordinate columns in a synapses DataFrame
+    from nanometer units to pixel units using the dataset-specific scale factors.
+    
+    Parameters
+    ----------
+    synapses_df : pd.DataFrame
+        DataFrame containing synapse data with coordinate columns.
+        
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with coordinates converted to pixels.
+        
+    Notes
+    -----
+    The conversion uses scale factors defined in the config:
+    - SCALE_X, SCALE_Y = 8 nm/pixel (x and y dimensions)
+    - SCALE_Z = 42 nm/pixel (z dimension)
+    
+    Coordinate columns that are converted (if present):
+    - ctr_pt_position (center point coordinates)
+    - pre_pt_position (presynaptic site coordinates) 
+    - post_pt_position (postsynaptic site coordinates)
+    """
+    df = synapses_df.copy()
+    
+    # Define coordinate columns to convert
+    coord_columns = ['ctr_pt_position', 'pre_pt_position', 'post_pt_position']
+    
+    for col in coord_columns:
+        if col in df.columns:
+            # Convert coordinates from nm to pixels
+            # Each coordinate is a 3-element array [x, y, z]
+            df[col] = df[col].apply(lambda pos: [
+                int(pos[0] // SCALE_X),  # x coordinate
+                int(pos[1] // SCALE_Y),  # y coordinate  
+                int(pos[2] // SCALE_Z)   # z coordinate
+            ] if pos is not None and len(pos) >= 3 else pos)
+    
+    return df
