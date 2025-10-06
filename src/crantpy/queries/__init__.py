@@ -11,8 +11,8 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
         'connections': [
             'get_adjacency',
             'get_connectivity',
-            'get_synapses',
             'get_synapse_counts',
+            'get_synapses',
         ],
         'neurons': [
             'NeuronCriteria',
@@ -24,5 +24,5 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
 )
 
 __all__ = ['NeuronCriteria', 'connections', 'get_adjacency', 'get_annotations',
-           'get_connectivity', 'get_synapses', 'get_synapse_counts', 'is_proofread', 'neurons',
-           'parse_neuroncriteria']
+           'get_connectivity', 'get_synapse_counts', 'get_synapses',
+           'is_proofread', 'neurons', 'parse_neuroncriteria']
