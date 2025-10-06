@@ -285,29 +285,8 @@ def get_adjacency(
     post_neurons = synapses['post_pt_root_id'].values
     
     if symmetric:
-        # For symmetric adjacency matrix, use the same set of neurons for both rows and columns
-        if pre_ids is not None and post_ids is not None:
-            # Use union of provided IDs, filtered to neurons that appear in synapses
-            pre_set = set(int(x) for x in parse_root_ids(pre_ids))
-            post_set = set(int(x) for x in parse_root_ids(post_ids))
-            provided_union = pre_set.union(post_set)
-            # Filter to neurons that actually appear in the synapses data
-            data_neurons = set(pre_neurons).union(set(post_neurons))
-            index = sorted(list(provided_union.intersection(data_neurons)))
-        elif pre_ids is not None:
-            # Use pre_ids that appear in the synapses data
-            provided_pre = set(int(x) for x in parse_root_ids(pre_ids))
-            data_neurons = set(pre_neurons).union(set(post_neurons))
-            index = sorted(list(provided_pre.intersection(data_neurons)))
-        elif post_ids is not None:
-            # Use post_ids that appear in the synapses data
-            provided_post = set(int(x) for x in parse_root_ids(post_ids))
-            data_neurons = set(pre_neurons).union(set(post_neurons))
-            index = sorted(list(provided_post.intersection(data_neurons)))
-        else:
-            # Neither provided, use all neurons that appear in synapses
-            index = sorted(list(set(pre_neurons).union(set(post_neurons))))
-        
+        # For symmetric adjacency matrix, use all neurons that appear in synapses data
+        index = sorted(list(set(pre_neurons).union(set(post_neurons))))
         columns = index
     else:
         # Asymmetric case: use actual neurons from the synapses data
