@@ -500,8 +500,8 @@ def plot_em_image(x: int, y: int, z: int, size: Optional[int] = 1000) -> np.ndar
     vol = cv.CloudVolume(ALIGNED_EM_URL, mip=0, use_https=True)
     
     # Check if CloudVolume exists
-    if not vol.exists():
-        raise ValueError("CloudVolume does not exist at the specified URL.")
+    if vol.info is None:
+        raise ValueError("Could not access CloudVolume at the specified URL.")
 
     # Calculate bounding box coordinates
     half_size = size // 2
