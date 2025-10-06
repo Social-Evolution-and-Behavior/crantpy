@@ -10,6 +10,7 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
     submod_attrs={
         'connections': [
             'get_adjacency',
+            'get_connectivity',
             'get_synapses',
         ],
         'neurons': [
@@ -22,4 +23,5 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
 )
 
 __all__ = ['NeuronCriteria', 'connections', 'get_adjacency', 'get_annotations',
-           'get_synapses', 'is_proofread', 'neurons', 'parse_neuroncriteria']
+           'get_connectivity', 'get_synapses', 'is_proofread', 'neurons',
+           'parse_neuroncriteria']
