@@ -233,6 +233,7 @@ def encode_url(
     annotations: Optional[Union[np.ndarray, Dict[str, np.ndarray]]] = None,
     coords: Optional[Union[List, np.ndarray]] = None,
     skeletons: Optional[Union[navis.TreeNeuron, navis.NeuronList]] = None,
+    skeleton_names: Optional[Union[str, List[str]]] = None,
     seg_colors: Optional[Union[str, Tuple, List, Dict, np.ndarray]] = None,
     seg_groups: Optional[Union[List, Dict]] = None,
     invis_segs: Optional[Union[int, List[int]]] = None,
@@ -259,6 +260,10 @@ def encode_url(
         X, Y, Z coordinates (in voxels) to center the view on.
     skeletons : TreeNeuron or NeuronList, optional
         Skeleton(s) to add as annotation layer(s). Must be in nanometers.
+    skeleton_names : str or list of str, optional
+        Names for the skeleton(s) to display in the UI. If a single string is provided,
+        it will be used for all skeletons. If a list is provided, its length must
+        match the number of skeletons.
     seg_colors : str, tuple, list, dict, or array, optional
         Colors for segments:
         - str or tuple: Single color for all segments
@@ -481,10 +486,27 @@ def encode_url(
     # Add skeletons
     if skeletons is not None:
         if isinstance(skeletons, navis.NeuronList):
-            for neuron in skeletons:
-                scene = add_skeleton_layer(neuron, scene)
+            if skeleton_names is None:
+                skeleton_names = [f"Neuron {i+1}" for i in range(len(skeletons))]
+            elif isinstance(skeleton_names, str):
+                skeleton_names = [skeleton_names] * len(skeletons)
+            elif len(skeleton_names) != len(skeletons):
+                raise ValueError(
+                    f"Got {len(skeleton_names)} names for {len(skeletons)} skeletons."
+                )
+            for neuron, name in zip(skeletons, skeleton_names):
+                scene = add_skeleton_layer(neuron, scene, name=name)
         else:
-            scene = add_skeleton_layer(skeletons, scene)
+            if isinstance(skeleton_names, list):
+                if len(skeleton_names) != 1:
+                    raise ValueError(
+                        f"Got {len(skeleton_names)} names for single skeleton."
+                    )
+            elif isinstance(skeleton_names, str):
+                skeleton_names = [skeleton_names]
+            else:
+                skeleton_names = [f"Skeleton {uuid.uuid4().hex[:6]}"]
+            scene = add_skeleton_layer(skeletons, scene, name=skeleton_names[0])
 
     return scene_to_url(
         scene,
@@ -579,61 +601,60 @@ def scene_to_url(
 
 
 def _shorten_url(scene: Dict[str, Any], state_url: str) -> str:
-    """Upload scene to state server and get shortened URL.
-
-    Uses cookie-based authentication similar to FlyWire implementation.
-
-    Parameters
-    ----------
-    scene : dict
-        Neuroglanger scene dictionary.
-    state_url : str
-        State server URL.
-
-    Returns
-    -------
-    str
-        Shortened neuroglancer URL.
-    """
+    """Upload scene to state server and get shortened URL, falling back to CAVE."""
     if not HAS_REQUESTS:
         raise ImportError("requests module required for URL shortening")
 
+    import warnings
     import requests
 
-    # Load neuroglancer URLs from config
     NGL_SCENES = _load_ngl_scenes()
     spelunker_url = NGL_SCENES.get(
         "NGL_URL_SPELUNKER", "https://spelunker.cave-explorer.org"
     )
 
-    # Get authentication token from CAVE client
-    try:
-        client = get_cave_client()
-        token = client.auth.token
-    except Exception as e:
-        raise RuntimeError(f"Failed to get authentication token: {e}")
+    client = get_cave_client()
+    token = client.auth.token
 
-    # Create session with authentication
     session = requests.Session()
+    session.headers.update({"Authorization": f"Bearer {token}"})
+    session.cookies.set("middle_auth_token", token)
 
-    # Set authorization header
-    auth_header = {"Authorization": f"Bearer {token}"}
-    session.headers.update(auth_header)
+    payload = json.dumps(scene)
+    state_url = state_url.rstrip("/")
 
-    # Create authentication cookie
-    cookie_obj = requests.cookies.create_cookie(name="middle_auth_token", value=token)
-    session.cookies.set_cookie(cookie_obj)
+    def _format_url(url: str) -> str:
+        return url.strip().replace(" /#!", "/#!").replace(" ", "").replace("//", "/")
 
-    # Upload scene to state server
-    url = f"{state_url}/post"
-    response = session.post(url, data=json.dumps(scene))
-    response.raise_for_status()
+    def _try_endpoint(endpoint: str) -> Optional[str]:
+        resp = session.post(endpoint, data=payload, timeout=10)
+        if resp.ok:
+            out = resp.json()
+            if isinstance(out, dict):
+                out = out.get("url") or out.get("id") or out.get("json_url")
+            return str(out) if out else None
+        resp.raise_for_status()
+        return None
 
-    # Get the state ID from response
-    json_url = response.json()
+    for endpoint in (f"{state_url}/post", f"{state_url}/api/v1/post"):
+        try:
+            json_url = _try_endpoint(endpoint)
+            if json_url:
+                return f"{spelunker_url}/?json_url={json_url.strip()}"
+        except requests.HTTPError as exc:
+            if exc.response is not None and exc.response.status_code in (401, 403):
+                continue
+            raise
 
-    # Return shortened URL in Spelunker format
-    return f"{spelunker_url}/?json_url={json_url}"
+    warnings.warn(
+        "Primary state server rejected authentication; falling back to CAVE upload.",
+        RuntimeWarning,
+        stacklevel=2,
+    )
+
+    state_id = client.state.upload_state_json(scene)
+    url = client.state.build_neuroglancer_url(state_id, target_site="cave-explorer")
+    return _format_url(url)
 
 
 def decode_url(
