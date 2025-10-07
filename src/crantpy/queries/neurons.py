@@ -366,7 +366,7 @@ def get_annotations(
     filtered_annotations = annotations[annotations["root_id"].isin(root_ids)]
     if filtered_annotations.empty:
         raise NoMatchesError("No matching neurons found for the provided criteria.")
-    return filtered_annotations
+    return filtered_annotations.reset_index(drop=True)
 
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)

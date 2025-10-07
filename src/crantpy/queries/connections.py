@@ -79,6 +79,7 @@ def get_synapses(
     min_size: Optional[int] = None,
     materialization: Optional[str] = 'latest',
     return_pixels: bool = True,
+    clean: bool = True,
     dataset: Optional[str] = None
 ) -> pd.DataFrame:
     """
@@ -104,6 +105,10 @@ def get_synapses(
         If True (default), coordinates in ctr_pt_position, pre_pt_position, and
         post_pt_position are converted using dataset scale factors.
         If False, coordinates remain in nanometer units.
+    clean : bool, default True
+        Whether to perform cleanup of the synapse data:
+        - Remove autapses (self-connections)
+        - Remove connections involving neuron ID 0 (background)
     dataset : str, optional
         Dataset to use for the query.
 
@@ -163,6 +168,13 @@ def get_synapses(
     syn = syn.loc[syn.index.isin(valid_pairs)]
     syn = syn.reset_index()  # This preserves the columns instead of dropping them
 
+    # Clean up synapses if requested
+    if clean:
+        # Remove autapses (self-connections)
+        syn = syn[syn['pre_pt_root_id'] != syn['post_pt_root_id']]
+        # Remove connections involving background (ID 0)
+        syn = syn[(syn['pre_pt_root_id'] != 0) & (syn['post_pt_root_id'] != 0)]
+
     # Convert coordinates to pixels if requested
     if return_pixels:
         syn = _convert_coordinates_to_pixels(syn)
@@ -179,6 +191,7 @@ def get_adjacency(
     min_size: Optional[int] = None,
     materialization: Optional[str] = 'latest',
     symmetric: bool = False,
+    clean: bool = True,
     dataset: Optional[str] = None
 ) -> pd.DataFrame:
     """
@@ -211,6 +224,11 @@ def get_adjacency(
         in the queried connections.
         If False (default), rows represent pre-synaptic neurons and columns 
         represent post-synaptic neurons from the actual synapses data.
+    clean : bool, default True
+        Whether to perform cleanup of the underlying synapse data:
+        - Remove autapses (self-connections)
+        - Remove connections involving neuron ID 0 (background)
+        This parameter is passed to get_synapses().
     dataset : str, optional
         Dataset to use for the query.
 
@@ -232,6 +250,9 @@ def get_adjacency(
     >>> 
     >>> # Get symmetric adjacency matrix
     >>> adj = cp.get_adjacency(pre_ids=[576460752641833774], post_ids=[576460752777916050], symmetric=True)
+    >>> 
+    >>> # Get adjacency matrix with autapses included
+    >>> adj = cp.get_adjacency(pre_ids=[576460752641833774], post_ids=[576460752777916050], clean=False)
 
     Notes
     -----
@@ -242,6 +263,7 @@ def get_adjacency(
       filtered synapses data, ensuring complete connectivity visualization
     - When symmetric=False, the matrix may be rectangular with different neuron sets
       for rows (pre-synaptic) and columns (post-synaptic)
+    - When clean=True (default), autapses and background connections are removed
     """
     
     # Get synapses using the same parameters
@@ -251,6 +273,7 @@ def get_adjacency(
         threshold=threshold,
         min_size=min_size,
         materialization=materialization,
+        clean=clean,
         dataset=dataset
     )
     
@@ -345,9 +368,10 @@ def get_connectivity(
     materialization : str, default 'latest'
         Materialization version to use. 'latest' (default) or 'live' for live table.
     clean : bool, default True
-        Whether to perform cleanup of the connectivity data:
+        Whether to perform cleanup of the underlying synapse data:
         - Remove autapses (self-connections)
         - Remove connections involving neuron ID 0 (background)
+        This parameter is passed to get_synapses().
     dataset : str, optional
         Dataset to use for the query.
 
@@ -399,6 +423,7 @@ def get_connectivity(
             threshold=1,  # Apply threshold later after aggregation
             min_size=min_size,
             materialization=materialization,
+            clean=clean,
             dataset=dataset
         )
         if not upstream_syns.empty:
@@ -412,6 +437,7 @@ def get_connectivity(
             threshold=1,  # Apply threshold later after aggregation
             min_size=min_size,
             materialization=materialization,
+            clean=clean,
             dataset=dataset
         )
         if not downstream_syns.empty:
@@ -435,13 +461,6 @@ def get_connectivity(
         'pre_pt_root_id': 'pre',
         'post_pt_root_id': 'post'
     })
-    
-    # Clean up connections if requested
-    if clean:
-        # Remove autapses (self-connections)
-        synapses = synapses[synapses['pre'] != synapses['post']]
-        # Remove connections involving background (ID 0)
-        synapses = synapses[(synapses['pre'] != 0) & (synapses['post'] != 0)]
     
     # Aggregate by pre-post pairs to get connection weights
     connectivity = (
@@ -467,6 +486,7 @@ def get_synapse_counts(
     threshold: int = 1,
     min_size: Optional[int] = None,
     materialization: Optional[str] = 'latest',
+    clean: bool = True,
     dataset: Optional[str] = None
 ) -> pd.DataFrame:
     """
@@ -487,6 +507,11 @@ def get_synapse_counts(
         Minimum size for filtering individual synapses before counting.
     materialization : str, default 'latest'
         Materialization version to use. 'latest' (default) or 'live' for live table.
+    clean : bool, default True
+        Whether to perform cleanup of the underlying synapse data:
+        - Remove autapses (self-connections)
+        - Remove connections involving neuron ID 0 (background)
+        This parameter is passed to get_connectivity().
     dataset : str, optional
         Dataset to use for the query.
 
@@ -524,7 +549,7 @@ def get_synapse_counts(
         threshold=threshold,
         min_size=min_size,
         materialization=materialization,
-        clean=True,  # Remove autapses and background connections
+        clean=clean,
         dataset=dataset
     )
     
