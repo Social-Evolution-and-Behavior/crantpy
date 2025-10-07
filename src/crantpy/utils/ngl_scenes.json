@@ -1,0 +1,91 @@
+{
+    "NGL_URL_SPELUNKER": "https://spelunker.cave-explorer.org",
+    "NGL_URL_BASIC": "https://neuroglancer-demo.appspot.com/",
+    "CRANT_STATE_URL": "https://global.daf-apis.com/nglstate",
+    "MINIMAL_SCENE": {
+        "dimensions": {
+            "x": [8e-9, "m"],
+            "y": [8e-9, "m"],
+            "z": [4.2e-8, "m"]
+        },
+        "position": [25148.333984375, 19334.7421875, 1531.5],
+        "crossSectionScale": 85.66190459506113,
+        "projectionScale": 78956.25548751229,
+        "projectionDepth": 541651.3969244945,
+        "layers": [],
+        "showSlices": false,
+        "selectedLayer": {
+            "visible": true,
+            "layer": "proofreadable seg"
+        },
+        "layout": {
+            "type": "xy-3d",
+            "orthographicProjection": true
+        }
+    },
+    "CRANT_IMAGE_LAYER": {
+        "type": "image",
+        "source": "precomputed://gs://dkronauer-ant-001-alignment-final/aligned",
+        "tab": "source",
+        "name": "aligned"
+    },
+    "CRANT_SEG_LAYER": {
+        "type": "segmentation",
+        "source": {
+            "url": "graphene://middleauth+https://data.proofreading.zetta.ai/segmentation/table/{dataset}",
+            "subsources": {
+                "default": true,
+                "graph": true,
+                "bounds": true,
+                "mesh": true
+            },
+            "enableDefaultSubsources": false,
+            "state": {
+                "multicut": {
+                    "sinks": [],
+                    "sources": []
+                },
+                "merge": {
+                    "merges": []
+                },
+                "findPath": {}
+            }
+        },
+        "tab": "source",
+        "segments": [],
+        "colorSeed": 1212430833,
+        "name": "proofreadable seg"
+    },
+    "CRANT_BRAIN_MESH_LAYER": {
+        "type": "segmentation",
+        "source": "precomputed://gs://dkronauer-ant-001-alignment-final/tissue_mesh/mesh#type=mesh",
+        "tab": "segments",
+        "objectAlpha": 0.11,
+        "hoverHighlight": false,
+        "segments": ["1"],
+        "segmentQuery": "1",
+        "name": "brain mesh"
+    },
+    "CRANT_MERGE_BIASED_SEG_LAYER": {
+        "type": "segmentation",
+        "source": "precomputed://gs://dkronauer-ant-001-segmentations-prod/ng/seg/240904-finetune-v3.2-0.21-size-1x",
+        "tab": "segments",
+        "meshRenderScale": 0.31183193310826596,
+        "segments": [],
+        "colorSeed": 2474154087,
+        "name": "merge-biased seg",
+        "visible": false
+    },
+    "CRANT_NUCLEI_LAYER": {
+        "type": "segmentation",
+        "source": "precomputed://gs://dkronauer-ant-001-segmentations-prod/nucleus/240910-nucleus",
+        "tab": "source",
+        "segments": [],
+        "name": "nuclei",
+        "visible": false
+    },
+    "CRANT_DATASETS": {
+        "latest": "kronauer_ant_x1",
+        "sandbox": "kronauer_ant_sandbox_x1"
+    }
+}
