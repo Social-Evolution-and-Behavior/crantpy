@@ -485,10 +485,12 @@ class TestGetConnectivity:
     @patch('crantpy.queries.connections.get_synapses')
     def test_get_connectivity_with_clean(self, mock_get_synapses):
         """Test get_connectivity with clean=True to remove autapses and background."""
+        # Mock data should represent what get_synapses returns after cleaning
+        # (autapses and background connections already removed)
         mock_synapses = pd.DataFrame({
-            'pre_pt_root_id': [1, 1, 2, 0, 1],
-            'post_pt_root_id': [2, 1, 2, 1, 0],  # includes autapse (1->1) and background (0->1, 1->0)
-            'id': [101, 102, 103, 104, 105]
+            'pre_pt_root_id': [1],  # Only clean connection remains
+            'post_pt_root_id': [2],
+            'id': [101]
         })
         mock_get_synapses.return_value = mock_synapses
         

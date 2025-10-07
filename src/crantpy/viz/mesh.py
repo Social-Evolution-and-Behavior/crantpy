@@ -302,6 +302,7 @@ def get_brain_mesh_scene(
     brain_mesh_color: str = "grey",
     brain_mesh_alpha: float = 0.1,
     neuron_mesh_alpha: float = 1,
+    neuron_mesh_colors: list = None,
     backend: str = "client",
 ) -> pv.Plotter:
     """
@@ -385,8 +386,12 @@ def get_brain_mesh_scene(
     # Add the brain mesh
     plotter.add_mesh(brain_pv, color=brain_mesh_color, opacity=brain_mesh_alpha)
 
-    # Generate random colors for neurons
-    neuron_colors = sns.color_palette("bright", len(neuron_meshes_pv))
+    # Generate random colors for neurons if not provided
+    if neuron_mesh_colors is None or len(neuron_mesh_colors) != len(neuron_meshes_pv):
+        neuron_colors = sns.color_palette("bright", len(neuron_meshes_pv))
+    else:
+        neuron_colors = neuron_mesh_colors
+
     # Add the neuron meshes
     for neuron_pv, color in zip(neuron_meshes_pv, neuron_colors):
         plotter.add_mesh(neuron_pv, color=color, opacity=neuron_mesh_alpha)
