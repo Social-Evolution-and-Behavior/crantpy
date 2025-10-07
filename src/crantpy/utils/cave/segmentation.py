@@ -666,7 +666,7 @@ def update_ids(
                         return_fraction_overlap=True,
                     )
 
-                    if suggestions:
+                    if suggestions is not None and len(suggestions) > 0:
                         # Get the suggestion with highest overlap
                         candidates = [
                             {"new_root_id": s, "overlap_fraction": f}

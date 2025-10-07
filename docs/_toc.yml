@@ -23,6 +23,8 @@ parts:
     title: Analyzing Connectivity
   - file: deep_dive/segmentation
     title: Using EM Segmentation Data
+  - file: deep_dive/neuroglancer
+    title: From CRANTpy to Neuroglancer
 
 - caption: Reference
   chapters:

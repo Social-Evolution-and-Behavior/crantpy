@@ -316,6 +316,49 @@ class NeuronCriteria:
         # Return as numpy array
         return np.asarray(roots)
 
+    def to_neuroglancer(self, **kwargs) -> str:
+        """Create a neuroglancer URL for neurons matching the criteria.
+
+        This is a convenience method that generates a neuroglancer visualization
+        URL for all neurons that match the current filter criteria.
+
+        Parameters
+        ----------
+        **kwargs
+            Additional arguments passed to `encode_url()`. Common options:
+            - seg_colors: Color scheme for segments
+            - layout: Layout type ("3d", "xy-3d", "xy", "4panel")
+            - coords: Center position [x, y, z]
+            - open: Whether to open in browser
+            - to_clipboard: Whether to copy to clipboard
+            - shorten: Whether to create shortened URL
+
+        Returns
+        -------
+        str
+            Neuroglancer URL for the matching neurons.
+
+        Examples
+        --------
+        >>> from crantpy import NeuronCriteria
+        >>> nc = NeuronCriteria(cell_class='olfactory_projection_neuron')
+        >>> url = nc.to_neuroglancer(seg_colors=np.arange(len(nc.get_roots())))
+        >>>
+        >>> # With custom settings
+        >>> url = nc.to_neuroglancer(layout='4panel', open=True, shorten=True)
+
+        See Also
+        --------
+        crantpy.utils.neuroglancer.encode_url : Full documentation of available parameters
+        """
+        from crantpy.utils.neuroglancer import encode_url
+
+        # Get matching root IDs
+        root_ids = self.get_roots().tolist()
+
+        # Create neuroglancer URL
+        return encode_url(segments=root_ids, dataset=self.dataset, **kwargs)
+
 
 # function to fetch annotations from Seatable
 @parse_neuroncriteria()

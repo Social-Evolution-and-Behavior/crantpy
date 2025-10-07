@@ -29,6 +29,10 @@ def set_default_dataset(dataset: str):
 
 
 CRANT_CAVE_SERVER_URL = "https://proofreading.zetta.ai"
+CRANT_NGL_DATASTACKS = {
+    "latest": "kronauer_ant_x1",
+    "sandbox": "kronauer_ant_sandbox_x1",
+}
 CRANT_CAVE_DATASTACKS = {
     "latest": "kronauer_ant",
     "sandbox": "kronauer_ant_sandbox",

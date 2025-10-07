@@ -19,6 +19,7 @@ Submodules
    crantpy.utils.decorators
    crantpy.utils.exceptions
    crantpy.utils.helpers
+   crantpy.utils.neuroglancer
    crantpy.utils.seatable
    crantpy.utils.types
 
