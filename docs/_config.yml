@@ -73,6 +73,20 @@ sphinx:
     - sphinx.ext.autosummary
     - sphinx.ext.intersphinx
   config:
+    myst_title_to_header: true
+    myst_update_mathjax: false
+    nb_render_priority:
+      html:
+      - "text/html"
+      - "application/vnd.jupyter.widget-view+json"
+      - "text/latex"
+      - "image/svg+xml"
+      - "image/png"
+      - "image/jpeg"
+      - "text/markdown"
+      - "text/plain"
+    # Force titles from _toc.yml to override notebook H1
+    html_title_override: true
     autodoc_mock_imports: 
       - "gdata"
       - "pandas"
