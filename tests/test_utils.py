@@ -276,7 +276,7 @@ def test_plot_em_image_default_size(mock_cloudvolume) -> None:
     from unittest.mock import MagicMock
 
     mock_vol = MagicMock()
-    mock_vol.exists.return_value = True
+    mock_vol.info = {"some": "info"}  # Mock the info property instead of exists()
     mock_vol.shape = [
         100000,
         100000,
@@ -294,9 +294,6 @@ def test_plot_em_image_default_size(mock_cloudvolume) -> None:
     call_args = mock_cloudvolume.call_args
     assert "mip" in call_args.kwargs and call_args.kwargs["mip"] == 0
     assert "use_https" in call_args.kwargs and call_args.kwargs["use_https"] is True
-
-    # Verify exists() was called
-    mock_vol.exists.assert_called_once()
 
     # Verify the slice coordinates (x_start=1000-500=500, x_end=1000+500=1500, etc.)
     mock_vol.__getitem__.assert_called_once_with(
@@ -509,19 +506,19 @@ def test_plot_em_image_volume_not_exists_error(mock_cloudvolume) -> None:
     """Test plot_em_image raises ValueError when CloudVolume doesn't exist.
 
     This test verifies that the plot_em_image function raises a ValueError
-    when the CloudVolume.exists() method returns False.
+    when the CloudVolume.info property is None.
     """
-    # Mock CloudVolume to return exists=False
+    # Mock CloudVolume to return info=None
     from unittest.mock import MagicMock
 
     mock_vol = MagicMock()
-    mock_vol.exists.return_value = False
+    mock_vol.info = None  # This triggers the error condition
     mock_cloudvolume.return_value = mock_vol
 
     # Verify the exception is raised
     with pytest.raises(ValueError) as excinfo:
         plot_em_image(100, 200, 50, size=1000)
-    assert "CloudVolume does not exist at the specified URL" in str(excinfo.value)
+    assert "Could not access CloudVolume at the specified URL" in str(excinfo.value)
 
 
 @patch("crantpy.utils.helpers.cv.CloudVolume")

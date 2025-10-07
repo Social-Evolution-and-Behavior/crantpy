@@ -58,7 +58,7 @@ ruff = "^0.6.0"
 twine = "^5.0.0"
 
 [tool.pytest.ini_options]
-python_paths = ["src"]
+pythonpath = ["src"]
 testpaths = ["tests"]
 log_cli = true
 log_cli_level = "INFO"
