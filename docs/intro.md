@@ -1,10 +1,16 @@
-# CRANTpy: Python Access to Clonal Raider ANT Brain Datasets
+# CRANTpy: Python Access to Clonal Raider ANT Connectome Datasets
 
-**CRANTpy** is a Python library providing streamlined access to the Clonal Raider ANT (CRANT) brain connectome datasets. It offers a comprehensive interface for querying neurons, accessing morphological data, and analyzing neural circuits in the ant brain.
+**CRANTpy** is a Python library providing streamlined access to the Clonal Raider ANT (CRANT) connectome datasets. It offers a comprehensive interface for querying neurons, accessing morphological data, and analyzing neural circuits in the ant brain.
 
-## 🧠 About the CRANT Project
+Currently, the connectome data for one brain is available: **CRANTb**, which is the brain of a worker clonal raider ant.
 
-The Clonal Raider ANT Brain (CRANTb) project is a large-scale effort to map the complete neural connectome of the clonal raider ant (*Ooceraea biroi*). This dataset represents one of the first comprehensive invertebrate brain connectomes available after the fruitfly, providing unprecedented insights into the neural basis of social behavior in insects.
+## 🧠 About the CRANTb Project
+
+The Clonal Raider ANT Brain (CRANTb) project is a large-scale effort to map the complete neural connectome of the clonal raider ant (*Ooceraea biroi*). This dataset represents one of the first comprehensive invertebrate brain connectomes available after the fruit fly, providing unprecedented insights into the neural basis of social behavior in insects. More information about the project, including information about how to get involved, can be found [here](https://docs.google.com/document/d/1LwBI7sbNOC1nrptwti5ai3wmvbW5XEBeyJ72M97Yo4w/edit?usp=sharing). 
+
+This project was founded as a collaboration between the laboratories of [Wei-Chung Allen Lee](https://www.lee.hms.harvard.edu/), 
+[Daniel Kronauer](https://www.rockefeller.edu/our-scientists/heads-of-laboratories/988-daniel-kronauer/) and [Hannah Haberkern](https://www.research-in-bavaria.de/research-news/details/article/new-junior-research-group-hannah-haberkern-investigates-navigation-in-flies-and-ants/),
+among others.
 
 ![CRANT Brain Dataset Overview](crant.png)
 
@@ -64,7 +70,7 @@ If you use CRANTpy in your research, please cite:
 }
 ```
 
-**Note:** CRANTpy is built upon [fafbseg-py](https://github.com/flyconnectome/fafbseg-py) by Dr. Philipp Schlegel. Please try to also cite the [FlyWire project papers](acknowledgements.html#flywire-project-citations) when using this tool.
+**Note:** CRANTpy is built upon [fafbseg-py](https://github.com/flyconnectome/fafbseg-py) by Dr. Philipp Schlegel. Please also cite the [FlyWire project papers](acknowledgements.html#flywire-project-citations) when using this tool.
 
 ## 📞 Support
 
