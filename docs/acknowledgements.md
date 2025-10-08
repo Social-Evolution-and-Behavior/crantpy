@@ -12,15 +12,17 @@ CRANTpy is heavily based on **[fafbseg-py](https://github.com/flyconnectome/fafb
 
 CRANTpy builds upon the tools and datasets developed by the FlyWire project, which has provided invaluable resources for the neuroscience community.
 
-If you use CRANTpy in your research, please try to also cite the FlyWire paper:
+If you use CRANTpy in your research, please also cite the FlyWire paper:
 
-**Schlegel et al.** (2023). "Whole-brain annotation and multi-connectome cell typing quantifies circuit stereotypy in *Drosophila*." *bioRxiv*. <https://doi.org/10.1101/2023.06.27.546055>
+**Schlegel, Yin, Bates, et al.** (2024). "Whole-brain annotation and multi-connectome cell typing quantifies circuit stereotypy in *Drosophila*." *Nature*. <https://doi.org/10.1038/s41586-024-07686-5>
 
-We also acknowledge the following foundational papers for the FAFB dataset:
+We also acknowledge the following foundational papers for the FlyWire datasets:
 
-**Dorkenwald et al.** (2023). "Neuronal wiring diagram of an adult brain." *bioRxiv*. <https://doi.org/10.1101/2023.06.27.546656>
+**Dorkenwald, Matsliah, Sterling, et al.** (2024). "Neuronal wiring diagram of an adult brain." *Nature*. <https://doi.org/10.1038/s41586-024-07558-y>
 
-**Zheng et al.** (2018). "A Complete Electron Microscopy Volume of the Brain of Adult *Drosophila melanogaster*." *Cell*. <https://doi.org/10.1016/j.cell.2018.06.019>
+**Zheng, Lauritzen, et al.** (2018). "A Complete Electron Microscopy Volume of the Brain of Adult *Drosophila melanogaster*." *Cell*. <https://doi.org/10.1016/j.cell.2018.06.019>
+
+**Bates, Phelps, Kim, Yang, et al.** (2025). "Distributed control circuits across a brain-and-cord connectome." *bioRxiv*. <https://doi.org/10.1101/2025.07.31.667571>
 
 ---
 
@@ -45,6 +47,12 @@ Department of Neurobiology and Howard Hughes Medical Institute, Harvard Medical 
 Centre for Neural Circuits and Behaviour, University of Oxford, Oxford, UK  
 ORCID: [0000-0002-1195-0445](https://orcid.org/0000-0002-1195-0445)  
 *Contributions: CRANTr project and initial codebase*
+
+**Daniel Kronauer, PhD**  
+Laboratory of Social Evolution and Behavior, The Rockefeller University, New York, NY, USA  
+Howard Hughes Medical Institute, New York, NY, USA  
+ORCID: [0009-0006-5716-4518](https://orcid.org/0009-0006-5716-4518)  
+*Contributions: Project supervision, funding acquisition*
 
 ### Technical Development
 
@@ -72,7 +80,7 @@ ORCID: [0009-0007-8727-7553](https://orcid.org/0009-0007-8727-7553)
 The CRANTb project is supported by:
 
 - Howard Hughes Medical Institute
-- The Rockefeller University
+- Price Family Center for the Social Brain, The Rockefeller University
 - Emmy-Noether grant from the Deutsche Forschungsgemeinschaft (DFG, 513850388) to Hannah Haberkern
 - MRC Laboratory of Molecular Biology
 
