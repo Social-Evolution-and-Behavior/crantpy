@@ -408,14 +408,14 @@ def get_l2_skeleton(
     root_ids : int, str, list, np.ndarray, or NeuronCriteria
         Root ID(s) of the CRANTb neuron(s) to skeletonize.
     refine : bool, default True
-        If True, refine skeleton nodes by moving them to the center of their corresponding 
+        If True, refine skeleton nodes by moving them to the center of their corresponding
         chunk meshes using the L2 cache.
     drop_missing : bool, default True
         Only relevant if ``refine=True``: If True, drop chunks that don't exist in the L2 cache.
     l2_node_ids : bool, default False
         If True, use the L2 IDs as node IDs.
     omit_failures : bool, optional
-        Behaviour when skeleton generation fails. None (default) raises, True skips, 
+        Behaviour when skeleton generation fails. None (default) raises, True skips,
         False returns empty TreeNeuron.
     attach_synapses : bool, default False
         If True, automatically attach synapses to the skeleton as connectors.
@@ -446,16 +446,16 @@ def get_l2_skeleton(
     >>> import crantpy as cp
     >>> # Basic skeleton
     >>> skel = cp.get_l2_skeleton(576460752664524086)
-    >>> 
+    >>>
     >>> # Analysis-ready skeleton with synapses and proper rooting
-    >>> skel = cp.get_l2_skeleton(576460752664524086, 
-    ...                           attach_synapses=True, 
+    >>> skel = cp.get_l2_skeleton(576460752664524086,
+    ...                           attach_synapses=True,
     ...                           reroot_at_soma=True)
     >>> print(f"Skeleton has {len(skel.connectors)} synapses")
     >>> print(f"Root node: {skel.root[0]}")
-    >>> 
+    >>>
     >>> # Batch processing
-    >>> skels = cp.get_l2_skeleton([id1, id2, id3], 
+    >>> skels = cp.get_l2_skeleton([id1, id2, id3],
     ...                            attach_synapses=True,
     ...                            reroot_at_soma=True,
     ...                            progress=True)
@@ -468,7 +468,7 @@ def get_l2_skeleton(
 
     Notes
     -----
-    - Post-processing (attach_synapses, reroot_at_soma) is applied after all 
+    - Post-processing (attach_synapses, reroot_at_soma) is applied after all
       skeletons are fetched
     - Soma detection and synapse attachment may add significant processing time
     - For large batches, consider using these features selectively
@@ -523,19 +523,21 @@ def get_l2_skeleton(
         nl = navis.NeuronList(
             [result_dict.get(int(rid)) for rid in root_ids if int(rid) in result_dict]
         )
-        
+
         # Post-processing: attach synapses if requested
         if attach_synapses and len(nl) > 0:
             from crantpy.queries.connections import attach_synapses as _attach_synapses
+
             logging.debug(f"Attaching synapses to {len(nl)} neurons")
             nl = _attach_synapses(nl, dataset=dataset)
-        
+
         # Post-processing: reroot at soma if requested
         if reroot_at_soma and len(nl) > 0:
             from crantpy.utils.helpers import reroot_at_soma as _reroot_at_soma
+
             logging.debug(f"Rerooting {len(nl)} neurons at soma")
             nl = _reroot_at_soma(nl, progress=progress, inplace=True)
-        
+
         return nl
 
     # Single root ID
@@ -687,12 +689,14 @@ def get_l2_skeleton(
     # Post-processing: attach synapses if requested
     if attach_synapses:
         from crantpy.queries.connections import attach_synapses as _attach_synapses
+
         logging.debug(f"Attaching synapses to neuron {root_id}")
         tn = _attach_synapses(tn, dataset=dataset)
 
     # Post-processing: reroot at soma if requested
     if reroot_at_soma:
         from crantpy.utils.helpers import reroot_at_soma as _reroot_at_soma
+
         logging.debug(f"Rerooting neuron {root_id} at soma")
         tn = _reroot_at_soma(tn, progress=False, inplace=True)
 

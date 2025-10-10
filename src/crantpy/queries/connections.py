@@ -84,6 +84,7 @@ def get_synapses(
     materialization: Optional[str] = "latest",
     return_pixels: bool = True,
     clean: bool = True,
+    update_ids: bool = True,
     dataset: Optional[str] = None,
 ) -> pd.DataFrame:
     """
@@ -113,6 +114,11 @@ def get_synapses(
         Whether to perform cleanup of the synapse data:
         - Remove autapses (self-connections)
         - Remove connections involving neuron ID 0 (background)
+    update_ids : bool, default True
+        Whether to automatically update outdated root IDs to their latest versions
+        before querying. This ensures accurate results even after segmentation edits.
+        Uses efficient per-ID caching to minimize overhead for repeated queries.
+        Set to False only if you're certain all IDs are current (faster but risky).
     dataset : str, optional
         Dataset to use for the query.
 
@@ -125,20 +131,74 @@ def get_synapses(
     ------
     ValueError
         If neither pre_ids nor post_ids are provided.
+
+    Notes
+    -----
+    - When update_ids=True (default), outdated root IDs are automatically updated
+      using supervoxel IDs from annotations when available for fast, reliable updates
+    - ID updates are cached per-ID, so repeated queries with overlapping IDs are efficient
+    - Updated IDs are used for the query, but the original IDs are not modified in place
+
+    See Also
+    --------
+    update_ids : Manually update root IDs to their latest versions
     """
     if pre_ids is None and post_ids is None:
         raise ValueError("You must provide at least one of pre_ids or post_ids")
 
+    # Update IDs if requested
+    if update_ids:
+        from crantpy.utils.cave.segmentation import update_ids as _update_ids
+
+        if pre_ids is not None:
+            parsed_pre_ids = [int(x) for x in parse_root_ids(pre_ids)]
+            update_result = _update_ids(parsed_pre_ids, dataset=dataset, progress=False)
+            # Check for failed updates
+            failed = update_result[update_result["confidence"] == 0]
+            if len(failed) > 0:
+                logger.warning(
+                    f"Failed to update {len(failed)} pre-synaptic root ID(s). "
+                    "These IDs may no longer exist or results may be inaccurate."
+                )
+            parsed_pre_ids = update_result["new_id"].tolist()
+        else:
+            parsed_pre_ids = None
+
+        if post_ids is not None:
+            parsed_post_ids = [int(x) for x in parse_root_ids(post_ids)]
+            update_result = _update_ids(
+                parsed_post_ids, dataset=dataset, progress=False
+            )
+            # Check for failed updates
+            failed = update_result[update_result["confidence"] == 0]
+            if len(failed) > 0:
+                logger.warning(
+                    f"Failed to update {len(failed)} post-synaptic root ID(s). "
+                    "These IDs may no longer exist or results may be inaccurate."
+                )
+            parsed_post_ids = update_result["new_id"].tolist()
+        else:
+            parsed_post_ids = None
+    else:
+        # Don't update IDs
+        if pre_ids is not None:
+            parsed_pre_ids = [int(x) for x in parse_root_ids(pre_ids)]
+        else:
+            parsed_pre_ids = None
+
+        if post_ids is not None:
+            parsed_post_ids = [int(x) for x in parse_root_ids(post_ids)]
+        else:
+            parsed_post_ids = None
+
     # Get CAVE client
     client = get_cave_client(dataset=dataset)
 
-    # Parse neuron IDs using the helper function
+    # Build filter dict
     filter_in_dict = {}
-    if pre_ids is not None:
-        parsed_pre_ids = [int(x) for x in parse_root_ids(pre_ids)]
+    if parsed_pre_ids is not None:
         filter_in_dict["pre_pt_root_id"] = parsed_pre_ids
-    if post_ids is not None:
-        parsed_post_ids = [int(x) for x in parse_root_ids(post_ids)]
+    if parsed_post_ids is not None:
         filter_in_dict["post_pt_root_id"] = parsed_post_ids
 
     if materialization == "live":
@@ -196,6 +256,7 @@ def get_adjacency(
     materialization: Optional[str] = "latest",
     symmetric: bool = False,
     clean: bool = True,
+    update_ids: bool = True,
     dataset: Optional[str] = None,
 ) -> pd.DataFrame:
     """
@@ -233,6 +294,11 @@ def get_adjacency(
         - Remove autapses (self-connections)
         - Remove connections involving neuron ID 0 (background)
         This parameter is passed to get_synapses().
+    update_ids : bool, default True
+        Whether to automatically update outdated root IDs to their latest versions
+        before querying. This ensures accurate results even after segmentation edits.
+        Uses efficient per-ID caching to minimize overhead for repeated queries.
+        Set to False only if you're certain all IDs are current (faster but risky).
     dataset : str, optional
         Dataset to use for the query.
 
@@ -257,6 +323,9 @@ def get_adjacency(
     >>>
     >>> # Get adjacency matrix with autapses included
     >>> adj = cp.get_adjacency(pre_ids=[576460752641833774], post_ids=[576460752777916050], clean=False)
+    >>>
+    >>> # Skip ID updates for faster queries (use only if IDs are known to be current)
+    >>> adj = cp.get_adjacency(pre_ids=[576460752641833774], post_ids=[576460752777916050], update_ids=False)
 
     Notes
     -----
@@ -268,6 +337,7 @@ def get_adjacency(
     - When symmetric=False, the matrix may be rectangular with different neuron sets
       for rows (pre-synaptic) and columns (post-synaptic)
     - When clean=True (default), autapses and background connections are removed
+    - When update_ids=True (default), IDs are automatically updated with efficient caching
     """
 
     # Get synapses using the same parameters
@@ -278,6 +348,7 @@ def get_adjacency(
         min_size=min_size,
         materialization=materialization,
         clean=clean,
+        update_ids=update_ids,
         dataset=dataset,
     )
 
@@ -357,6 +428,7 @@ def get_connectivity(
     min_size: Optional[int] = None,
     materialization: Optional[str] = "latest",
     clean: bool = True,
+    update_ids: bool = True,
     dataset: Optional[str] = None,
 ) -> pd.DataFrame:
     """
@@ -387,6 +459,11 @@ def get_connectivity(
         - Remove autapses (self-connections)
         - Remove connections involving neuron ID 0 (background)
         This parameter is passed to get_synapses().
+    update_ids : bool, default True
+        Whether to automatically update outdated root IDs to their latest versions
+        before querying. This ensures accurate results even after segmentation edits.
+        Uses efficient per-ID caching to minimize overhead for repeated queries.
+        Set to False only if you're certain all IDs are current (faster but risky).
     dataset : str, optional
         Dataset to use for the query.
 
@@ -414,12 +491,16 @@ def get_connectivity(
     >>>
     >>> # Get connectivity for multiple neurons
     >>> conn = cp.get_connectivity([576460752641833774, 576460752777916050])
+    >>>
+    >>> # Skip ID updates for faster queries (use only if IDs are known to be current)
+    >>> conn = cp.get_connectivity(576460752641833774, update_ids=False)
 
     Notes
     -----
     - This function uses get_synapses() internally to retrieve synaptic connections
     - Results are aggregated by pre-post neuron pairs and sorted by synapse count
     - When clean=True, autapses and background connections are removed
+    - When update_ids=True (default), IDs are automatically updated with efficient caching
     """
     if not upstream and not downstream:
         raise ValueError("Both `upstream` and `downstream` cannot be False")
@@ -439,6 +520,7 @@ def get_connectivity(
             min_size=min_size,
             materialization=materialization,
             clean=clean,
+            update_ids=update_ids,
             dataset=dataset,
         )
         if not upstream_syns.empty:
@@ -453,6 +535,7 @@ def get_connectivity(
             min_size=min_size,
             materialization=materialization,
             clean=clean,
+            update_ids=update_ids,
             dataset=dataset,
         )
         if not downstream_syns.empty:
@@ -502,6 +585,7 @@ def get_synapse_counts(
     min_size: Optional[int] = None,
     materialization: Optional[str] = "latest",
     clean: bool = True,
+    update_ids: bool = True,
     dataset: Optional[str] = None,
 ) -> pd.DataFrame:
     """
@@ -527,6 +611,11 @@ def get_synapse_counts(
         - Remove autapses (self-connections)
         - Remove connections involving neuron ID 0 (background)
         This parameter is passed to get_connectivity().
+    update_ids : bool, default True
+        Whether to automatically update outdated root IDs to their latest versions
+        before querying. This ensures accurate results even after segmentation edits.
+        Uses efficient per-ID caching to minimize overhead for repeated queries.
+        Set to False only if you're certain all IDs are current (faster but risky).
     dataset : str, optional
         Dataset to use for the query.
 
@@ -546,12 +635,16 @@ def get_synapse_counts(
     >>>
     >>> # Get counts for multiple neurons with threshold
     >>> counts = cp.get_synapse_counts([576460752641833774, 576460752777916050], threshold=3)
+    >>>
+    >>> # Skip ID updates for faster queries (use only if IDs are known to be current)
+    >>> counts = cp.get_synapse_counts(576460752641833774, update_ids=False)
 
     Notes
     -----
     - This function uses get_connectivity() internally to get connection data
     - Counts represent the number of distinct synaptic partners, not individual synapses
     - The threshold is applied at the connection level (pairs of neurons)
+    - When update_ids=True (default), IDs are automatically updated with efficient caching
     """
     # Parse neuron IDs
     query_ids = [int(x) for x in parse_root_ids(neuron_ids)]
@@ -565,6 +658,7 @@ def get_synapse_counts(
         min_size=min_size,
         materialization=materialization,
         clean=clean,
+        update_ids=update_ids,
         dataset=dataset,
     )
 
@@ -661,6 +755,7 @@ def attach_synapses(
     materialization: str = "latest",
     clean: bool = True,
     max_distance: float = 10000.0,
+    update_ids: bool = True,
     dataset: Optional[str] = None,
 ) -> Union["navis.TreeNeuron", "navis.NeuronList"]:
     """
@@ -697,6 +792,11 @@ def attach_synapses(
         Maximum distance (in nanometers) between a synapse and its nearest skeleton
         node. Synapses further than this are removed if clean=True. The default of
         10um helps filter out spurious synapse annotations far from the actual neuron.
+    update_ids : bool, default True
+        Whether to automatically update outdated root IDs to their latest versions
+        before querying. This ensures accurate results even after segmentation edits.
+        Uses efficient per-ID caching to minimize overhead for repeated queries.
+        Set to False only if you're certain all IDs are current (faster but risky).
     dataset : str, optional
         Dataset to use for queries.
 
@@ -737,6 +837,9 @@ def attach_synapses(
     >>>
     >>> # Filter distant synapses more aggressively
     >>> skeleton = cp.attach_synapses(skeleton, max_distance=5000)
+    >>>
+    >>> # Skip ID updates for faster queries (use only if IDs are known to be current)
+    >>> skeleton = cp.attach_synapses(skeleton, update_ids=False)
 
     See Also
     --------
@@ -754,6 +857,7 @@ def attach_synapses(
     - If a neuron already has a .connectors table, it will be overwritten.
     - Synapse coordinates are automatically converted from pixels to nanometers
       to match skeleton coordinate system (using SCALE_X=8, SCALE_Y=8, SCALE_Z=42).
+    - When update_ids=True (default), IDs are automatically updated with efficient caching
     """
     if not pre and not post:
         raise ValueError("`pre` and `post` must not both be False")
@@ -793,6 +897,7 @@ def attach_synapses(
             materialization=materialization,
             return_pixels=True,  # Get pixels so we can convert them ourselves
             clean=clean,
+            update_ids=update_ids,
             dataset=dataset,
         )
         if not presyn.empty:
@@ -809,6 +914,7 @@ def attach_synapses(
             materialization=materialization,
             return_pixels=True,  # Get pixels so we can convert them ourselves
             clean=clean,
+            update_ids=update_ids,
             dataset=dataset,
         )
         if not postsyn.empty:

@@ -189,12 +189,12 @@ def test_get_l2_skeleton_reroot_at_soma(root_id) -> None:
     # Get skeleton without rerooting
     skel_orig = l2.get_l2_skeleton(root_id, reroot_at_soma=False)
     original_root = skel_orig.root[0]
-    
+
     # Get skeleton with rerooting
     skel = l2.get_l2_skeleton(root_id, reroot_at_soma=True)
     assert isinstance(skel, navis.TreeNeuron)
     new_root = skel.root[0]
-    
+
     # Root should have changed (soma is unlikely to be the default root)
     # Note: This might fail if the default root happens to be at the soma
     # but this is extremely unlikely
@@ -208,12 +208,12 @@ def test_get_l2_skeleton_both_postprocessing(root_id) -> None:
     """
     skel = l2.get_l2_skeleton(root_id, attach_synapses=True, reroot_at_soma=True)
     assert isinstance(skel, navis.TreeNeuron)
-    
+
     # Should have connectors
     assert hasattr(skel, "connectors")
     assert isinstance(skel.connectors, pd.DataFrame)
     assert len(skel.connectors) > 0
-    
+
     # Should be rerooted (compare with default)
     skel_default = l2.get_l2_skeleton(root_id)
     assert skel.root[0] != skel_default.root[0] or len(skel.nodes) < 10
@@ -227,7 +227,7 @@ def test_get_l2_skeleton_batch_attach_synapses(root_ids) -> None:
     skels = l2.get_l2_skeleton(root_ids, attach_synapses=True)
     assert isinstance(skels, navis.NeuronList)
     assert len(skels) == len(root_ids)
-    
+
     # All skeletons should have connectors
     for skel in skels:
         assert hasattr(skel, "connectors")
@@ -244,12 +244,12 @@ def test_get_l2_skeleton_batch_reroot_at_soma(root_ids) -> None:
     # Get skeletons without rerooting
     skels_orig = l2.get_l2_skeleton(root_ids, reroot_at_soma=False)
     original_roots = [skel.root[0] for skel in skels_orig]
-    
+
     # Get skeletons with rerooting
     skels = l2.get_l2_skeleton(root_ids, reroot_at_soma=True)
     assert isinstance(skels, navis.NeuronList)
     assert len(skels) == len(root_ids)
-    
+
     # Check that roots have changed for at least some neurons
     new_roots = [skel.root[0] for skel in skels]
     # At least one root should have changed
@@ -264,7 +264,7 @@ def test_get_l2_skeleton_batch_both_postprocessing(root_ids) -> None:
     skels = l2.get_l2_skeleton(root_ids, attach_synapses=True, reroot_at_soma=True)
     assert isinstance(skels, navis.NeuronList)
     assert len(skels) == len(root_ids)
-    
+
     # All skeletons should have connectors and be rerooted
     for skel in skels:
         assert hasattr(skel, "connectors")
@@ -277,19 +277,19 @@ def test_get_l2_skeleton_connector_properties(root_id) -> None:
     Verifies connector DataFrame structure and content.
     """
     skel = l2.get_l2_skeleton(root_id, attach_synapses=True)
-    
+
     # Check connector DataFrame structure
     assert "x" in skel.connectors.columns
     assert "y" in skel.connectors.columns
     assert "z" in skel.connectors.columns
     assert "type" in skel.connectors.columns
     assert "node_id" in skel.connectors.columns
-    
+
     # Check that node_ids are valid (exist in skeleton)
     valid_nodes = set(skel.nodes["node_id"].values)
     connector_nodes = set(skel.connectors["node_id"].values)
     assert connector_nodes.issubset(valid_nodes)
-    
+
     # Check that connector types are valid
     assert all(t in ["pre", "post"] for t in skel.connectors["type"].unique())
 
@@ -301,16 +301,18 @@ def test_get_l2_skeleton_postprocessing_order(root_id) -> None:
     """
     # Get skeleton with both post-processing steps
     skel = l2.get_l2_skeleton(root_id, attach_synapses=True, reroot_at_soma=True)
-    
+
     # Verify both operations completed successfully
     assert hasattr(skel, "connectors")
     assert len(skel.connectors) > 0
-    
+
     # Get skeleton with just synapses
-    skel_synapses = l2.get_l2_skeleton(root_id, attach_synapses=True, reroot_at_soma=False)
-    
+    skel_synapses = l2.get_l2_skeleton(
+        root_id, attach_synapses=True, reroot_at_soma=False
+    )
+
     # Both should have same number of connectors (rerooting shouldn't affect connector count)
     assert len(skel.connectors) == len(skel_synapses.connectors)
-    
+
     # The connector node_ids might be different due to rerooting potentially changing node IDs,
     # but the total count should be the same

@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 import pandas as pd
 import pytest
 import numpy as np
+import datetime as dt
 
 from crantpy.utils.helpers import (
     create_sql_query,
@@ -11,6 +12,7 @@ from crantpy.utils.helpers import (
     match_dtype,
     plot_em_image,
 )
+from crantpy.utils.decorators import cached_per_id, clear_global_cache
 
 
 def test_match_dtype_int() -> None:
@@ -540,3 +542,318 @@ def test_plot_em_image_coordinates_out_of_bounds_error(mock_cloudvolume) -> None
     with pytest.raises(ValueError) as excinfo:
         plot_em_image(1000, 2000, 50, size=1000)  # This would require 500-1500 range
     assert "Coordinates are out of bounds of the CloudVolume" in str(excinfo.value)
+
+
+# Tests for cached_per_id decorator
+
+
+def test_cached_per_id_basic() -> None:
+    """Test basic per-ID caching functionality.
+
+    This test verifies that the cached_per_id decorator correctly caches
+    results on a per-ID basis and reuses them on subsequent calls.
+    """
+    call_count = {"count": 0}
+
+    @cached_per_id(cache_name="test_cache_basic", id_param="ids")
+    def mock_update(ids):
+        call_count["count"] += 1
+        ids_array = np.atleast_1d(np.asarray(ids))
+        return pd.DataFrame(
+            {"old_id": ids_array, "new_id": ids_array + 1000, "changed": True}
+        )
+
+    # Clear cache before test
+    mock_update.clear_cache()
+
+    # First call - should compute
+    result1 = mock_update([1, 2, 3])
+    assert call_count["count"] == 1
+    assert len(result1) == 3
+    assert list(result1["old_id"]) == [1, 2, 3]
+
+    # Second call with same IDs - should use cache
+    result2 = mock_update([1, 2, 3])
+    assert call_count["count"] == 1  # Should not increment
+    assert len(result2) == 3
+    pd.testing.assert_frame_equal(result1, result2)
+
+    # Clean up
+    mock_update.clear_cache()
+
+
+def test_cached_per_id_partial_overlap() -> None:
+    """Test per-ID caching with partial overlap.
+
+    This test verifies that when some IDs are cached and some aren't,
+    the decorator only computes the uncached IDs and merges results.
+    """
+    call_count = {"count": 0, "ids_called": []}
+
+    @cached_per_id(cache_name="test_cache_overlap", id_param="ids")
+    def mock_update(ids):
+        call_count["count"] += 1
+        ids_array = np.atleast_1d(np.asarray(ids))
+        call_count["ids_called"].append(list(ids_array))
+        return pd.DataFrame(
+            {"old_id": ids_array, "new_id": ids_array + 1000, "changed": True}
+        )
+
+    # Clear cache before test
+    mock_update.clear_cache()
+
+    # First call
+    result1 = mock_update([1, 2, 3])
+    assert call_count["count"] == 1
+    assert list(result1["old_id"]) == [1, 2, 3]
+
+    # Second call with partial overlap - should only compute ID 4
+    result2 = mock_update([2, 3, 4])
+    assert call_count["count"] == 2
+    assert call_count["ids_called"][1] == [4]  # Only ID 4 was computed
+    assert len(result2) == 3
+    assert list(result2["old_id"]) == [2, 3, 4]
+
+    # Verify IDs 2 and 3 match from first call
+    assert result2[result2["old_id"] == 2]["new_id"].values[0] == 1002
+    assert result2[result2["old_id"] == 3]["new_id"].values[0] == 1003
+
+    # Clean up
+    mock_update.clear_cache()
+
+
+def test_cached_per_id_order_preserved() -> None:
+    """Test that per-ID caching preserves input order.
+
+    This test verifies that results are returned in the same order as
+    the input IDs, even when some are cached and some aren't.
+    """
+
+    @cached_per_id(cache_name="test_cache_order", id_param="ids")
+    def mock_update(ids):
+        ids_array = np.atleast_1d(np.asarray(ids))
+        return pd.DataFrame(
+            {"old_id": ids_array, "new_id": ids_array + 1000, "changed": True}
+        )
+
+    # Clear cache before test
+    mock_update.clear_cache()
+
+    # First call
+    result1 = mock_update([1, 2, 3])
+
+    # Second call with different order and partial overlap
+    result2 = mock_update([3, 4, 1])
+    assert list(result2["old_id"]) == [3, 4, 1]
+    assert list(result2["new_id"]) == [1003, 1004, 1001]
+
+    # Clean up
+    mock_update.clear_cache()
+
+
+def test_cached_per_id_clear_cache() -> None:
+    """Test clearing the per-ID cache.
+
+    This test verifies that the clear_cache method properly clears
+    all cached results and forces recomputation.
+    """
+    call_count = {"count": 0}
+
+    @cached_per_id(cache_name="test_cache_clear", id_param="ids")
+    def mock_update(ids):
+        call_count["count"] += 1
+        ids_array = np.atleast_1d(np.asarray(ids))
+        return pd.DataFrame(
+            {"old_id": ids_array, "new_id": ids_array + 1000, "changed": True}
+        )
+
+    # Clear cache before test
+    mock_update.clear_cache()
+
+    # First call
+    mock_update([1, 2, 3])
+    assert call_count["count"] == 1
+
+    # Second call - should use cache
+    mock_update([1, 2, 3])
+    assert call_count["count"] == 1
+
+    # Clear cache
+    mock_update.clear_cache()
+
+    # Third call - should recompute
+    mock_update([1, 2, 3])
+    assert call_count["count"] == 2
+
+    # Clean up
+    mock_update.clear_cache()
+
+
+def test_cached_per_id_invalid_ids() -> None:
+    """Test per-ID caching with invalid IDs (None, NaN, 0).
+
+    This test verifies that invalid IDs are handled correctly and
+    don't interfere with caching valid IDs.
+    """
+
+    @cached_per_id(cache_name="test_cache_invalid", id_param="ids")
+    def mock_update(ids):
+        ids_array = np.atleast_1d(np.asarray(ids))
+        # Filter valid IDs
+        valid_mask = pd.notna(ids_array) & (ids_array != 0)
+        valid_ids = ids_array[valid_mask]
+        return pd.DataFrame(
+            {"old_id": valid_ids, "new_id": valid_ids + 1000, "changed": True}
+        )
+
+    # Clear cache before test
+    mock_update.clear_cache()
+
+    # Call with mix of valid and invalid IDs
+    result = mock_update([1, 0, 3, np.nan])
+    assert len(result) == 2
+    assert list(result["old_id"]) == [1, 3]
+
+    # Clean up
+    mock_update.clear_cache()
+
+
+def test_cached_per_id_staleness() -> None:
+    """Test that stale cache entries are not used.
+
+    This test verifies that cached results older than max_age are
+    considered stale and trigger recomputation.
+    """
+    call_count = {"count": 0}
+
+    @cached_per_id(
+        cache_name="test_cache_stale", id_param="ids", max_age=1  # 1 second max age
+    )
+    def mock_update(ids):
+        call_count["count"] += 1
+        ids_array = np.atleast_1d(np.asarray(ids))
+        return pd.DataFrame(
+            {"old_id": ids_array, "new_id": ids_array + 1000, "changed": True}
+        )
+
+    # Clear cache before test
+    mock_update.clear_cache()
+
+    # First call
+    mock_update([1, 2, 3])
+    assert call_count["count"] == 1
+
+    # Second call immediately - should use cache
+    mock_update([1, 2, 3])
+    assert call_count["count"] == 1
+
+    # Wait for cache to become stale
+    import time
+
+    time.sleep(1.1)
+
+    # Third call - should recompute due to staleness
+    mock_update([1, 2, 3])
+    assert call_count["count"] == 2
+
+    # Clean up
+    mock_update.clear_cache()
+
+
+def test_cached_per_id_dataframe_input() -> None:
+    """Test per-ID caching with DataFrame input.
+
+    This test verifies that the decorator works correctly when the
+    input is a DataFrame rather than a list of IDs.
+    """
+    call_count = {"count": 0}
+
+    @cached_per_id(cache_name="test_cache_df", id_param="df", result_id_column="old_id")
+    def mock_update(df):
+        call_count["count"] += 1
+        return pd.DataFrame(
+            {
+                "old_id": df["old_id"].values,
+                "new_id": df["old_id"].values + 1000,
+                "changed": True,
+            }
+        )
+
+    # Clear cache before test
+    mock_update.clear_cache()
+
+    # First call with DataFrame
+    df1 = pd.DataFrame({"old_id": [1, 2, 3]})
+    result1 = mock_update(df1)
+    assert call_count["count"] == 1
+    assert len(result1) == 3
+
+    # Second call with overlapping DataFrame
+    df2 = pd.DataFrame({"old_id": [2, 3, 4]})
+    result2 = mock_update(df2)
+    assert call_count["count"] == 2  # Should compute only ID 4
+    assert len(result2) == 3
+
+    # Clean up
+    mock_update.clear_cache()
+
+
+def test_cached_per_id_single_id() -> None:
+    """Test per-ID caching with single ID input.
+
+    This test verifies that the decorator works correctly when
+    a single ID (not a list) is provided.
+    """
+    call_count = {"count": 0}
+
+    @cached_per_id(cache_name="test_cache_single", id_param="ids")
+    def mock_update(ids):
+        call_count["count"] += 1
+        ids_array = np.atleast_1d(np.asarray(ids))
+        return pd.DataFrame(
+            {"old_id": ids_array, "new_id": ids_array + 1000, "changed": True}
+        )
+
+    # Clear cache before test
+    mock_update.clear_cache()
+
+    # First call with single ID
+    result1 = mock_update(42)
+    assert call_count["count"] == 1
+    assert len(result1) == 1
+    assert result1["old_id"].values[0] == 42
+
+    # Second call with same ID - should use cache
+    result2 = mock_update(42)
+    assert call_count["count"] == 1
+    pd.testing.assert_frame_equal(result1, result2)
+
+    # Clean up
+    mock_update.clear_cache()
+
+
+def test_cached_per_id_empty_input() -> None:
+    """Test per-ID caching with empty input.
+
+    This test verifies that the decorator handles empty inputs gracefully.
+    """
+    call_count = {"count": 0}
+
+    @cached_per_id(cache_name="test_cache_empty", id_param="ids")
+    def mock_update(ids):
+        call_count["count"] += 1
+        ids_array = np.atleast_1d(np.asarray(ids))
+        return pd.DataFrame(
+            {"old_id": ids_array, "new_id": ids_array + 1000, "changed": True}
+        )
+
+    # Clear cache before test
+    mock_update.clear_cache()
+
+    # Call with empty list
+    result = mock_update([])
+    assert call_count["count"] == 1
+    assert len(result) == 0
+
+    # Clean up
+    mock_update.clear_cache()
