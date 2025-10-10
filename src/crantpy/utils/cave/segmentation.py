@@ -78,9 +78,11 @@ from datetime import datetime
 from crantpy.utils.config import (
     CRANT_CACHE_DIR,
     CRANT_VALID_DATASETS,
+    MAXIMUM_CACHE_DURATION,
 )
 from crantpy.utils.decorators import (
     inject_dataset,
+    cached_per_id,
 )
 from crantpy.utils.cave.load import get_cloudvolume, get_cave_client
 from crantpy.utils.cave.helpers import parse_root_ids, is_latest_roots
@@ -336,6 +338,12 @@ def supervoxels_to_roots(
     return roots
 
 
+@cached_per_id(
+    cache_name="update_ids_cache",
+    id_param="x",
+    max_age=MAXIMUM_CACHE_DURATION,
+    result_id_column="old_id",
+)
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 def update_ids(
     x: Union[Neurons, pd.DataFrame],
@@ -350,7 +358,8 @@ def update_ids(
     """Update root IDs to their latest versions.
 
     This function prioritizes using supervoxel IDs from annotations when available,
-    falling back to chunkedgraph methods only when necessary.
+    falling back to chunkedgraph methods only when necessary. Results are cached
+    per-ID to avoid redundant updates.
 
     Parameters
     ----------
@@ -371,23 +380,43 @@ def update_ids(
     use_annotations : bool, default True
         Whether to look up supervoxels from annotations when not provided.
     clear_cache : bool, default False
-        Whether to clear annotation cache.
+        Whether to clear the update_ids cache before processing.
 
     Returns
     -------
     pd.DataFrame
         DataFrame with columns: old_id, new_id, confidence, changed
 
+    Notes
+    -----
+    - Results are cached per-ID for performance
+    - If you query [1, 2, 3] and later query [2, 3, 4], cached results for
+      IDs 2 and 3 will be reused
+    - Cache entries expire after MAXIMUM_CACHE_DURATION seconds
+    - Use clear_cache=True to force fresh updates for all IDs
+
     Examples
     --------
     >>> from crantpy.utils.cave.segmentation import update_ids
+    >>> # First call - computes all IDs
     >>> update_ids([123456789, 987654321])
        old_id      new_id  confidence  changed
     0  123456789  123456789     1.0     False
     1  987654321  999999999     0.85    True
 
+    >>> # Second call - reuses cached results for ID 123456789
+    >>> update_ids([123456789, 111111111])
+       old_id      new_id  confidence  changed
+    0  123456789  123456789     1.0     False
+    1  111111111  111111111     1.0     False
+
     >>> # With supervoxels
     >>> update_ids([123456789], supervoxels=[111222333])
+       old_id      new_id  confidence  changed
+    0  123456789  123456789     1.0     False
+
+    >>> # Clear cache to force fresh update
+    >>> update_ids([123456789], clear_cache=True)
        old_id      new_id  confidence  changed
     0  123456789  123456789     1.0     False
     """

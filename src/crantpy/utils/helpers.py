@@ -498,7 +498,7 @@ def plot_em_image(x: int, y: int, z: int, size: Optional[int] = 1000) -> np.ndar
 
     # Initialize CloudVolume
     vol = cv.CloudVolume(ALIGNED_EM_URL, mip=0, use_https=True)
-    
+
     # Check if CloudVolume exists
     if vol.info is None:
         raise ValueError("Could not access CloudVolume at the specified URL.")
@@ -524,3 +524,212 @@ def plot_em_image(x: int, y: int, z: int, size: Optional[int] = 1000) -> np.ndar
     img = vol[x_start:x_end, y_start:y_end, z_start:z_end]
 
     return img.squeeze()
+
+
+def map_position_to_node(
+    neuron: "navis.TreeNeuron",
+    position: Union[List[float], np.ndarray],
+    return_distance: bool = False,
+) -> Union[int, tuple[int, float]]:
+    """
+    Map a spatial position to the nearest node in a skeleton.
+
+    This utility function finds the closest node in a skeleton to a given position
+    using a KDTree for efficient spatial lookup. Useful for soma detection,
+    synapse attachment, and other spatial queries.
+
+    Parameters
+    ----------
+    neuron : navis.TreeNeuron
+        The skeleton neuron to search.
+    position : list or np.ndarray
+        The [x, y, z] coordinates to map. Should be in the same coordinate
+        system as the neuron (typically nanometers).
+    return_distance : bool, optional
+        If True, also return the Euclidean distance to the nearest node.
+        Default is False.
+
+    Returns
+    -------
+    node_id : int
+        The node_id of the nearest node.
+    distance : float (optional)
+        The Euclidean distance to the nearest node in nanometers.
+        Only returned if return_distance=True.
+
+    Examples
+    --------
+    >>> import crantpy as cp
+    >>> import numpy as np
+    >>> skel = cp.get_l2_skeleton(576460752664524086)
+    >>> # Map a position to nearest node
+    >>> node_id = cp.map_position_to_node(skel, [240000, 85000, 96000])
+    >>> print(f"Nearest node: {node_id}")
+    >>> # Get distance too
+    >>> node_id, dist = cp.map_position_to_node(skel, [240000, 85000, 96000], return_distance=True)
+    >>> print(f"Nearest node: {node_id} at distance {dist:.2f} nm")
+
+    See Also
+    --------
+    reroot_at_soma : Reroot a skeleton at its soma location.
+    detect_soma : Detect soma location in a neuron.
+    """
+    logger = logging.getLogger(__name__)
+
+    # Validate input
+    position = np.asarray(position).flatten()
+    if len(position) != 3:
+        raise ValueError(f"Position must be [x, y, z], got shape {position.shape}")
+
+    # Build KDTree for efficient spatial queries
+    tree = navis.neuron2KDTree(neuron, data="nodes")
+
+    # Query for nearest node
+    distance, nearest_idx = tree.query(position.reshape(1, -1))
+    distance = float(distance[0])
+    nearest_idx = int(nearest_idx[0])
+
+    # Get the node_id from the index
+    nearest_node_id = neuron.nodes.iloc[nearest_idx]["node_id"]
+
+    logger.debug(
+        f"Mapped position {position} to node {nearest_node_id} "
+        f"at distance {distance:.2f} nm"
+    )
+
+    if return_distance:
+        return int(nearest_node_id), distance
+    else:
+        return int(nearest_node_id)
+
+
+def reroot_at_soma(
+    neurons: Neurons,
+    soma_coords: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    detect_soma_kwargs: Optional[Dict[str, Any]] = None,
+    inplace: bool = True,
+    progress: bool = False,
+) -> Neurons:
+    """
+    Reroot skeleton(s) at their soma location.
+
+    This convenience function combines soma detection and rerooting. If soma
+    coordinates are not provided, they will be automatically detected using
+    `detect_soma()`. The skeleton is then rerooted at the node nearest to
+    the soma location.
+
+    Parameters
+    ----------
+    neurons : TreeNeuron | NeuronList
+        Single neuron or list of neurons to reroot.
+    soma_coords : np.ndarray or list of np.ndarray, optional
+        Soma coordinates in pixels [x, y, z]. If not provided, soma will be
+        automatically detected using `detect_soma()`. For multiple neurons,
+        provide a list of coordinates in the same order as neurons.
+    detect_soma_kwargs : dict, optional
+        Additional keyword arguments to pass to `detect_soma()` if soma
+        coordinates are not provided.
+    inplace : bool, optional
+        If True, reroot neurons in place. If False, return rerooted copies.
+        Default is True.
+    progress : bool, optional
+        If True, show progress bar when processing multiple neurons or
+        detecting somas. Default is False.
+
+    Returns
+    -------
+    TreeNeuron | NeuronList
+        Rerooted neuron(s). Same as input if inplace=True, otherwise copies.
+
+    Examples
+    --------
+    >>> import crantpy as cp
+    >>> # Get skeleton
+    >>> skel = cp.get_l2_skeleton(576460752664524086)
+    >>> # Reroot at automatically detected soma
+    >>> skel_rerooted = cp.reroot_at_soma(skel)
+    >>> print(f"Root node: {skel_rerooted.root}")
+    >>> # Reroot with provided soma coordinates
+    >>> soma = [28000, 9000, 2200]  # in pixels
+    >>> skel_rerooted = cp.reroot_at_soma(skel, soma_coords=soma)
+    >>> # Process multiple neurons
+    >>> skels = cp.get_l2_skeleton([576460752664524086, 576460752590602315])
+    >>> skels_rerooted = cp.reroot_at_soma(skels, progress=True)
+
+    See Also
+    --------
+    map_position_to_node : Map a position to the nearest node.
+    detect_soma : Detect soma location in a neuron.
+    """
+    from crantpy.viz.mesh import detect_soma
+    from crantpy.utils.config import SCALE_X, SCALE_Y, SCALE_Z
+
+    logger = logging.getLogger(__name__)
+
+    # Handle single neuron vs list
+    if isinstance(neurons, navis.TreeNeuron):
+        neurons_list = navis.NeuronList([neurons])
+        return_single = True
+    else:
+        neurons_list = neurons
+        return_single = False
+
+    # Make copies if not inplace
+    if not inplace:
+        neurons_list = neurons_list.copy()
+
+    # Detect soma if not provided
+    if soma_coords is None:
+        logger.debug("Detecting soma locations...")
+        detect_soma_kwargs = detect_soma_kwargs or {}
+        neuron_ids = [int(n.id) for n in neurons_list]
+        soma_coords = detect_soma(neuron_ids, progress=progress, **detect_soma_kwargs)
+
+    # Convert to list if numpy array
+    if isinstance(soma_coords, np.ndarray):
+        if soma_coords.ndim == 1:
+            # Single soma coordinate
+            soma_coords = [soma_coords]
+        elif soma_coords.ndim == 2:
+            # Multiple soma coordinates - convert each row to a list
+            soma_coords = [soma_coords[i] for i in range(len(soma_coords))]
+    elif not isinstance(soma_coords, list):
+        # Single coordinate (not in list)
+        soma_coords = [soma_coords]
+
+    # Validate length
+    if len(soma_coords) != len(neurons_list):
+        raise ValueError(
+            f"Number of soma coordinates ({len(soma_coords)}) does not match "
+            f"number of neurons ({len(neurons_list)})"
+        )
+
+    # Scale factors for pixel to nm conversion
+    scale_factors = np.array([SCALE_X, SCALE_Y, SCALE_Z])
+
+    # Reroot each neuron
+    iterator = zip(neurons_list, soma_coords)
+    if progress:
+        from tqdm.auto import tqdm
+
+        iterator = tqdm(list(iterator), desc="Rerooting neurons", disable=not progress)
+
+    for neuron, soma_pos in iterator:
+        # Convert soma position to nanometers
+        soma_nm = np.array(soma_pos) * scale_factors
+
+        # Find nearest node
+        node_id, distance = map_position_to_node(neuron, soma_nm, return_distance=True)
+
+        logger.debug(
+            f"Rerooting neuron {neuron.id} at node {node_id} "
+            f"(distance to soma: {distance:.2f} nm)"
+        )
+
+        # Reroot at that node
+        neuron.reroot(node_id, inplace=True)
+
+    if return_single:
+        return neurons_list[0]
+    else:
+        return neurons_list

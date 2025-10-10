@@ -16,7 +16,7 @@ def test_construct_scene():
 
     assert "layers" in scene
     assert "layout" in scene
-    assert scene["layout"] == "xy-3d"
+    assert scene["layout"]["type"] == "xy-3d"
 
     # Check that we have the expected layers
     layer_names = [layer["name"] for layer in scene["layers"]]
@@ -182,7 +182,7 @@ def test_layout_options():
     for layout in layouts:
         url = ngl.encode_url(segments=[720575940621039145], layout=layout)
         scene = ngl.decode_url(url, format="json")
-        assert scene["layout"] == layout
+        assert scene["layout"]["type"] == layout
 
 
 def test_find_segmentation_layer():

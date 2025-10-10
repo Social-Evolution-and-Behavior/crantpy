@@ -71,6 +71,10 @@ class NeuronCriteria:
         of the specified values.
     exact : bool, default True
         Whether to match values exactly. If `False`, substring matching is enabled.
+    update_ids : bool, default True
+        Whether to automatically update root IDs to their latest versions after filtering.
+        This ensures returned IDs are current even if annotations contain outdated IDs
+        from before segmentation edits. Uses efficient per-ID caching to minimize overhead.
     dataset : str, optional
         The dataset to fetch annotations from.
     **criteria : dict
@@ -113,6 +117,7 @@ class NeuronCriteria:
         clear_cache: bool = False,
         match_all: bool = False,
         exact: bool = True,
+        update_ids: bool = True,
         dataset: Optional[str] = None,
         **criteria: Union[str, int, List[Union[str, int]]],
     ) -> None:
@@ -141,6 +146,7 @@ class NeuronCriteria:
         self.clear_cache = clear_cache
         self.match_all = match_all  # Store match_all
         self.exact = exact  # Store exact
+        self.update_ids = update_ids  # Store update_ids
         self._annotations: Optional[pd.DataFrame] = None
         self._roots: Optional[NDArray] = None
 
@@ -313,6 +319,42 @@ class NeuronCriteria:
         # Remove nones and empty strings
         roots = [root for root in roots if root not in (None, "", "None", "nan", "NaN")]
 
+        # Update IDs to latest versions if requested
+        if self.update_ids and len(roots) > 0:
+            try:
+                from crantpy.utils.cave.segmentation import update_ids as _update_ids
+
+                # Convert to int for update_ids function
+                root_ids_int = [int(rid) for rid in roots]
+
+                # Update IDs using cached function
+                update_result = _update_ids(
+                    root_ids_int,
+                    dataset=self.dataset,
+                    progress=False,
+                    use_annotations=False,  # Don't create circular dependency
+                )
+
+                # Use new IDs
+                roots = update_result["new_id"].values.tolist()
+
+                # Log warnings for failed updates
+                failed = update_result[update_result["confidence"] == 0]
+                if len(failed) > 0:
+                    logging.warning(
+                        f"Failed to update {len(failed)} root ID(s). "
+                        f"These IDs may no longer exist or results may be inaccurate."
+                    )
+
+                # Log info about updates if verbose
+                num_changed = update_result["changed"].sum()
+                if num_changed > 0 and self.verbose:
+                    logging.info(
+                        f"Updated {num_changed} root ID(s) to their latest versions."
+                    )
+            except Exception as e:
+                logging.warning(f"Failed to update root IDs: {e}")
+
         # Return as numpy array
         return np.asarray(roots)
 
@@ -368,6 +410,7 @@ def get_annotations(
     dataset: Optional[str] = None,
     clear_cache: bool = False,
     proofread_only: bool = False,
+    update_ids: bool = True,
 ) -> pd.DataFrame:
     """Get annotations from Seatable.
 
@@ -382,6 +425,10 @@ def get_annotations(
         Whether to force reloading annotations from Seatable, bypassing the cache.
     proofread_only : bool, default False
         Whether to return only annotations marked as proofread.
+    update_ids : bool, default True
+        Whether to update root IDs in annotations to their latest versions before filtering.
+        This ensures that if you query with a newer root ID, it will match against updated
+        annotation IDs. Also updates the returned root IDs to match your query IDs.
 
     Returns
     -------
@@ -405,6 +452,62 @@ def get_annotations(
     annotations = get_all_seatable_annotations(
         proofread_only=proofread_only, clear_cache=clear_cache, dataset=dataset
     )
+
+    # Update annotation root IDs if requested
+    if update_ids and "root_id" in annotations.columns and not annotations.empty:
+        try:
+            from crantpy.utils.cave.segmentation import update_ids as _update_ids
+
+            # Get unique root IDs from annotations (excluding None, NaN, empty strings)
+            unique_ann_ids = annotations["root_id"].dropna().unique()
+            unique_ann_ids = [
+                rid for rid in unique_ann_ids if rid not in ("", "None", "nan", "NaN")
+            ]
+
+            if len(unique_ann_ids) > 0:
+                # Convert to int for update_ids function
+                ann_ids_int = [int(rid) for rid in unique_ann_ids]
+
+                # Update IDs using cached function
+                update_result = _update_ids(
+                    ann_ids_int,
+                    dataset=dataset,
+                    progress=False,
+                    use_annotations=False,  # Don't create circular dependency
+                )
+
+                # Create mapping from old to new IDs
+                id_mapping = dict(
+                    zip(
+                        update_result["old_id"].astype(str),
+                        update_result["new_id"].astype(str),
+                    )
+                )
+
+                # Apply mapping to root_id column in annotations
+                annotations["root_id"] = (
+                    annotations["root_id"]
+                    .astype(str)
+                    .map(lambda x: id_mapping.get(x, x) if x in id_mapping else x)
+                )
+
+                # Log info about updates
+                num_changed = update_result["changed"].sum()
+                if num_changed > 0:
+                    logging.debug(
+                        f"Updated {num_changed} root ID(s) in annotations to their latest versions."
+                    )
+
+                # Warn about failed updates
+                failed = update_result[update_result["confidence"] == 0]
+                if len(failed) > 0:
+                    logging.warning(
+                        f"Failed to update {len(failed)} annotation root ID(s). "
+                        f"These IDs may no longer exist."
+                    )
+        except Exception as e:
+            logging.warning(f"Failed to update annotation root IDs: {e}")
+
     # Filter annotations based on the provided root IDs
     filtered_annotations = annotations[annotations["root_id"].isin(root_ids)]
     if filtered_annotations.empty:

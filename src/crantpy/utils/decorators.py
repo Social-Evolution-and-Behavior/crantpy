@@ -55,6 +55,211 @@ def clear_global_cache(cache_name: str) -> None:
         logging.info(f"{cache_name} cache cleared.")
 
 
+def cached_per_id(
+    cache_name: str,
+    id_param: str = "x",
+    max_age: int = MAXIMUM_CACHE_DURATION,
+    result_id_column: str = "old_id",
+) -> Callable[[F], F]:
+    """Decorator for caching function results on a per-ID basis.
+
+    This decorator caches results for individual IDs rather than entire function
+    calls. When the function is called with a list of IDs, it will:
+    1. Check which IDs have valid cached results
+    2. Only call the function for uncached IDs
+    3. Merge cached and new results
+    4. Cache the new results
+
+    This is particularly useful for functions like update_ids() where we want to
+    avoid re-computing results for IDs we've already processed.
+
+    Parameters
+    ----------
+    cache_name : str
+        Name of the global cache to use.
+    id_param : str, default 'x'
+        Name of the parameter containing the IDs to cache.
+    max_age : int, default MAXIMUM_CACHE_DURATION
+        Maximum age of cached results in seconds.
+    result_id_column : str, default 'old_id'
+        Column name in the result DataFrame that contains the ID.
+
+    Returns
+    -------
+    callable
+        The decorated function with per-ID caching capabilities.
+
+    Notes
+    -----
+    - The decorated function must return a pandas DataFrame
+    - The ID parameter can be a list, array, or single ID
+    - Cache entries are stored with timestamps for staleness checking
+    - The function gains a `clear_cache` method to manually clear the cache
+
+    Examples
+    --------
+    >>> @cached_per_id(cache_name="update_ids_cache", id_param="x")
+    >>> def update_ids(x, dataset=None):
+    >>>     # Process IDs
+    >>>     return pd.DataFrame({'old_id': x, 'new_id': x, 'changed': False})
+    >>>
+    >>> # First call - computes all IDs
+    >>> result1 = update_ids([1, 2, 3])
+    >>>
+    >>> # Second call - uses cached results for IDs 2 and 3
+    >>> result2 = update_ids([2, 3, 4])
+    """
+    import pandas as pd
+
+    def outer(func: F) -> F:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            # Get the cache dictionary
+            cache = get_global_cache(cache_name)
+
+            # Handle clear_cache parameter if present
+            clear_cache = kwargs.pop("clear_cache", False)
+            if clear_cache:
+                cache.clear()
+                logging.info(f"Cleared {cache_name}")
+
+            # Get function signature
+            sig = inspect.signature(func)
+            bound_args = sig.bind(*args, **kwargs)
+            bound_args.apply_defaults()
+
+            # Extract the IDs parameter
+            if id_param not in bound_args.arguments:
+                # If ID parameter not found, just call function normally
+                return func(*args, **kwargs)
+
+            ids_input = bound_args.arguments[id_param]
+
+            # Handle DataFrame input
+            if isinstance(ids_input, pd.DataFrame):
+                if result_id_column not in ids_input.columns:
+                    # Can't cache without ID column, call normally
+                    return func(*args, **kwargs)
+                ids_to_process = ids_input[result_id_column].values
+            else:
+                # Convert to array
+                try:
+                    ids_to_process = np.atleast_1d(np.asarray(ids_input))
+                except:
+                    # If conversion fails, call normally
+                    return func(*args, **kwargs)
+
+            # Filter out invalid IDs (None, NaN, 0)
+            valid_mask = pd.notna(ids_to_process) & (ids_to_process != 0)
+            valid_ids = ids_to_process[valid_mask]
+
+            if len(valid_ids) == 0:
+                # No valid IDs, call function normally
+                return func(*args, **kwargs)
+
+            # Check which IDs are cached and still valid
+            current_time = dt.datetime.now(dt.timezone.utc)
+            cached_ids = []
+            uncached_ids = []
+            cached_results = []
+
+            for id_val in valid_ids:
+                cache_key = int(id_val)
+
+                if cache_key in cache:
+                    cached_entry = cache[cache_key]
+                    elapsed_time = (
+                        current_time - cached_entry["metadata"]["_created_at"]
+                    ).total_seconds()
+
+                    if elapsed_time < max_age:
+                        # Cache hit
+                        cached_ids.append(id_val)
+                        cached_results.append(cached_entry["result"])
+                    else:
+                        # Stale cache
+                        uncached_ids.append(id_val)
+                        cache.pop(cache_key, None)
+                else:
+                    # Cache miss
+                    uncached_ids.append(id_val)
+
+            logging.debug(
+                f"{cache_name}: {len(cached_ids)} cached, {len(uncached_ids)} uncached"
+            )
+
+            # If all IDs are cached, return merged results
+            if len(uncached_ids) == 0:
+                logging.debug(f"Using fully cached results from {cache_name}")
+                merged_df = pd.concat(cached_results, ignore_index=True)
+
+                # Reorder to match input order
+                if len(merged_df) > 0:
+                    id_to_idx = {id_val: idx for idx, id_val in enumerate(valid_ids)}
+                    merged_df["_sort_key"] = merged_df[result_id_column].map(id_to_idx)
+                    merged_df = merged_df.sort_values("_sort_key").drop(
+                        columns=["_sort_key"]
+                    )
+                    merged_df.reset_index(drop=True, inplace=True)
+
+                return merged_df
+
+            # Call function with only uncached IDs
+            logging.debug(f"Fetching {len(uncached_ids)} uncached IDs")
+
+            # Modify the arguments to only include uncached IDs
+            if isinstance(ids_input, pd.DataFrame):
+                # Filter DataFrame
+                uncached_mask = ids_input[result_id_column].isin(uncached_ids)
+                bound_args.arguments[id_param] = ids_input[uncached_mask]
+            else:
+                # Replace with uncached IDs
+                bound_args.arguments[id_param] = np.array(uncached_ids)
+
+            # Call the function
+            new_results = func(*bound_args.args, **bound_args.kwargs)
+
+            # Cache the new results
+            if isinstance(new_results, pd.DataFrame) and len(new_results) > 0:
+                for idx, row in new_results.iterrows():
+                    id_val = row[result_id_column]
+                    if pd.notna(id_val) and id_val != 0:
+                        cache_key = int(id_val)
+                        # Store as single-row DataFrame preserving dtypes
+                        row_df = new_results.iloc[idx : idx + 1].copy()
+                        cache[cache_key] = {
+                            "result": row_df,
+                            "metadata": {
+                                "_created_at": dt.datetime.now(dt.timezone.utc)
+                            },
+                        }
+
+            # Merge cached and new results
+            if len(cached_results) > 0:
+                all_results = cached_results + [new_results]
+                merged_df = pd.concat(all_results, ignore_index=True)
+
+                # Reorder to match input order
+                if len(merged_df) > 0:
+                    id_to_idx = {id_val: idx for idx, id_val in enumerate(valid_ids)}
+                    merged_df["_sort_key"] = merged_df[result_id_column].map(id_to_idx)
+                    merged_df = merged_df.sort_values("_sort_key").drop(
+                        columns=["_sort_key"]
+                    )
+                    merged_df.reset_index(drop=True, inplace=True)
+
+                return merged_df
+            else:
+                return new_results
+
+        # Add clear_cache method
+        setattr(wrapper, "clear_cache", lambda: clear_global_cache(cache_name))
+
+        return cast(F, wrapper)
+
+    return outer
+
+
 def _generate_default_cache_key(func, *args, **kwargs):
     """Generate a default cache key for a function call."""
     sig = inspect.signature(func)

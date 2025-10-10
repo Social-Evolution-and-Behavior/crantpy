@@ -59,7 +59,7 @@ def test_neuroncriteria_exact(mock_ann: MagicMock) -> None:
     using exact string matching on the 'cell_class' column. When exact=True
     (the default), only neurons with the exact cell_class value should be returned.
     """
-    nc = NeuronCriteria(cell_class="foo")
+    nc = NeuronCriteria(cell_class="foo", update_ids=False)
     roots = nc.get_roots()
     assert set(roots) == {"1"}  # Only neuron '1' has cell_class exactly 'foo'
 
@@ -75,7 +75,7 @@ def test_neuroncriteria_substring(mock_ann: MagicMock) -> None:
     using substring matching on the 'cell_class' column when exact=False.
     It should match any cell_class that contains the substring 'foo'.
     """
-    nc = NeuronCriteria(cell_class="foo", exact=False)
+    nc = NeuronCriteria(cell_class="foo", exact=False, update_ids=False)
     roots = nc.get_roots()
     assert set(roots) == {"1", "3"}  # Both 'foo' and 'foobar' contain 'foo'
 
@@ -90,9 +90,9 @@ def test_neuroncriteria_list_column_any(mock_ann: MagicMock) -> None:
     This test verifies that NeuronCriteria correctly filters neurons
     based on a column that contains lists (the 'status' column). When match_all=False
     (the default), neurons should be included if their status list contains
-    the specified value 'A', regardless of what other values are in the list.
+    ANY of the specified values, regardless of what other values are in the list.
     """
-    nc = NeuronCriteria(status="A")
+    nc = NeuronCriteria(status="A", update_ids=False)
     roots = nc.get_roots()
     assert set(roots) == {"1", "3"}  # Both neurons have 'A' in their status lists
 
@@ -109,7 +109,7 @@ def test_neuroncriteria_list_column_match_all(mock_ann: MagicMock) -> None:
     a neuron is only included if its status list contains ALL of the specified
     values ('A' AND 'B'), not just any of them.
     """
-    nc = NeuronCriteria(status=["A", "B"], match_all=True)
+    nc = NeuronCriteria(status=["A", "B"], match_all=True, update_ids=False)
     roots = nc.get_roots()
     assert set(roots) == {
         "1"
@@ -128,7 +128,7 @@ def test_neuroncriteria_side_and_status(mock_ann: MagicMock) -> None:
     if they match both criteria: side='L' AND status contains 'A'.
     This is important for complex queries with multiple conditions.
     """
-    nc = NeuronCriteria(side="L", status="A")
+    nc = NeuronCriteria(side="L", status="A", update_ids=False)
     roots = nc.get_roots()
     assert set(roots) == {
         "1",
@@ -180,7 +180,7 @@ def test_neuroncriteria_iter(mock_ann: MagicMock) -> None:
     allowing users to iterate over the root IDs directly from a NeuronCriteria
     instance. This makes the class more pythonic and easier to use in for loops.
     """
-    nc = NeuronCriteria(side="L")
+    nc = NeuronCriteria(side="L", update_ids=False)
     roots = [root for root in nc]
     assert set(roots) == {"1", "3"}  # Can iterate over the filtered root IDs
 
@@ -291,7 +291,7 @@ def test_parse_neuroncriteria_decorator(mock_ann: MagicMock) -> None:
         return neurons
 
     # Test with NeuronCriteria
-    nc = NeuronCriteria(cell_class="foo")
+    nc = NeuronCriteria(cell_class="foo", update_ids=False)
     result = dummy_function(nc)
     assert set(result) == {"1"}  # Decorator should convert NeuronCriteria to root IDs
 
@@ -385,7 +385,7 @@ def test_get_annotations_with_single_id(mock_ann: MagicMock) -> None:
     the integer to a string and fetch the matching neuron's annotations.
     This tests the basic usage of get_annotations with a single ID.
     """
-    result = get_annotations(1)
+    result = get_annotations(1, update_ids=False)
     assert len(result) == 1
     assert result.iloc[0]["root_id"] == "1"
 
@@ -402,7 +402,7 @@ def test_get_annotations_with_id_list(mock_ann: MagicMock) -> None:
     a DataFrame containing annotations for all the specified neurons.
     This tests the common use case of fetching annotations for multiple neurons.
     """
-    result = get_annotations([1, 2])
+    result = get_annotations([1, 2], update_ids=False)
     assert len(result) == 2
     assert set(result["root_id"]) == {"1", "2"}
 
@@ -419,7 +419,7 @@ def test_get_annotations_with_str_id(mock_ann: MagicMock) -> None:
     use the string ID to fetch the matching neuron's annotations without
     any conversion. This tests an alternative way to call get_annotations.
     """
-    result = get_annotations("1")
+    result = get_annotations("1", update_ids=False)
     assert len(result) == 1
     assert result.iloc[0]["root_id"] == "1"
 
@@ -437,8 +437,8 @@ def test_get_annotations_with_neuroncriteria(mock_ann: MagicMock) -> None:
     should fetch annotations for those neurons. This tests the integration
     between NeuronCriteria and get_annotations.
     """
-    nc = NeuronCriteria(cell_class="foo")
-    result = get_annotations(nc)
+    nc = NeuronCriteria(cell_class="foo", update_ids=False)
+    result = get_annotations(nc, update_ids=False)
     assert len(result) == 1
     assert result.iloc[0]["root_id"] == "1"
 
@@ -456,7 +456,9 @@ def test_get_annotations_invalid_input(mock_ann: MagicMock) -> None:
     silent failures or confusing behavior.
     """
     with pytest.raises(ValueError) as excinfo:
-        result = get_annotations([{"root_id": "1"}])  # Invalid input type
+        result = get_annotations(
+            [{"root_id": "1"}], update_ids=False
+        )  # Invalid input type
     assert "Invalid input type" in str(excinfo.value)
 
 
@@ -473,7 +475,7 @@ def test_get_annotations_no_matches(mock_ann: MagicMock) -> None:
     neurons.
     """
     with pytest.raises(NoMatchesError) as excinfo:
-        result = get_annotations([999])  # ID that doesn't exist
+        result = get_annotations([999], update_ids=False)  # ID that doesn't exist
     assert "No matching neurons found" in str(excinfo.value)
 
 
