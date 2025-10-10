@@ -1,56 +1,56 @@
 name: Build and Deploy Documentation
 
 on:
-    push:
-        branches: [main]
-    pull_request:
-        branches: [main]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-    build-docs:
-        runs-on: ubuntu-latest
+  build-docs:
+    runs-on: ubuntu-latest
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Set up Python
-              uses: actions/setup-python@v4
-              with:
-                  python-version: "3.10"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-            - name: Install Poetry
-              run: |
-                  curl -sSL https://install.python-poetry.org | python3 -
-                  echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-            - name: Configure Poetry
-              run: |
-                  poetry config virtualenvs.create true
-                  poetry config virtualenvs.in-project true
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
 
-            - name: Cache Poetry dependencies
-              uses: actions/cache@v3
-              with:
-                  path: .venv
-                  key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
-            - name: Install dependencies with Poetry
-              run: |
-                  poetry install --with docs
+      - name: Install dependencies with Poetry
+        run: |
+          poetry install --with dev
 
-            - name: Make build script executable
-              run: chmod +x build_docs.sh
+      - name: Make build script executable
+        run: chmod +x build_docs.sh
 
-            - name: Build documentation with build script
-              run: |
-                  ./build_docs.sh --clean
-              env:
-                  SPHINX_BUILD_MODE: "1"
-                  SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL: "True"
+      - name: Build documentation with build script
+        run: |
+          ./build_docs.sh --clean
+        env:
+          SPHINX_BUILD_MODE: "1"
+          SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL: "True"
 
-            - name: Deploy to GitHub Pages
-              if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-              run: |
-                  poetry run ghp-import -n -p -f docs/_build/html
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          poetry run ghp-import -n -p -f docs/_build/html
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
