@@ -1,0 +1,1109 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Frequently Asked Questions &#8212; CRANTpy Documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'faq';</script>
+    <link rel="icon" href="_static/logo.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing to CRANTpy" href="contribute.html" />
+    <link rel="prev" title="Changelog" href="changelog.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">📚 Tutorials available! Check out the Deep Dive Gallery.</div>
+</aside>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/logo.png" class="logo__image only-light" alt="CRANTpy Documentation - Home"/>
+    <script>document.write(`<img src="_static/logo.png" class="logo__image only-dark" alt="CRANTpy Documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation &amp; Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Quickstart Tutorial</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_dive/visualization.html">Plotting Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_dive/morphology.html">Working with Neuron Morphology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_dive/connectivity.html">Analyzing Connectivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_dive/ngllink.html">From CRANTpy to Neuroglancer</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="api/modules.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/crantpy.html">crantpy package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/crantpy.queries.html">crantpy.queries package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.queries.connections.html">crantpy.queries.connections module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.queries.neurons.html">crantpy.queries.neurons module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/crantpy.utils.html">crantpy.utils package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.cave.html">crantpy.utils.cave package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.config.html">crantpy.utils.config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.decorators.html">crantpy.utils.decorators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.exceptions.html">crantpy.utils.exceptions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.helpers.html">crantpy.utils.helpers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.neuroglancer.html">crantpy.utils.neuroglancer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.seatable.html">crantpy.utils.seatable module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.types.html">crantpy.utils.types module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/crantpy.viz.html">crantpy.viz package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.viz.l2.html">crantpy.viz.l2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.viz.mesh.html">crantpy.viz.mesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.viz.skeletonize.html">crantpy.viz.skeletonize module</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="datasets.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy/edit/main/docs/faq.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy/issues/new?title=Issue%20on%20page%20%2Ffaq.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/faq.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Frequently Asked Questions</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#general-questions">General Questions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-crantpy">What is CRANTpy?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-does-crant-stand-for">What does CRANT stand for?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#who-should-use-crantpy">Who should use CRANTpy?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-and-setup">Installation and Setup</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-are-the-system-requirements">What are the system requirements?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-install-crantpy">How do I install CRANTpy?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-do-i-need-authentication">Why do I need authentication?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-get-a-cave-token">How do I get a CAVE token?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#my-token-expired-what-do-i-do">My token expired. What do I do?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-and-datasets">Data and Datasets</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-datasets-are-available">What datasets are available?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-many-neurons-are-in-the-dataset">How many neurons are in the dataset?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-information-is-available-for-each-neuron">What information is available for each neuron?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#can-i-access-raw-imaging-data">Can I access raw imaging data?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-questions">Usage Questions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-find-neurons-of-a-specific-type">How do I find neurons of a specific type?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-get-the-3d-shape-of-a-neuron">How do I get the 3D shape of a neuron?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-visualize-neurons">How do I visualize neurons?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-analyze-multiple-neurons-at-once">How do I analyze multiple neurons at once?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-filter-by-multiple-criteria">How do I filter by multiple criteria?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-and-optimization">Performance and Optimization</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-is-my-first-query-slow">Why is my first query slow?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-can-i-speed-up-large-analyses">How can I speed up large analyses?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-is-data-cached">Where is data cached?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-clear-the-cache">How do I clear the cache?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#my-analysis-is-using-too-much-memory-what-can-i-do">My analysis is using too much memory. What can I do?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#troubleshooting">Troubleshooting</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#i-get-no-valid-token-found-error">I get “No valid token found” error</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#i-get-connection-timeout-errors">I get “Connection timeout” errors</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#my-neuron-ids-seem-to-be-outdated">My neuron IDs seem to be outdated</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#i-get-memoryerror-when-loading-large-neurons">I get “MemoryError” when loading large neurons</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy-is-not-finding-neurons-i-expect">CRANTpy is not finding neurons I expect</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-usage">Advanced Usage</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-use-regular-expressions-in-queries">How do I use regular expressions in queries?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-work-with-different-dataset-versions">How do I work with different dataset versions?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-access-raw-cave-client-functionality">How do I access raw CAVE client functionality?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#can-i-contribute-to-crantpy">Can I contribute to CRANTpy?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-interpretation">Data Interpretation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-do-the-confidence-scores-mean-in-id-updates">What do the confidence scores mean in ID updates?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-does-proofread-mean">What does “proofread” mean?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-are-the-different-proofreading-statuses">What are the different proofreading statuses?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-accurate-are-the-morphological-measurements">How accurate are the morphological measurements?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-help">Getting Help</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-can-i-find-more-documentation">Where can I find more documentation?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-report-bugs-or-request-features">How do I report bugs or request features?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-get-help-with-my-analysis">How do I get help with my analysis?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#is-there-a-mailing-list-or-forum">Is there a mailing list or forum?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#citation-and-usage">Citation and Usage</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-cite-crantpy-in-my-research">How do I cite CRANTpy in my research?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#are-there-any-usage-restrictions">Are there any usage restrictions?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#can-i-use-crantpy-for-commercial-projects">Can I use CRANTpy for commercial projects?</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="frequently-asked-questions">
+<h1>Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Link to this heading">#</a></h1>
+<section id="general-questions">
+<h2>General Questions<a class="headerlink" href="#general-questions" title="Link to this heading">#</a></h2>
+<section id="what-is-crantpy">
+<h3>What is CRANTpy?<a class="headerlink" href="#what-is-crantpy" title="Link to this heading">#</a></h3>
+<p>CRANTpy is a Python library for accessing and analyzing the Clonal Raider ANT Brain (CRANTb) connectome dataset. It provides tools for querying neurons, accessing morphological data, and analyzing neural circuits in the ant brain.</p>
+</section>
+<section id="what-does-crant-stand-for">
+<h3>What does CRANT stand for?<a class="headerlink" href="#what-does-crant-stand-for" title="Link to this heading">#</a></h3>
+<p>CRANT stands for <strong>Clonal Raider ANT</strong>. The project focuses on mapping the neural connectome of the clonal raider ant (<em>Ooceraea biroi</em>), a species known for its unique reproductive strategy and social behavior.</p>
+</section>
+<section id="who-should-use-crantpy">
+<h3>Who should use CRANTpy?<a class="headerlink" href="#who-should-use-crantpy" title="Link to this heading">#</a></h3>
+<p>CRANTpy is designed for:</p>
+<ul class="simple">
+<li><p>Neuroscientists studying insect brains and behavior</p></li>
+<li><p>Researchers interested in connectomics and neural circuits</p></li>
+<li><p>Students learning about computational neuroscience</p></li>
+<li><p>Developers building tools for neural data analysis</p></li>
+</ul>
+</section>
+</section>
+<section id="installation-and-setup">
+<h2>Installation and Setup<a class="headerlink" href="#installation-and-setup" title="Link to this heading">#</a></h2>
+<section id="what-are-the-system-requirements">
+<h3>What are the system requirements?<a class="headerlink" href="#what-are-the-system-requirements" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Python</strong>: 3.10 or higher</p></li>
+<li><p><strong>Operating System</strong>: Windows, macOS, or Linux</p></li>
+<li><p><strong>Memory</strong>: At least 8GB RAM recommended</p></li>
+<li><p><strong>Storage</strong>: ~1GB for cache and temporary files</p></li>
+<li><p><strong>Internet</strong>: Required for accessing CAVE datasets</p></li>
+</ul>
+</section>
+<section id="how-do-i-install-crantpy">
+<h3>How do I install CRANTpy?<a class="headerlink" href="#how-do-i-install-crantpy" title="Link to this heading">#</a></h3>
+<p>The easiest way is using pip:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>crantpy
+</pre></div>
+</div>
+<p>For development:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Social-Evolution-and-Behavior/crantpy.git
+<span class="nb">cd</span><span class="w"> </span>crantpy
+poetry<span class="w"> </span>install
+</pre></div>
+</div>
+</section>
+<section id="why-do-i-need-authentication">
+<h3>Why do I need authentication?<a class="headerlink" href="#why-do-i-need-authentication" title="Link to this heading">#</a></h3>
+<p>CRANTpy accesses data through the CAVE (Connectome Annotation Versioning Engine) service, which requires authentication to ensure data security and track usage. The authentication is free but required.</p>
+</section>
+<section id="how-do-i-get-a-cave-token">
+<h3>How do I get a CAVE token?<a class="headerlink" href="#how-do-i-get-a-cave-token" title="Link to this heading">#</a></h3>
+<p>Run this code and follow the browser prompts:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">crantpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="n">cp</span><span class="o">.</span><span class="n">generate_cave_token</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="my-token-expired-what-do-i-do">
+<h3>My token expired. What do I do?<a class="headerlink" href="#my-token-expired-what-do-i-do" title="Link to this heading">#</a></h3>
+<p>Simply generate a new token:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">crantpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="n">cp</span><span class="o">.</span><span class="n">generate_cave_token</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="data-and-datasets">
+<h2>Data and Datasets<a class="headerlink" href="#data-and-datasets" title="Link to this heading">#</a></h2>
+<section id="what-datasets-are-available">
+<h3>What datasets are available?<a class="headerlink" href="#what-datasets-are-available" title="Link to this heading">#</a></h3>
+<p>CRANTpy provides access to two main datasets:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">latest</span></code></strong>: The most recent stable release (recommended)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">sandbox</span></code></strong>: Development version with newest annotations (may be unstable)</p></li>
+</ul>
+</section>
+<section id="how-many-neurons-are-in-the-dataset">
+<h3>How many neurons are in the dataset?<a class="headerlink" href="#how-many-neurons-are-in-the-dataset" title="Link to this heading">#</a></h3>
+<p>The exact number varies by dataset version, but typically contains thousands of annotated neurons across different brain regions and cell types.</p>
+</section>
+<section id="what-information-is-available-for-each-neuron">
+<h3>What information is available for each neuron?<a class="headerlink" href="#what-information-is-available-for-each-neuron" title="Link to this heading">#</a></h3>
+<p>Each neuron includes:</p>
+<ul class="simple">
+<li><p><strong>Morphology</strong>: 3D mesh and skeleton reconstructions</p></li>
+<li><p><strong>Annotations</strong>: Cell type, brain region, functional properties</p></li>
+<li><p><strong>Connectivity</strong>: Synaptic connections (when available)</p></li>
+<li><p><strong>Metadata</strong>: Proofreading status, quality metrics</p></li>
+</ul>
+</section>
+<section id="can-i-access-raw-imaging-data">
+<h3>Can I access raw imaging data?<a class="headerlink" href="#can-i-access-raw-imaging-data" title="Link to this heading">#</a></h3>
+<p>CRANTpy focuses on processed annotations and reconstructions. For raw imaging data, you would need to access the original CAVE datasets directly.</p>
+</section>
+</section>
+<section id="usage-questions">
+<h2>Usage Questions<a class="headerlink" href="#usage-questions" title="Link to this heading">#</a></h2>
+<section id="how-do-i-find-neurons-of-a-specific-type">
+<h3>How do I find neurons of a specific type?<a class="headerlink" href="#how-do-i-find-neurons-of-a-specific-type" title="Link to this heading">#</a></h3>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">NeuronCriteria</span></code> class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">crantpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="c1"># Find Kenyon cells</span>
+<span class="n">kenyon_cells</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;kenyon_cell&#39;</span><span class="p">)</span>
+<span class="n">kc_ids</span> <span class="o">=</span> <span class="n">kenyon_cells</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="how-do-i-get-the-3d-shape-of-a-neuron">
+<h3>How do I get the 3D shape of a neuron?<a class="headerlink" href="#how-do-i-get-the-3d-shape-of-a-neuron" title="Link to this heading">#</a></h3>
+<p>You can get both meshes and skeletons:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get mesh (detailed surface)</span>
+<span class="n">mesh</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_mesh_neuron</span><span class="p">(</span><span class="n">neuron_id</span><span class="p">)</span>
+
+<span class="c1"># Get skeleton (centerline)</span>
+<span class="n">skeleton</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_skeletons</span><span class="p">(</span><span class="n">neuron_id</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="how-do-i-visualize-neurons">
+<h3>How do I visualize neurons?<a class="headerlink" href="#how-do-i-visualize-neurons" title="Link to this heading">#</a></h3>
+<p>CRANTpy integrates with navis for 3D visualization:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Visualize skeleton</span>
+<span class="n">skeleton</span><span class="o">.</span><span class="n">plot3d</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s1">&#39;plotly&#39;</span><span class="p">)</span>
+
+<span class="c1"># Visualize mesh</span>
+<span class="n">mesh</span><span class="o">.</span><span class="n">plot3d</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s1">&#39;plotly&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="how-do-i-analyze-multiple-neurons-at-once">
+<h3>How do I analyze multiple neurons at once?<a class="headerlink" href="#how-do-i-analyze-multiple-neurons-at-once" title="Link to this heading">#</a></h3>
+<p>Most functions accept lists of IDs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get multiple skeletons</span>
+<span class="n">neuron_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">id1</span><span class="p">,</span> <span class="n">id2</span><span class="p">,</span> <span class="n">id3</span><span class="p">]</span>
+<span class="n">skeletons</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_skeletons</span><span class="p">(</span><span class="n">neuron_ids</span><span class="p">)</span>
+
+<span class="c1"># Analyze population</span>
+<span class="k">for</span> <span class="n">skel</span> <span class="ow">in</span> <span class="n">skeletons</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Neuron </span><span class="si">{</span><span class="n">skel</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">skel</span><span class="o">.</span><span class="n">cable_length</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="how-do-i-filter-by-multiple-criteria">
+<h3>How do I filter by multiple criteria?<a class="headerlink" href="#how-do-i-filter-by-multiple-criteria" title="Link to this heading">#</a></h3>
+<p>Use multiple parameters in <code class="docutils literal notranslate"><span class="pre">NeuronCriteria</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Multiple criteria (AND logic)</span>
+<span class="n">left_pns</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;projection_neuron&#39;</span><span class="p">,</span>
+    <span class="n">side</span><span class="o">=</span><span class="s1">&#39;L&#39;</span><span class="p">,</span>
+    <span class="n">region</span><span class="o">=</span><span class="s1">&#39;antennal_lobe&#39;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-and-optimization">
+<h2>Performance and Optimization<a class="headerlink" href="#performance-and-optimization" title="Link to this heading">#</a></h2>
+<section id="why-is-my-first-query-slow">
+<h3>Why is my first query slow?<a class="headerlink" href="#why-is-my-first-query-slow" title="Link to this heading">#</a></h3>
+<p>CRANTpy downloads and caches data on first access. Subsequent queries will be much faster thanks to intelligent caching.</p>
+</section>
+<section id="how-can-i-speed-up-large-analyses">
+<h3>How can I speed up large analyses?<a class="headerlink" href="#how-can-i-speed-up-large-analyses" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Use caching</strong>: Don’t clear caches unnecessarily</p></li>
+<li><p><strong>Batch processing</strong>: Process neurons in groups</p></li>
+<li><p><strong>Selective queries</strong>: Only get the data you need</p></li>
+<li><p><strong>Memory management</strong>: Clear large objects when done</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example of efficient batch processing</span>
+<span class="n">all_ids</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_proofread_neurons</span><span class="p">()</span>
+<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">100</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_ids</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
+    <span class="n">batch</span> <span class="o">=</span> <span class="n">all_ids</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">batch_size</span><span class="p">]</span>
+    <span class="n">skeletons</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_skeletons</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+    <span class="c1"># Process batch...</span>
+</pre></div>
+</div>
+</section>
+<section id="where-is-data-cached">
+<h3>Where is data cached?<a class="headerlink" href="#where-is-data-cached" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Linux/macOS</strong>: <code class="docutils literal notranslate"><span class="pre">~/.crantpy/</span></code></p></li>
+<li><p><strong>Windows</strong>: <code class="docutils literal notranslate"><span class="pre">%USERPROFILE%/.crantpy/</span></code></p></li>
+</ul>
+</section>
+<section id="how-do-i-clear-the-cache">
+<h3>How do I clear the cache?<a class="headerlink" href="#how-do-i-clear-the-cache" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">crantpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="c1"># Clear all caches</span>
+<span class="n">cp</span><span class="o">.</span><span class="n">clear_all_caches</span><span class="p">()</span>
+
+<span class="c1"># Clear specific caches</span>
+<span class="n">cp</span><span class="o">.</span><span class="n">clear_cave_client_cache</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="my-analysis-is-using-too-much-memory-what-can-i-do">
+<h3>My analysis is using too much memory. What can I do?<a class="headerlink" href="#my-analysis-is-using-too-much-memory-what-can-i-do" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Process neurons one at a time for large meshes</p></li>
+<li><p>Use skeletons instead of meshes when possible</p></li>
+<li><p>Clear objects from memory when done</p></li>
+<li><p>Increase your system’s virtual memory</p></li>
+</ol>
+</section>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">#</a></h2>
+<section id="i-get-no-valid-token-found-error">
+<h3>I get “No valid token found” error<a class="headerlink" href="#i-get-no-valid-token-found-error" title="Link to this heading">#</a></h3>
+<p>You need to authenticate first:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">crantpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="n">cp</span><span class="o">.</span><span class="n">generate_cave_token</span><span class="p">(</span><span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="i-get-connection-timeout-errors">
+<h3>I get “Connection timeout” errors<a class="headerlink" href="#i-get-connection-timeout-errors" title="Link to this heading">#</a></h3>
+<p>This usually indicates network issues. Try:</p>
+<ol class="arabic simple">
+<li><p>Check your internet connection</p></li>
+<li><p>Wait and retry (servers may be busy)</p></li>
+<li><p>Use smaller batch sizes</p></li>
+</ol>
+</section>
+<section id="my-neuron-ids-seem-to-be-outdated">
+<h3>My neuron IDs seem to be outdated<a class="headerlink" href="#my-neuron-ids-seem-to-be-outdated" title="Link to this heading">#</a></h3>
+<p>Neuron IDs can change due to proofreading. Update them:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check if IDs are current</span>
+<span class="n">current_status</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">is_latest_roots</span><span class="p">(</span><span class="n">your_ids</span><span class="p">)</span>
+
+<span class="c1"># Update a DataFrame with new IDs</span>
+<span class="n">updated_df</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">update_ids</span><span class="p">(</span><span class="n">your_dataframe</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="i-get-memoryerror-when-loading-large-neurons">
+<h3>I get “MemoryError” when loading large neurons<a class="headerlink" href="#i-get-memoryerror-when-loading-large-neurons" title="Link to this heading">#</a></h3>
+<p>Try:</p>
+<ol class="arabic simple">
+<li><p>Process neurons individually instead of in batches</p></li>
+<li><p>Use skeletons instead of meshes</p></li>
+<li><p>Increase system memory or use a machine with more RAM</p></li>
+</ol>
+</section>
+<section id="crantpy-is-not-finding-neurons-i-expect">
+<h3>CRANTpy is not finding neurons I expect<a class="headerlink" href="#crantpy-is-not-finding-neurons-i-expect" title="Link to this heading">#</a></h3>
+<p>Check:</p>
+<ol class="arabic simple">
+<li><p>Your spelling of annotation fields</p></li>
+<li><p>Case sensitivity (use <code class="docutils literal notranslate"><span class="pre">case=True</span></code> if needed)</p></li>
+<li><p>Dataset version (<code class="docutils literal notranslate"><span class="pre">latest</span></code> vs <code class="docutils literal notranslate"><span class="pre">sandbox</span></code>)</p></li>
+<li><p>Whether you need regex matching</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Debug your query</span>
+<span class="n">criteria</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">your_criteria</span><span class="p">)</span>
+<span class="n">annotations</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_annotations</span><span class="p">(</span><span class="n">criteria</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">annotations</span><span class="p">)</span><span class="si">}</span><span class="s2"> neurons&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="advanced-usage">
+<h2>Advanced Usage<a class="headerlink" href="#advanced-usage" title="Link to this heading">#</a></h2>
+<section id="how-do-i-use-regular-expressions-in-queries">
+<h3>How do I use regular expressions in queries?<a class="headerlink" href="#how-do-i-use-regular-expressions-in-queries" title="Link to this heading">#</a></h3>
+<p>Set <code class="docutils literal notranslate"><span class="pre">regex=True</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Match multiple cell types</span>
+<span class="n">kc_subtypes</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">cell_type</span><span class="o">=</span><span class="s1">&#39;KC_.*&#39;</span><span class="p">,</span>  <span class="c1"># Matches KC_a, KC_b, etc.</span>
+    <span class="n">regex</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="how-do-i-work-with-different-dataset-versions">
+<h3>How do I work with different dataset versions?<a class="headerlink" href="#how-do-i-work-with-different-dataset-versions" title="Link to this heading">#</a></h3>
+<p>Specify the dataset:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Latest dataset</span>
+<span class="n">latest_neurons</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;kenyon_cell&#39;</span><span class="p">,</span>
+    <span class="n">dataset</span><span class="o">=</span><span class="s1">&#39;latest&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Sandbox dataset</span>
+<span class="n">sandbox_neurons</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;kenyon_cell&#39;</span><span class="p">,</span>
+    <span class="n">dataset</span><span class="o">=</span><span class="s1">&#39;sandbox&#39;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="how-do-i-access-raw-cave-client-functionality">
+<h3>How do I access raw CAVE client functionality?<a class="headerlink" href="#how-do-i-access-raw-cave-client-functionality" title="Link to this heading">#</a></h3>
+<p>Get the client directly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">client</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_cave_client</span><span class="p">()</span>
+<span class="c1"># Now you can use any CAVE client methods</span>
+</pre></div>
+</div>
+</section>
+<section id="can-i-contribute-to-crantpy">
+<h3>Can I contribute to CRANTpy?<a class="headerlink" href="#can-i-contribute-to-crantpy" title="Link to this heading">#</a></h3>
+<p>Yes! CRANTpy is open source. See the <a class="reference external" href="https://github.com/Social-Evolution-and-Behavior/crantpy">GitHub repository</a> for contribution guidelines.</p>
+</section>
+</section>
+<section id="data-interpretation">
+<h2>Data Interpretation<a class="headerlink" href="#data-interpretation" title="Link to this heading">#</a></h2>
+<section id="what-do-the-confidence-scores-mean-in-id-updates">
+<h3>What do the confidence scores mean in ID updates?<a class="headerlink" href="#what-do-the-confidence-scores-mean-in-id-updates" title="Link to this heading">#</a></h3>
+<p>Confidence scores (0-1) indicate how certain the system is that an old ID maps to a new ID:</p>
+<ul class="simple">
+<li><p><strong>1.0</strong>: Perfect match (100% supervoxel overlap)</p></li>
+<li><p><strong>0.5</strong>: Partial match (50% overlap)</p></li>
+<li><p><strong>0.0</strong>: No strong overlap (Minimal overlap)</p></li>
+</ul>
+</section>
+<section id="what-does-proofread-mean">
+<h3>What does “proofread” mean?<a class="headerlink" href="#what-does-proofread-mean" title="Link to this heading">#</a></h3>
+<p>A proofread neuron has been manually reviewed and corrected by expert annotators. Proofread neurons are generally more reliable for analysis.</p>
+</section>
+<section id="what-are-the-different-proofreading-statuses">
+<h3>What are the different proofreading statuses?<a class="headerlink" href="#what-are-the-different-proofreading-statuses" title="Link to this heading">#</a></h3>
+<p>Common statuses include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">BACKBONE_PROOFREAD</span></code>: Main structure reviewed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">COMPLETED</span></code>: Fully proofread and finalized</p></li>
+</ul>
+</section>
+<section id="how-accurate-are-the-morphological-measurements">
+<h3>How accurate are the morphological measurements?<a class="headerlink" href="#how-accurate-are-the-morphological-measurements" title="Link to this heading">#</a></h3>
+<p>Measurements depend on:</p>
+<ul class="simple">
+<li><p><strong>Proofreading status</strong>: Proofread neurons are more accurate</p></li>
+<li><p><strong>Resolution</strong>: Limited by imaging resolution (~4nm)</p></li>
+<li><p><strong>Reconstruction quality</strong>: Varies by brain region</p></li>
+</ul>
+</section>
+</section>
+<section id="getting-help">
+<h2>Getting Help<a class="headerlink" href="#getting-help" title="Link to this heading">#</a></h2>
+<section id="where-can-i-find-more-documentation">
+<h3>Where can I find more documentation?<a class="headerlink" href="#where-can-i-find-more-documentation" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="#user-guide.md"><span class="xref myst">User Guide</span></a>: Comprehensive tutorials</p></li>
+<li><p><a class="reference internal" href="api/modules.html"><span class="std std-doc">API Reference</span></a>: Detailed function documentation</p></li>
+<li><p><a class="reference internal" href="tutorial.html"><span class="std std-doc">Tutorial Notebook</span></a>: Interactive examples</p></li>
+</ul>
+</section>
+<section id="how-do-i-report-bugs-or-request-features">
+<h3>How do I report bugs or request features?<a class="headerlink" href="#how-do-i-report-bugs-or-request-features" title="Link to this heading">#</a></h3>
+<p>Use the <a class="reference external" href="https://github.com/Social-Evolution-and-Behavior/crantpy/issues">GitHub Issues</a> page.</p>
+</section>
+<section id="how-do-i-get-help-with-my-analysis">
+<h3>How do I get help with my analysis?<a class="headerlink" href="#how-do-i-get-help-with-my-analysis" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Check the documentation and examples</p></li>
+<li><p>Search existing GitHub issues</p></li>
+<li><p>Post a question on GitHub Discussions</p></li>
+<li><p>Contact the development team</p></li>
+</ol>
+</section>
+<section id="is-there-a-mailing-list-or-forum">
+<h3>Is there a mailing list or forum?<a class="headerlink" href="#is-there-a-mailing-list-or-forum" title="Link to this heading">#</a></h3>
+<p>Use <a class="reference external" href="https://github.com/Social-Evolution-and-Behavior/crantpy/discussions">GitHub Discussions</a> for community support and questions.</p>
+</section>
+</section>
+<section id="citation-and-usage">
+<h2>Citation and Usage<a class="headerlink" href="#citation-and-usage" title="Link to this heading">#</a></h2>
+<section id="how-do-i-cite-crantpy-in-my-research">
+<h3>How do I cite CRANTpy in my research?<a class="headerlink" href="#how-do-i-cite-crantpy-in-my-research" title="Link to this heading">#</a></h3>
+<div class="highlight-bibtex notranslate"><div class="highlight"><pre><span></span><span class="nc">@software</span><span class="p">{</span><span class="nl">crantpy</span><span class="p">,</span>
+<span class="w">  </span><span class="na">title</span><span class="p">=</span><span class="s">{CRANTpy: Python Access to Clonal Raider ANT Brain Datasets}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">author</span><span class="p">=</span><span class="s">{CRANTb Community}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">url</span><span class="p">=</span><span class="s">{https://github.com/Social-Evolution-and-Behavior/crantpy}</span><span class="p">,</span>
+<span class="w">  </span><span class="na">year</span><span class="p">=</span><span class="s">{2024}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="are-there-any-usage-restrictions">
+<h3>Are there any usage restrictions?<a class="headerlink" href="#are-there-any-usage-restrictions" title="Link to this heading">#</a></h3>
+<p>CRANTpy is open source under the GNU GPL v3.0 license. The data access follows CAVE usage policies. Always cite both CRANTpy and the original CRANT dataset in publications.</p>
+</section>
+<section id="can-i-use-crantpy-for-commercial-projects">
+<h3>Can I use CRANTpy for commercial projects?<a class="headerlink" href="#can-i-use-crantpy-for-commercial-projects" title="Link to this heading">#</a></h3>
+<p>Check the license terms and data usage policies. For commercial use, contact the dataset providers directly.</p>
+</section>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="changelog.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Changelog</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="contribute.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Contributing to CRANTpy</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#general-questions">General Questions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-crantpy">What is CRANTpy?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-does-crant-stand-for">What does CRANT stand for?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#who-should-use-crantpy">Who should use CRANTpy?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation-and-setup">Installation and Setup</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-are-the-system-requirements">What are the system requirements?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-install-crantpy">How do I install CRANTpy?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-do-i-need-authentication">Why do I need authentication?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-get-a-cave-token">How do I get a CAVE token?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#my-token-expired-what-do-i-do">My token expired. What do I do?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-and-datasets">Data and Datasets</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-datasets-are-available">What datasets are available?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-many-neurons-are-in-the-dataset">How many neurons are in the dataset?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-information-is-available-for-each-neuron">What information is available for each neuron?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#can-i-access-raw-imaging-data">Can I access raw imaging data?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-questions">Usage Questions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-find-neurons-of-a-specific-type">How do I find neurons of a specific type?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-get-the-3d-shape-of-a-neuron">How do I get the 3D shape of a neuron?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-visualize-neurons">How do I visualize neurons?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-analyze-multiple-neurons-at-once">How do I analyze multiple neurons at once?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-filter-by-multiple-criteria">How do I filter by multiple criteria?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-and-optimization">Performance and Optimization</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-is-my-first-query-slow">Why is my first query slow?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-can-i-speed-up-large-analyses">How can I speed up large analyses?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-is-data-cached">Where is data cached?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-clear-the-cache">How do I clear the cache?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#my-analysis-is-using-too-much-memory-what-can-i-do">My analysis is using too much memory. What can I do?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#troubleshooting">Troubleshooting</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#i-get-no-valid-token-found-error">I get “No valid token found” error</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#i-get-connection-timeout-errors">I get “Connection timeout” errors</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#my-neuron-ids-seem-to-be-outdated">My neuron IDs seem to be outdated</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#i-get-memoryerror-when-loading-large-neurons">I get “MemoryError” when loading large neurons</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy-is-not-finding-neurons-i-expect">CRANTpy is not finding neurons I expect</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-usage">Advanced Usage</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-use-regular-expressions-in-queries">How do I use regular expressions in queries?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-work-with-different-dataset-versions">How do I work with different dataset versions?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-access-raw-cave-client-functionality">How do I access raw CAVE client functionality?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#can-i-contribute-to-crantpy">Can I contribute to CRANTpy?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-interpretation">Data Interpretation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-do-the-confidence-scores-mean-in-id-updates">What do the confidence scores mean in ID updates?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-does-proofread-mean">What does “proofread” mean?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-are-the-different-proofreading-statuses">What are the different proofreading statuses?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-accurate-are-the-morphological-measurements">How accurate are the morphological measurements?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-help">Getting Help</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-can-i-find-more-documentation">Where can I find more documentation?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-report-bugs-or-request-features">How do I report bugs or request features?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-get-help-with-my-analysis">How do I get help with my analysis?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#is-there-a-mailing-list-or-forum">Is there a mailing list or forum?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#citation-and-usage">Citation and Usage</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-do-i-cite-crantpy-in-my-research">How do I cite CRANTpy in my research?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#are-there-any-usage-restrictions">Are there any usage restrictions?</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#can-i-use-crantpy-for-commercial-projects">Can I use CRANTpy for commercial projects?</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By CRANTb Community
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

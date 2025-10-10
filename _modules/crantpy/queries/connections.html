@@ -1,0 +1,1587 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>crantpy.queries.connections &#8212; CRANTpy Documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/crantpy/queries/connections';</script>
+    <link rel="icon" href="../../../_static/logo.png"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">📚 Tutorials available! Check out the Deep Dive Gallery.</div>
+</aside>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/logo.png" class="logo__image only-light" alt="CRANTpy Documentation - Home"/>
+    <script>document.write(`<img src="../../../_static/logo.png" class="logo__image only-dark" alt="CRANTpy Documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation &amp; Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">Quickstart Tutorial</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/visualization.html">Plotting Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/morphology.html">Working with Neuron Morphology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/connectivity.html">Analyzing Connectivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/ngllink.html">From CRANTpy to Neuroglancer</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/modules.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/crantpy.html">crantpy package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/crantpy.queries.html">crantpy.queries package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.queries.connections.html">crantpy.queries.connections module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.queries.neurons.html">crantpy.queries.neurons module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/crantpy.utils.html">crantpy.utils package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.cave.html">crantpy.utils.cave package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.config.html">crantpy.utils.config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.decorators.html">crantpy.utils.decorators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.exceptions.html">crantpy.utils.exceptions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.helpers.html">crantpy.utils.helpers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.neuroglancer.html">crantpy.utils.neuroglancer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.seatable.html">crantpy.utils.seatable module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.types.html">crantpy.utils.types module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/crantpy.viz.html">crantpy.viz package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.viz.l2.html">crantpy.viz.l2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.viz.mesh.html">crantpy.viz.mesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.viz.skeletonize.html">crantpy.viz.skeletonize module</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy/issues/new?title=Issue%20on%20page%20%2F_modules/crantpy/queries/connections.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for crantpy.queries.connections</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module provides functions for querying synaptic connectivity in the CRANTb dataset.</span>
+<span class="sd">Adapted from fafbseg-py (Philipp Schlegel) and the-BANC-fly-connectome (Jasper Phelps).</span>
+
+<span class="sd">Function Overview</span>
+<span class="sd">-----------------</span>
+<span class="sd">This module contains four main functions for connectivity analysis, each serving</span>
+<span class="sd">different use cases:</span>
+
+<span class="sd">get_synapses()</span>
+<span class="sd">    Returns individual synaptic connections as a detailed DataFrame.</span>
+
+<span class="sd">    Use when you need:</span>
+<span class="sd">    - Raw synapse-level data with all available columns (coordinates, scores, etc.)</span>
+<span class="sd">    - Fine-grained analysis of individual synaptic connections</span>
+<span class="sd">    - Custom aggregation or filtering of synapses</span>
+<span class="sd">    - Access to synapse metadata (synapse_size, coordinates, quality scores)</span>
+
+<span class="sd">    Returns: DataFrame with one row per synapse</span>
+
+<span class="sd">get_adjacency()</span>
+<span class="sd">    Returns a structured adjacency matrix showing connection strengths.</span>
+
+<span class="sd">    Use when you need:</span>
+<span class="sd">    - Matrix-based connectivity analysis</span>
+<span class="sd">    - Network analysis with standard matrix operations</span>
+<span class="sd">    - Symmetric connectivity matrices for undirected analysis</span>
+<span class="sd">    - Integration with graph theory libraries (NetworkX, igraph)</span>
+<span class="sd">    - Direct input for clustering or community detection algorithms</span>
+
+<span class="sd">    Returns: DataFrame adjacency matrix (neurons x neurons)</span>
+
+<span class="sd">get_connectivity()</span>
+<span class="sd">    Returns aggregated connectivity as a simple edge list.</span>
+
+<span class="sd">    Use when you need:</span>
+<span class="sd">    - High-level connectivity overview between neurons</span>
+<span class="sd">    - Partner analysis (finding strongest connections)</span>
+<span class="sd">    - Simple edge lists for network visualization</span>
+<span class="sd">    - Quick connectivity summaries without detailed synapse info</span>
+<span class="sd">    - Input for graph visualization tools (Cytoscape, Gephi)</span>
+
+<span class="sd">    Returns: DataFrame with columns [pre, post, weight]</span>
+
+<span class="sd">get_synapse_counts()</span>
+<span class="sd">    Returns summary statistics of synaptic connections per neuron.</span>
+
+<span class="sd">    Use when you need:</span>
+<span class="sd">    - Quick overview of neuron connectivity profiles</span>
+<span class="sd">    - Total incoming and outgoing connection counts</span>
+<span class="sd">    - Comparative analysis of neuron connectivity levels</span>
+<span class="sd">    - Filtering neurons by connectivity thresholds</span>
+<span class="sd">    - Summary statistics for large neuron populations</span>
+
+<span class="sd">    Returns: DataFrame with columns [pre, post] indexed by neuron ID</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">navis</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.load</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_cave_client</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">CRANT_VALID_DATASETS</span><span class="p">,</span> <span class="n">SCALE_X</span><span class="p">,</span> <span class="n">SCALE_Y</span><span class="p">,</span> <span class="n">SCALE_Z</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">inject_dataset</span><span class="p">,</span> <span class="n">parse_neuroncriteria</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_root_ids</span><span class="p">,</span> <span class="n">retry</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.queries.neurons</span><span class="w"> </span><span class="kn">import</span> <span class="n">NeuronCriteria</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_synapses">
+<a class="viewcode-back" href="../../../api/crantpy.queries.connections.html#crantpy.get_synapses">[docs]</a>
+<span class="nd">@parse_neuroncriteria</span><span class="p">()</span>
+<span class="nd">@inject_dataset</span><span class="p">(</span><span class="n">allowed</span><span class="o">=</span><span class="n">CRANT_VALID_DATASETS</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_synapses</span><span class="p">(</span>
+    <span class="n">pre_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="s2">&quot;NeuronCriteria&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">post_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="s2">&quot;NeuronCriteria&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">min_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">materialization</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;latest&quot;</span><span class="p">,</span>
+    <span class="n">return_pixels</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">clean</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">update_ids</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">dataset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fetch synapses for a given set of pre- and/or post-synaptic neuron IDs in CRANTb.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pre_ids : int, str, list of int/str, NeuronCriteria, optional</span>
+<span class="sd">        Pre-synaptic neuron root ID(s) to include. Can be a single ID, list of IDs,</span>
+<span class="sd">        or NeuronCriteria object.</span>
+<span class="sd">    post_ids : int, str, list of int/str, NeuronCriteria, optional</span>
+<span class="sd">        Post-synaptic neuron root ID(s) to include. Can be a single ID, list of IDs,</span>
+<span class="sd">        or NeuronCriteria object.</span>
+<span class="sd">    threshold : int, default 1</span>
+<span class="sd">        Minimum number of synapses required for a partner to be retained.</span>
+<span class="sd">        Currently we don&#39;t know what a good threshold is.</span>
+<span class="sd">    min_size : int, optional</span>
+<span class="sd">        Minimum size for filtering synapses. Currently we don&#39;t know what a good size is.</span>
+<span class="sd">    materialization : str, default &#39;latest&#39;</span>
+<span class="sd">        Materialization version to use. &#39;latest&#39; (default) or &#39;live&#39; for live table.</span>
+<span class="sd">    return_pixels : bool, default True</span>
+<span class="sd">        Whether to convert coordinate columns from nanometers to pixels.</span>
+<span class="sd">        If True (default), coordinates in ctr_pt_position, pre_pt_position, and</span>
+<span class="sd">        post_pt_position are converted using dataset scale factors.</span>
+<span class="sd">        If False, coordinates remain in nanometer units.</span>
+<span class="sd">    clean : bool, default True</span>
+<span class="sd">        Whether to perform cleanup of the synapse data:</span>
+<span class="sd">        - Remove autapses (self-connections)</span>
+<span class="sd">        - Remove connections involving neuron ID 0 (background)</span>
+<span class="sd">    update_ids : bool, default True</span>
+<span class="sd">        Whether to automatically update outdated root IDs to their latest versions</span>
+<span class="sd">        before querying. This ensures accurate results even after segmentation edits.</span>
+<span class="sd">        Uses efficient per-ID caching to minimize overhead for repeated queries.</span>
+<span class="sd">        Set to False only if you&#39;re certain all IDs are current (faster but risky).</span>
+<span class="sd">    dataset : str, optional</span>
+<span class="sd">        Dataset to use for the query.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        DataFrame of synaptic connections.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If neither pre_ids nor post_ids are provided.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - When update_ids=True (default), outdated root IDs are automatically updated</span>
+<span class="sd">      using supervoxel IDs from annotations when available for fast, reliable updates</span>
+<span class="sd">    - ID updates are cached per-ID, so repeated queries with overlapping IDs are efficient</span>
+<span class="sd">    - Updated IDs are used for the query, but the original IDs are not modified in place</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    update_ids : Manually update root IDs to their latest versions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pre_ids</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">post_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You must provide at least one of pre_ids or post_ids&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Update IDs if requested</span>
+    <span class="k">if</span> <span class="n">update_ids</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.cave.segmentation</span><span class="w"> </span><span class="kn">import</span> <span class="n">update_ids</span> <span class="k">as</span> <span class="n">_update_ids</span>
+
+        <span class="k">if</span> <span class="n">pre_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parsed_pre_ids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">parse_root_ids</span><span class="p">(</span><span class="n">pre_ids</span><span class="p">)]</span>
+            <span class="n">update_result</span> <span class="o">=</span> <span class="n">_update_ids</span><span class="p">(</span><span class="n">parsed_pre_ids</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="c1"># Check for failed updates</span>
+            <span class="n">failed</span> <span class="o">=</span> <span class="n">update_result</span><span class="p">[</span><span class="n">update_result</span><span class="p">[</span><span class="s2">&quot;confidence&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Failed to update </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">failed</span><span class="p">)</span><span class="si">}</span><span class="s2"> pre-synaptic root ID(s). &quot;</span>
+                    <span class="s2">&quot;These IDs may no longer exist or results may be inaccurate.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">parsed_pre_ids</span> <span class="o">=</span> <span class="n">update_result</span><span class="p">[</span><span class="s2">&quot;new_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parsed_pre_ids</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">post_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parsed_post_ids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">parse_root_ids</span><span class="p">(</span><span class="n">post_ids</span><span class="p">)]</span>
+            <span class="n">update_result</span> <span class="o">=</span> <span class="n">_update_ids</span><span class="p">(</span>
+                <span class="n">parsed_post_ids</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+            <span class="c1"># Check for failed updates</span>
+            <span class="n">failed</span> <span class="o">=</span> <span class="n">update_result</span><span class="p">[</span><span class="n">update_result</span><span class="p">[</span><span class="s2">&quot;confidence&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Failed to update </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">failed</span><span class="p">)</span><span class="si">}</span><span class="s2"> post-synaptic root ID(s). &quot;</span>
+                    <span class="s2">&quot;These IDs may no longer exist or results may be inaccurate.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">parsed_post_ids</span> <span class="o">=</span> <span class="n">update_result</span><span class="p">[</span><span class="s2">&quot;new_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parsed_post_ids</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Don&#39;t update IDs</span>
+        <span class="k">if</span> <span class="n">pre_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parsed_pre_ids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">parse_root_ids</span><span class="p">(</span><span class="n">pre_ids</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parsed_pre_ids</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">post_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parsed_post_ids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">parse_root_ids</span><span class="p">(</span><span class="n">post_ids</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parsed_post_ids</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Get CAVE client</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">get_cave_client</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">)</span>
+
+    <span class="c1"># Build filter dict</span>
+    <span class="n">filter_in_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">parsed_pre_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">filter_in_dict</span><span class="p">[</span><span class="s2">&quot;pre_pt_root_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parsed_pre_ids</span>
+    <span class="k">if</span> <span class="n">parsed_post_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">filter_in_dict</span><span class="p">[</span><span class="s2">&quot;post_pt_root_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parsed_post_ids</span>
+
+    <span class="k">if</span> <span class="n">materialization</span> <span class="o">==</span> <span class="s2">&quot;live&quot;</span><span class="p">:</span>
+        <span class="n">syn</span> <span class="o">=</span> <span class="n">retry</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">materialize</span><span class="o">.</span><span class="n">live_query</span><span class="p">)(</span>
+            <span class="n">table</span><span class="o">=</span><span class="s2">&quot;synapses_v2&quot;</span><span class="p">,</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+            <span class="n">filter_in_dict</span><span class="o">=</span><span class="n">filter_in_dict</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">materialization</span> <span class="o">==</span> <span class="s2">&quot;latest&quot;</span><span class="p">:</span>
+        <span class="n">materialization</span> <span class="o">=</span> <span class="n">retry</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">materialize</span><span class="o">.</span><span class="n">most_recent_version</span><span class="p">)()</span>
+        <span class="n">syn</span> <span class="o">=</span> <span class="n">retry</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">materialize</span><span class="o">.</span><span class="n">query_table</span><span class="p">)(</span>
+            <span class="n">table</span><span class="o">=</span><span class="s2">&quot;synapses_v2&quot;</span><span class="p">,</span>
+            <span class="n">materialization_version</span><span class="o">=</span><span class="n">materialization</span><span class="p">,</span>
+            <span class="n">filter_in_dict</span><span class="o">=</span><span class="n">filter_in_dict</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;materialization must be either &#39;live&#39; or &#39;latest&#39;&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">syn</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">syn</span>
+
+    <span class="k">if</span> <span class="n">min_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;size&quot;</span> <span class="ow">in</span> <span class="n">syn</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">syn</span> <span class="o">=</span> <span class="n">syn</span><span class="p">[</span><span class="n">syn</span><span class="p">[</span><span class="s2">&quot;size&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_size</span><span class="p">]</span>
+
+    <span class="c1"># Thresholding by connection counts between pre-post pairs</span>
+    <span class="c1"># Count synapses for each pre-post pair</span>
+    <span class="n">pair_counts</span> <span class="o">=</span> <span class="n">syn</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;pre_pt_root_id&quot;</span><span class="p">,</span> <span class="s2">&quot;post_pt_root_id&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+    <span class="n">valid_pairs</span> <span class="o">=</span> <span class="n">pair_counts</span><span class="p">[</span><span class="n">pair_counts</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
+    <span class="c1"># Filter to keep only pairs that meet the threshold</span>
+    <span class="n">syn</span> <span class="o">=</span> <span class="n">syn</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;pre_pt_root_id&quot;</span><span class="p">,</span> <span class="s2">&quot;post_pt_root_id&quot;</span><span class="p">])</span>
+    <span class="n">syn</span> <span class="o">=</span> <span class="n">syn</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">syn</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">valid_pairs</span><span class="p">)]</span>
+    <span class="n">syn</span> <span class="o">=</span> <span class="n">syn</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>  <span class="c1"># This preserves the columns instead of dropping them</span>
+
+    <span class="c1"># Clean up synapses if requested</span>
+    <span class="k">if</span> <span class="n">clean</span><span class="p">:</span>
+        <span class="c1"># Remove autapses (self-connections)</span>
+        <span class="n">syn</span> <span class="o">=</span> <span class="n">syn</span><span class="p">[</span><span class="n">syn</span><span class="p">[</span><span class="s2">&quot;pre_pt_root_id&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">syn</span><span class="p">[</span><span class="s2">&quot;post_pt_root_id&quot;</span><span class="p">]]</span>
+        <span class="c1"># Remove connections involving background (ID 0)</span>
+        <span class="n">syn</span> <span class="o">=</span> <span class="n">syn</span><span class="p">[(</span><span class="n">syn</span><span class="p">[</span><span class="s2">&quot;pre_pt_root_id&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">syn</span><span class="p">[</span><span class="s2">&quot;post_pt_root_id&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)]</span>
+
+    <span class="c1"># Convert coordinates to pixels if requested</span>
+    <span class="k">if</span> <span class="n">return_pixels</span><span class="p">:</span>
+        <span class="n">syn</span> <span class="o">=</span> <span class="n">_convert_coordinates_to_pixels</span><span class="p">(</span><span class="n">syn</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">syn</span></div>
+
+
+
+<div class="viewcode-block" id="get_adjacency">
+<a class="viewcode-back" href="../../../api/crantpy.queries.connections.html#crantpy.get_adjacency">[docs]</a>
+<span class="nd">@parse_neuroncriteria</span><span class="p">()</span>
+<span class="nd">@inject_dataset</span><span class="p">(</span><span class="n">allowed</span><span class="o">=</span><span class="n">CRANT_VALID_DATASETS</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_adjacency</span><span class="p">(</span>
+    <span class="n">pre_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="s2">&quot;NeuronCriteria&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">post_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="s2">&quot;NeuronCriteria&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">min_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">materialization</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;latest&quot;</span><span class="p">,</span>
+    <span class="n">symmetric</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">clean</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">update_ids</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">dataset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct an adjacency matrix from synaptic connections between neurons.</span>
+
+<span class="sd">    This function queries the synapses table to get connections between specified</span>
+<span class="sd">    pre- and post-synaptic neurons, then constructs an adjacency matrix showing</span>
+<span class="sd">    the number of synapses between each pair.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pre_ids : int, str, list, NeuronCriteria, optional</span>
+<span class="sd">        Pre-synaptic neuron root IDs or criteria. If None, all pre-synaptic</span>
+<span class="sd">        neurons in the dataset will be included.</span>
+<span class="sd">    post_ids : int, str, list, NeuronCriteria, optional</span>
+<span class="sd">        Post-synaptic neuron root IDs or criteria. If None, all post-synaptic</span>
+<span class="sd">        neurons in the dataset will be included.</span>
+<span class="sd">    threshold : int, default 1</span>
+<span class="sd">        Minimum number of synapses required between a pair to be included</span>
+<span class="sd">        in the adjacency matrix.</span>
+<span class="sd">    min_size : int, optional</span>
+<span class="sd">        Minimum size for filtering synapses before constructing adjacency matrix.</span>
+<span class="sd">    materialization : str, default &#39;latest&#39;</span>
+<span class="sd">        Materialization version to use. &#39;latest&#39; (default) or &#39;live&#39; for live table.</span>
+<span class="sd">    symmetric : bool, default False</span>
+<span class="sd">        If True, return a symmetric adjacency matrix with the same set of IDs on</span>
+<span class="sd">        both rows and columns. The neuron set includes all neurons that appear</span>
+<span class="sd">        in the filtered synapses data (union of all pre- and post-synaptic neurons).</span>
+<span class="sd">        This provides a complete view of connectivity among all neurons involved</span>
+<span class="sd">        in the queried connections.</span>
+<span class="sd">        If False (default), rows represent pre-synaptic neurons and columns</span>
+<span class="sd">        represent post-synaptic neurons from the actual synapses data.</span>
+<span class="sd">    clean : bool, default True</span>
+<span class="sd">        Whether to perform cleanup of the underlying synapse data:</span>
+<span class="sd">        - Remove autapses (self-connections)</span>
+<span class="sd">        - Remove connections involving neuron ID 0 (background)</span>
+<span class="sd">        This parameter is passed to get_synapses().</span>
+<span class="sd">    update_ids : bool, default True</span>
+<span class="sd">        Whether to automatically update outdated root IDs to their latest versions</span>
+<span class="sd">        before querying. This ensures accurate results even after segmentation edits.</span>
+<span class="sd">        Uses efficient per-ID caching to minimize overhead for repeated queries.</span>
+<span class="sd">        Set to False only if you&#39;re certain all IDs are current (faster but risky).</span>
+<span class="sd">    dataset : str, optional</span>
+<span class="sd">        Dataset to use for the query.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        An adjacency matrix where each entry [i, j] represents the number of</span>
+<span class="sd">        synapses from neuron i (pre-synaptic) to neuron j (post-synaptic).</span>
+<span class="sd">        Rows are pre-synaptic neurons, columns are post-synaptic neurons.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import crantpy as cp</span>
+<span class="sd">    &gt;&gt;&gt; # Get adjacency between specific neurons</span>
+<span class="sd">    &gt;&gt;&gt; adj = cp.get_adjacency(pre_ids=[576460752641833774], post_ids=[576460752777916050])</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # Get adjacency with minimum threshold</span>
+<span class="sd">    &gt;&gt;&gt; adj = cp.get_adjacency(pre_ids=[576460752641833774], post_ids=[576460752777916050], threshold=3)</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # Get symmetric adjacency matrix</span>
+<span class="sd">    &gt;&gt;&gt; adj = cp.get_adjacency(pre_ids=[576460752641833774], post_ids=[576460752777916050], symmetric=True)</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # Get adjacency matrix with autapses included</span>
+<span class="sd">    &gt;&gt;&gt; adj = cp.get_adjacency(pre_ids=[576460752641833774], post_ids=[576460752777916050], clean=False)</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # Skip ID updates for faster queries (use only if IDs are known to be current)</span>
+<span class="sd">    &gt;&gt;&gt; adj = cp.get_adjacency(pre_ids=[576460752641833774], post_ids=[576460752777916050], update_ids=False)</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - This function uses get_synapses() internally to retrieve synaptic connections</span>
+<span class="sd">    - If both pre_ids and post_ids are None, this will query all synapses in the dataset</span>
+<span class="sd">    - The threshold parameter filters connection pairs, not individual synapses</span>
+<span class="sd">    - When symmetric=True, the resulting matrix includes all neurons that appear in the</span>
+<span class="sd">      filtered synapses data, ensuring complete connectivity visualization</span>
+<span class="sd">    - When symmetric=False, the matrix may be rectangular with different neuron sets</span>
+<span class="sd">      for rows (pre-synaptic) and columns (post-synaptic)</span>
+<span class="sd">    - When clean=True (default), autapses and background connections are removed</span>
+<span class="sd">    - When update_ids=True (default), IDs are automatically updated with efficient caching</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Get synapses using the same parameters</span>
+    <span class="n">synapses</span> <span class="o">=</span> <span class="n">get_synapses</span><span class="p">(</span>
+        <span class="n">pre_ids</span><span class="o">=</span><span class="n">pre_ids</span><span class="p">,</span>
+        <span class="n">post_ids</span><span class="o">=</span><span class="n">post_ids</span><span class="p">,</span>
+        <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
+        <span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span><span class="p">,</span>
+        <span class="n">materialization</span><span class="o">=</span><span class="n">materialization</span><span class="p">,</span>
+        <span class="n">clean</span><span class="o">=</span><span class="n">clean</span><span class="p">,</span>
+        <span class="n">update_ids</span><span class="o">=</span><span class="n">update_ids</span><span class="p">,</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">synapses</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="c1"># Return empty adjacency matrix with appropriate dimensions</span>
+        <span class="k">if</span> <span class="n">symmetric</span><span class="p">:</span>
+            <span class="c1"># For symmetric case, determine the neuron set to use</span>
+            <span class="k">if</span> <span class="n">pre_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">post_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Use union of provided pre and post IDs</span>
+                <span class="n">pre_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">parse_root_ids</span><span class="p">(</span><span class="n">pre_ids</span><span class="p">))</span>
+                <span class="n">post_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">parse_root_ids</span><span class="p">(</span><span class="n">post_ids</span><span class="p">))</span>
+                <span class="n">common_ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">pre_set</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">post_set</span><span class="p">)))</span>
+            <span class="k">elif</span> <span class="n">pre_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Use only pre_ids</span>
+                <span class="n">common_ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">parse_root_ids</span><span class="p">(</span><span class="n">pre_ids</span><span class="p">)])</span>
+            <span class="k">elif</span> <span class="n">post_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Use only post_ids</span>
+                <span class="n">common_ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">parse_root_ids</span><span class="p">(</span><span class="n">post_ids</span><span class="p">)])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Both are None</span>
+                <span class="n">common_ids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">common_ids</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">common_ids</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Asymmetric case</span>
+            <span class="n">pre_list</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">sorted</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">parse_root_ids</span><span class="p">(</span><span class="n">pre_ids</span><span class="p">)])</span>
+                <span class="k">if</span> <span class="n">pre_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="p">[]</span>
+            <span class="p">)</span>
+            <span class="n">post_list</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">sorted</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">parse_root_ids</span><span class="p">(</span><span class="n">post_ids</span><span class="p">)])</span>
+                <span class="k">if</span> <span class="n">post_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="p">[]</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">pre_list</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">post_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="c1"># Extract pre and post IDs from synapses</span>
+    <span class="n">pre_neurons</span> <span class="o">=</span> <span class="n">synapses</span><span class="p">[</span><span class="s2">&quot;pre_pt_root_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">post_neurons</span> <span class="o">=</span> <span class="n">synapses</span><span class="p">[</span><span class="s2">&quot;post_pt_root_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="k">if</span> <span class="n">symmetric</span><span class="p">:</span>
+        <span class="c1"># For symmetric adjacency matrix, use all neurons that appear in synapses data</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pre_neurons</span><span class="p">)</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">post_neurons</span><span class="p">))))</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="n">index</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Asymmetric case: use actual neurons from the synapses data</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pre_neurons</span><span class="p">)))</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">post_neurons</span><span class="p">)))</span>
+
+    <span class="c1"># Create adjacency matrix</span>
+    <span class="n">adj</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="c1"># Count synapses between each pair</span>
+    <span class="n">synapse_counts</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">synapses</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;pre_pt_root_id&quot;</span><span class="p">,</span> <span class="s2">&quot;post_pt_root_id&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">synapse_counts</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">pre_id</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;pre_pt_root_id&quot;</span><span class="p">]</span>
+        <span class="n">post_id</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;post_pt_root_id&quot;</span><span class="p">]</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">pre_id</span> <span class="ow">in</span> <span class="n">adj</span><span class="o">.</span><span class="n">index</span> <span class="ow">and</span> <span class="n">post_id</span> <span class="ow">in</span> <span class="n">adj</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">adj</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">pre_id</span><span class="p">,</span> <span class="n">post_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">count</span>
+
+    <span class="k">return</span> <span class="n">adj</span></div>
+
+
+
+<div class="viewcode-block" id="get_connectivity">
+<a class="viewcode-back" href="../../../api/crantpy.queries.connections.html#crantpy.get_connectivity">[docs]</a>
+<span class="nd">@parse_neuroncriteria</span><span class="p">()</span>
+<span class="nd">@inject_dataset</span><span class="p">(</span><span class="n">allowed</span><span class="o">=</span><span class="n">CRANT_VALID_DATASETS</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_connectivity</span><span class="p">(</span>
+    <span class="n">neuron_ids</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="s2">&quot;NeuronCriteria&quot;</span><span class="p">],</span>
+    <span class="n">upstream</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">downstream</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">min_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">materialization</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;latest&quot;</span><span class="p">,</span>
+    <span class="n">clean</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">update_ids</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">dataset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fetch connectivity information for given neuron(s) in CRANTb.</span>
+
+<span class="sd">    This function retrieves synaptic connections for the specified neurons,</span>
+<span class="sd">    returning a table of connections with pre-synaptic neurons, post-synaptic</span>
+<span class="sd">    neurons, and synapse counts.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    neuron_ids : int, str, list, NeuronCriteria</span>
+<span class="sd">        Neuron root ID(s) to query connectivity for. Can be a single ID,</span>
+<span class="sd">        list of IDs, or NeuronCriteria object.</span>
+<span class="sd">    upstream : bool, default True</span>
+<span class="sd">        Whether to fetch upstream (incoming) connectivity to the query neurons.</span>
+<span class="sd">    downstream : bool, default True</span>
+<span class="sd">        Whether to fetch downstream (outgoing) connectivity from the query neurons.</span>
+<span class="sd">    threshold : int, default 1</span>
+<span class="sd">        Minimum number of synapses required between a pair to be included</span>
+<span class="sd">        in the results.</span>
+<span class="sd">    min_size : int, optional</span>
+<span class="sd">        Minimum size for filtering synapses before aggregating connections.</span>
+<span class="sd">    materialization : str, default &#39;latest&#39;</span>
+<span class="sd">        Materialization version to use. &#39;latest&#39; (default) or &#39;live&#39; for live table.</span>
+<span class="sd">    clean : bool, default True</span>
+<span class="sd">        Whether to perform cleanup of the underlying synapse data:</span>
+<span class="sd">        - Remove autapses (self-connections)</span>
+<span class="sd">        - Remove connections involving neuron ID 0 (background)</span>
+<span class="sd">        This parameter is passed to get_synapses().</span>
+<span class="sd">    update_ids : bool, default True</span>
+<span class="sd">        Whether to automatically update outdated root IDs to their latest versions</span>
+<span class="sd">        before querying. This ensures accurate results even after segmentation edits.</span>
+<span class="sd">        Uses efficient per-ID caching to minimize overhead for repeated queries.</span>
+<span class="sd">        Set to False only if you&#39;re certain all IDs are current (faster but risky).</span>
+<span class="sd">    dataset : str, optional</span>
+<span class="sd">        Dataset to use for the query.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        Connectivity table with columns:</span>
+<span class="sd">        - &#39;pre&#39;: pre-synaptic neuron ID</span>
+<span class="sd">        - &#39;post&#39;: post-synaptic neuron ID</span>
+<span class="sd">        - &#39;weight&#39;: number of synapses between the pair</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If both upstream and downstream are False.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import crantpy as cp</span>
+<span class="sd">    &gt;&gt;&gt; # Get all connections for a neuron</span>
+<span class="sd">    &gt;&gt;&gt; conn = cp.get_connectivity(576460752641833774)</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # Get only downstream connections with threshold</span>
+<span class="sd">    &gt;&gt;&gt; conn = cp.get_connectivity(576460752641833774, upstream=False, threshold=3)</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # Get connectivity for multiple neurons</span>
+<span class="sd">    &gt;&gt;&gt; conn = cp.get_connectivity([576460752641833774, 576460752777916050])</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # Skip ID updates for faster queries (use only if IDs are known to be current)</span>
+<span class="sd">    &gt;&gt;&gt; conn = cp.get_connectivity(576460752641833774, update_ids=False)</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - This function uses get_synapses() internally to retrieve synaptic connections</span>
+<span class="sd">    - Results are aggregated by pre-post neuron pairs and sorted by synapse count</span>
+<span class="sd">    - When clean=True, autapses and background connections are removed</span>
+<span class="sd">    - When update_ids=True (default), IDs are automatically updated with efficient caching</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">upstream</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">downstream</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Both `upstream` and `downstream` cannot be False&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Parse neuron IDs - keep as strings to match get_synapses expectations</span>
+    <span class="n">query_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">parse_root_ids</span><span class="p">(</span><span class="n">neuron_ids</span><span class="p">))</span>
+
+    <span class="c1"># Collect all synapses</span>
+    <span class="n">synapses_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">upstream</span><span class="p">:</span>
+        <span class="c1"># Get synapses where query neurons are post-synaptic (incoming)</span>
+        <span class="n">upstream_syns</span> <span class="o">=</span> <span class="n">get_synapses</span><span class="p">(</span>
+            <span class="n">pre_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">post_ids</span><span class="o">=</span><span class="n">query_ids</span><span class="p">,</span>
+            <span class="n">threshold</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># Apply threshold later after aggregation</span>
+            <span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span><span class="p">,</span>
+            <span class="n">materialization</span><span class="o">=</span><span class="n">materialization</span><span class="p">,</span>
+            <span class="n">clean</span><span class="o">=</span><span class="n">clean</span><span class="p">,</span>
+            <span class="n">update_ids</span><span class="o">=</span><span class="n">update_ids</span><span class="p">,</span>
+            <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">upstream_syns</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">synapses_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">upstream_syns</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">downstream</span><span class="p">:</span>
+        <span class="c1"># Get synapses where query neurons are pre-synaptic (outgoing)</span>
+        <span class="n">downstream_syns</span> <span class="o">=</span> <span class="n">get_synapses</span><span class="p">(</span>
+            <span class="n">pre_ids</span><span class="o">=</span><span class="n">query_ids</span><span class="p">,</span>
+            <span class="n">post_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">threshold</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># Apply threshold later after aggregation</span>
+            <span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span><span class="p">,</span>
+            <span class="n">materialization</span><span class="o">=</span><span class="n">materialization</span><span class="p">,</span>
+            <span class="n">clean</span><span class="o">=</span><span class="n">clean</span><span class="p">,</span>
+            <span class="n">update_ids</span><span class="o">=</span><span class="n">update_ids</span><span class="p">,</span>
+            <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">downstream_syns</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">synapses_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">downstream_syns</span><span class="p">)</span>
+
+    <span class="c1"># Combine all synapses</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">synapses_list</span><span class="p">:</span>
+        <span class="c1"># Return empty DataFrame with expected columns</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pre&quot;</span><span class="p">,</span> <span class="s2">&quot;post&quot;</span><span class="p">,</span> <span class="s2">&quot;weight&quot;</span><span class="p">])</span>
+
+    <span class="n">synapses</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">synapses_list</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">synapses</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pre&quot;</span><span class="p">,</span> <span class="s2">&quot;post&quot;</span><span class="p">,</span> <span class="s2">&quot;weight&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Remove duplicates (in case same synapse appears in both upstream/downstream)</span>
+    <span class="n">synapses</span> <span class="o">=</span> <span class="n">synapses</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Rename columns for consistency</span>
+    <span class="n">synapses</span> <span class="o">=</span> <span class="n">synapses</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;pre_pt_root_id&quot;</span><span class="p">:</span> <span class="s2">&quot;pre&quot;</span><span class="p">,</span> <span class="s2">&quot;post_pt_root_id&quot;</span><span class="p">:</span> <span class="s2">&quot;post&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Aggregate by pre-post pairs to get connection weights</span>
+    <span class="n">connectivity</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">synapses</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;pre&quot;</span><span class="p">,</span> <span class="s2">&quot;post&quot;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="s2">&quot;weight&quot;</span><span class="p">})</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Apply threshold after aggregation</span>
+    <span class="n">connectivity</span> <span class="o">=</span> <span class="n">connectivity</span><span class="p">[</span><span class="n">connectivity</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">]</span>
+
+    <span class="c1"># Sort by weight (descending) and reset index</span>
+    <span class="n">connectivity</span> <span class="o">=</span> <span class="n">connectivity</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span>
+        <span class="n">drop</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">connectivity</span></div>
+
+
+
+<div class="viewcode-block" id="get_synapse_counts">
+<a class="viewcode-back" href="../../../api/crantpy.queries.connections.html#crantpy.get_synapse_counts">[docs]</a>
+<span class="nd">@parse_neuroncriteria</span><span class="p">()</span>
+<span class="nd">@inject_dataset</span><span class="p">(</span><span class="n">allowed</span><span class="o">=</span><span class="n">CRANT_VALID_DATASETS</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_synapse_counts</span><span class="p">(</span>
+    <span class="n">neuron_ids</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="s2">&quot;NeuronCriteria&quot;</span><span class="p">],</span>
+    <span class="n">threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">min_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">materialization</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;latest&quot;</span><span class="p">,</span>
+    <span class="n">clean</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">update_ids</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">dataset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get synapse counts (pre and post) for given neuron IDs in CRANTb.</span>
+
+<span class="sd">    This function returns the total number of presynaptic and postsynaptic</span>
+<span class="sd">    connections for each specified neuron, aggregated across all their partners.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    neuron_ids : int, str, list, NeuronCriteria</span>
+<span class="sd">        Neuron root ID(s) to get synapse counts for. Can be a single ID,</span>
+<span class="sd">        list of IDs, or NeuronCriteria object.</span>
+<span class="sd">    threshold : int, default 1</span>
+<span class="sd">        Minimum number of synapses required between a pair to be counted</span>
+<span class="sd">        towards the total. Pairs with fewer synapses are excluded.</span>
+<span class="sd">    min_size : int, optional</span>
+<span class="sd">        Minimum size for filtering individual synapses before counting.</span>
+<span class="sd">    materialization : str, default &#39;latest&#39;</span>
+<span class="sd">        Materialization version to use. &#39;latest&#39; (default) or &#39;live&#39; for live table.</span>
+<span class="sd">    clean : bool, default True</span>
+<span class="sd">        Whether to perform cleanup of the underlying synapse data:</span>
+<span class="sd">        - Remove autapses (self-connections)</span>
+<span class="sd">        - Remove connections involving neuron ID 0 (background)</span>
+<span class="sd">        This parameter is passed to get_connectivity().</span>
+<span class="sd">    update_ids : bool, default True</span>
+<span class="sd">        Whether to automatically update outdated root IDs to their latest versions</span>
+<span class="sd">        before querying. This ensures accurate results even after segmentation edits.</span>
+<span class="sd">        Uses efficient per-ID caching to minimize overhead for repeated queries.</span>
+<span class="sd">        Set to False only if you&#39;re certain all IDs are current (faster but risky).</span>
+<span class="sd">    dataset : str, optional</span>
+<span class="sd">        Dataset to use for the query.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        DataFrame with columns:</span>
+<span class="sd">        - index: neuron IDs</span>
+<span class="sd">        - &#39;pre&#39;: number of presynaptic connections (outgoing)</span>
+<span class="sd">        - &#39;post&#39;: number of postsynaptic connections (incoming)</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import crantpy as cp</span>
+<span class="sd">    &gt;&gt;&gt; # Get synapse counts for a single neuron</span>
+<span class="sd">    &gt;&gt;&gt; counts = cp.get_synapse_counts(576460752641833774)</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # Get counts for multiple neurons with threshold</span>
+<span class="sd">    &gt;&gt;&gt; counts = cp.get_synapse_counts([576460752641833774, 576460752777916050], threshold=3)</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # Skip ID updates for faster queries (use only if IDs are known to be current)</span>
+<span class="sd">    &gt;&gt;&gt; counts = cp.get_synapse_counts(576460752641833774, update_ids=False)</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - This function uses get_connectivity() internally to get connection data</span>
+<span class="sd">    - Counts represent the number of distinct synaptic partners, not individual synapses</span>
+<span class="sd">    - The threshold is applied at the connection level (pairs of neurons)</span>
+<span class="sd">    - When update_ids=True (default), IDs are automatically updated with efficient caching</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Parse neuron IDs</span>
+    <span class="n">query_ids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">parse_root_ids</span><span class="p">(</span><span class="n">neuron_ids</span><span class="p">)]</span>
+
+    <span class="c1"># Get connectivity for all query neurons (both upstream and downstream)</span>
+    <span class="n">connectivity</span> <span class="o">=</span> <span class="n">get_connectivity</span><span class="p">(</span>
+        <span class="n">neuron_ids</span><span class="o">=</span><span class="n">neuron_ids</span><span class="p">,</span>
+        <span class="n">upstream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">downstream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
+        <span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span><span class="p">,</span>
+        <span class="n">materialization</span><span class="o">=</span><span class="n">materialization</span><span class="p">,</span>
+        <span class="n">clean</span><span class="o">=</span><span class="n">clean</span><span class="p">,</span>
+        <span class="n">update_ids</span><span class="o">=</span><span class="n">update_ids</span><span class="p">,</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Initialize counts DataFrame with zeros</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">query_ids</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;neuron_id&quot;</span><span class="p">),</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pre&quot;</span><span class="p">,</span> <span class="s2">&quot;post&quot;</span><span class="p">],</span>
+        <span class="n">data</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">connectivity</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">counts</span>
+
+    <span class="c1"># Count presynaptic connections (outgoing from query neurons)</span>
+    <span class="n">pre_counts</span> <span class="o">=</span> <span class="n">connectivity</span><span class="p">[</span><span class="n">connectivity</span><span class="p">[</span><span class="s2">&quot;pre&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">query_ids</span><span class="p">)]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;pre&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+    <span class="n">pre_counts</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;pre&quot;</span>
+
+    <span class="c1"># Count postsynaptic connections (incoming to query neurons)</span>
+    <span class="n">post_counts</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">connectivity</span><span class="p">[</span><span class="n">connectivity</span><span class="p">[</span><span class="s2">&quot;post&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">query_ids</span><span class="p">)]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;post&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="n">post_counts</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;post&quot;</span>
+
+    <span class="c1"># Update counts DataFrame</span>
+    <span class="k">for</span> <span class="n">neuron_id</span> <span class="ow">in</span> <span class="n">query_ids</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">neuron_id</span> <span class="ow">in</span> <span class="n">pre_counts</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="n">counts</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">neuron_id</span><span class="p">,</span> <span class="s2">&quot;pre&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pre_counts</span><span class="p">[</span><span class="n">neuron_id</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">neuron_id</span> <span class="ow">in</span> <span class="n">post_counts</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="n">counts</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">neuron_id</span><span class="p">,</span> <span class="s2">&quot;post&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">post_counts</span><span class="p">[</span><span class="n">neuron_id</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">counts</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_convert_coordinates_to_pixels</span><span class="p">(</span><span class="n">synapses_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert synapse coordinates from nanometers to pixels.</span>
+
+<span class="sd">    This function converts the coordinate columns in a synapses DataFrame</span>
+<span class="sd">    from nanometer units to pixel units using the dataset-specific scale factors.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    synapses_df : pd.DataFrame</span>
+<span class="sd">        DataFrame containing synapse data with coordinate columns.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        DataFrame with coordinates converted to pixels.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The conversion uses scale factors defined in the config:</span>
+<span class="sd">    - SCALE_X, SCALE_Y = 8 nm/pixel (x and y dimensions)</span>
+<span class="sd">    - SCALE_Z = 42 nm/pixel (z dimension)</span>
+
+<span class="sd">    Coordinate columns that are converted (if present):</span>
+<span class="sd">    - ctr_pt_position (center point coordinates)</span>
+<span class="sd">    - pre_pt_position (presynaptic site coordinates)</span>
+<span class="sd">    - post_pt_position (postsynaptic site coordinates)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">synapses_df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># Define coordinate columns to convert</span>
+    <span class="n">coord_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ctr_pt_position&quot;</span><span class="p">,</span> <span class="s2">&quot;pre_pt_position&quot;</span><span class="p">,</span> <span class="s2">&quot;post_pt_position&quot;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">coord_columns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="c1"># Convert coordinates from nm to pixels</span>
+            <span class="c1"># Each coordinate is a 3-element array [x, y, z]</span>
+            <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">pos</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="nb">int</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">SCALE_X</span><span class="p">),</span>  <span class="c1"># x coordinate</span>
+                        <span class="nb">int</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="n">SCALE_Y</span><span class="p">),</span>  <span class="c1"># y coordinate</span>
+                        <span class="nb">int</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="n">SCALE_Z</span><span class="p">),</span>  <span class="c1"># z coordinate</span>
+                    <span class="p">]</span>
+                    <span class="k">if</span> <span class="n">pos</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+                    <span class="k">else</span> <span class="n">pos</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">df</span>
+
+
+<div class="viewcode-block" id="attach_synapses">
+<a class="viewcode-back" href="../../../api/crantpy.queries.connections.html#crantpy.attach_synapses">[docs]</a>
+<span class="nd">@inject_dataset</span><span class="p">(</span><span class="n">allowed</span><span class="o">=</span><span class="n">CRANT_VALID_DATASETS</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">attach_synapses</span><span class="p">(</span>
+    <span class="n">neurons</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;navis.TreeNeuron&quot;</span><span class="p">,</span> <span class="s2">&quot;navis.NeuronList&quot;</span><span class="p">],</span>
+    <span class="n">pre</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">post</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">min_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">materialization</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;latest&quot;</span><span class="p">,</span>
+    <span class="n">clean</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">max_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10000.0</span><span class="p">,</span>
+    <span class="n">update_ids</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">dataset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;navis.TreeNeuron&quot;</span><span class="p">,</span> <span class="s2">&quot;navis.NeuronList&quot;</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attach synapses as connectors to skeleton neurons.</span>
+
+<span class="sd">    This function fetches synapses for the given neuron(s) and maps them to the</span>
+<span class="sd">    closest node on each skeleton using a KD-tree. The synapses are attached as</span>
+<span class="sd">    a `.connectors` table with columns for connector_id, x, y, z, type (pre/post),</span>
+<span class="sd">    partner_id, and node_id.</span>
+
+<span class="sd">    Adapted from fafbseg-py (Philipp Schlegel) to work with CRANTb data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    neurons : navis.TreeNeuron or navis.NeuronList</span>
+<span class="sd">        Skeleton neuron(s) to attach synapses to. Must be TreeNeuron objects</span>
+<span class="sd">        with node coordinates.</span>
+<span class="sd">    pre : bool, default True</span>
+<span class="sd">        Whether to fetch and attach presynapses (outputs) for the given neurons.</span>
+<span class="sd">    post : bool, default True</span>
+<span class="sd">        Whether to fetch and attach postsynapses (inputs) for the given neurons.</span>
+<span class="sd">    threshold : int, default 1</span>
+<span class="sd">        Minimum number of synapses required between neuron pairs to be included.</span>
+<span class="sd">    min_size : int, optional</span>
+<span class="sd">        Minimum synapse size for filtering.</span>
+<span class="sd">    materialization : str, default &#39;latest&#39;</span>
+<span class="sd">        Materialization version to use. Either &#39;latest&#39; or &#39;live&#39;.</span>
+<span class="sd">    clean : bool, default True</span>
+<span class="sd">        Whether to perform cleanup of synapse data:</span>
+<span class="sd">        - Remove autapses (self-connections)</span>
+<span class="sd">        - Remove connections involving neuron ID 0 (background)</span>
+<span class="sd">        - Remove synapses that are too far from skeleton nodes (see max_distance)</span>
+<span class="sd">    max_distance : float, default 10000.0</span>
+<span class="sd">        Maximum distance (in nanometers) between a synapse and its nearest skeleton</span>
+<span class="sd">        node. Synapses further than this are removed if clean=True. The default of</span>
+<span class="sd">        10um helps filter out spurious synapse annotations far from the actual neuron.</span>
+<span class="sd">    update_ids : bool, default True</span>
+<span class="sd">        Whether to automatically update outdated root IDs to their latest versions</span>
+<span class="sd">        before querying. This ensures accurate results even after segmentation edits.</span>
+<span class="sd">        Uses efficient per-ID caching to minimize overhead for repeated queries.</span>
+<span class="sd">        Set to False only if you&#39;re certain all IDs are current (faster but risky).</span>
+<span class="sd">    dataset : str, optional</span>
+<span class="sd">        Dataset to use for queries.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    navis.TreeNeuron or navis.NeuronList</span>
+<span class="sd">        The same neuron(s) with `.connectors` table attached. The connectors table</span>
+<span class="sd">        includes columns:</span>
+<span class="sd">        - connector_id: Unique ID for each synapse (sequential)</span>
+<span class="sd">        - x, y, z: Synapse coordinates in nanometers</span>
+<span class="sd">        - type: &#39;pre&#39; for presynapses, &#39;post&#39; for postsynapses</span>
+<span class="sd">        - partner_id: Root ID of the partner neuron</span>
+<span class="sd">        - node_id: ID of the skeleton node closest to this synapse</span>
+
+<span class="sd">        Note: The input neurons are modified in place and also returned.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If neurons is not a TreeNeuron or NeuronList of TreeNeurons.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If both pre and post are False.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import crantpy as cp</span>
+<span class="sd">    &gt;&gt;&gt; # Get a skeleton neuron</span>
+<span class="sd">    &gt;&gt;&gt; skeleton = cp.get_l2_skeleton(576460752664524086)</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # Attach synapses to it</span>
+<span class="sd">    &gt;&gt;&gt; skeleton = cp.attach_synapses(skeleton)</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # View the connectors table</span>
+<span class="sd">    &gt;&gt;&gt; print(skeleton.connectors.head())</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # Get only presynapses</span>
+<span class="sd">    &gt;&gt;&gt; skeleton = cp.attach_synapses(skeleton, post=False)</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # Filter distant synapses more aggressively</span>
+<span class="sd">    &gt;&gt;&gt; skeleton = cp.attach_synapses(skeleton, max_distance=5000)</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; # Skip ID updates for faster queries (use only if IDs are known to be current)</span>
+<span class="sd">    &gt;&gt;&gt; skeleton = cp.attach_synapses(skeleton, update_ids=False)</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    get_synapses</span>
+<span class="sd">        Fetch synapse data without attaching to neurons.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - This function modifies the input neurons in place by adding/updating the</span>
+<span class="sd">      .connectors attribute.</span>
+<span class="sd">    - Synapses are mapped to skeleton nodes using scipy&#39;s KDTree for efficient</span>
+<span class="sd">      nearest neighbor search.</span>
+<span class="sd">    - The connector_id is a sequential integer starting from 0, not the original</span>
+<span class="sd">      synapse ID from the database.</span>
+<span class="sd">    - If a neuron already has a .connectors table, it will be overwritten.</span>
+<span class="sd">    - Synapse coordinates are automatically converted from pixels to nanometers</span>
+<span class="sd">      to match skeleton coordinate system (using SCALE_X=8, SCALE_Y=8, SCALE_Z=42).</span>
+<span class="sd">    - When update_ids=True (default), IDs are automatically updated with efficient caching</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">pre</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">post</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`pre` and `post` must not both be False&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Handle single neuron vs NeuronList</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">neurons</span><span class="p">,</span> <span class="n">navis</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">BaseNeuron</span><span class="p">):</span>
+        <span class="n">neurons</span> <span class="o">=</span> <span class="n">navis</span><span class="o">.</span><span class="n">NeuronList</span><span class="p">([</span><span class="n">neurons</span><span class="p">])</span>
+        <span class="n">return_single</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">return_single</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">neurons</span><span class="p">,</span> <span class="n">navis</span><span class="o">.</span><span class="n">NeuronList</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected TreeNeuron or NeuronList, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">neurons</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check that all neurons are TreeNeurons</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">neurons</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">navis</span><span class="o">.</span><span class="n">TreeNeuron</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;All neurons must be TreeNeurons, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s2"> for neuron </span><span class="si">{</span><span class="n">n</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+    <span class="c1"># Get neuron IDs</span>
+    <span class="n">neuron_ids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">neurons</span><span class="p">]</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fetching synapses for neuron IDs: </span><span class="si">{</span><span class="n">neuron_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Fetch synapses - need to make separate queries for pre and post</span>
+    <span class="c1"># because querying with both creates an AND condition (autapses only)</span>
+    <span class="n">syn_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">pre</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Fetching presynapses...&quot;</span><span class="p">)</span>
+        <span class="n">presyn</span> <span class="o">=</span> <span class="n">get_synapses</span><span class="p">(</span>
+            <span class="n">pre_ids</span><span class="o">=</span><span class="n">neuron_ids</span><span class="p">,</span>
+            <span class="n">post_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
+            <span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span><span class="p">,</span>
+            <span class="n">materialization</span><span class="o">=</span><span class="n">materialization</span><span class="p">,</span>
+            <span class="n">return_pixels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Get pixels so we can convert them ourselves</span>
+            <span class="n">clean</span><span class="o">=</span><span class="n">clean</span><span class="p">,</span>
+            <span class="n">update_ids</span><span class="o">=</span><span class="n">update_ids</span><span class="p">,</span>
+            <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">presyn</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">syn_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">presyn</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrieved </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">presyn</span><span class="p">)</span><span class="si">}</span><span class="s2"> presynapses&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">post</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Fetching postsynapses...&quot;</span><span class="p">)</span>
+        <span class="n">postsyn</span> <span class="o">=</span> <span class="n">get_synapses</span><span class="p">(</span>
+            <span class="n">pre_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">post_ids</span><span class="o">=</span><span class="n">neuron_ids</span><span class="p">,</span>
+            <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
+            <span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span><span class="p">,</span>
+            <span class="n">materialization</span><span class="o">=</span><span class="n">materialization</span><span class="p">,</span>
+            <span class="n">return_pixels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Get pixels so we can convert them ourselves</span>
+            <span class="n">clean</span><span class="o">=</span><span class="n">clean</span><span class="p">,</span>
+            <span class="n">update_ids</span><span class="o">=</span><span class="n">update_ids</span><span class="p">,</span>
+            <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">postsyn</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">syn_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">postsyn</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrieved </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">postsyn</span><span class="p">)</span><span class="si">}</span><span class="s2"> postsynapses&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Combine pre and post synapses</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">syn_list</span><span class="p">:</span>
+        <span class="n">syn</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">syn</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">syn_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># Remove duplicates (in case same synapse appears in both queries)</span>
+        <span class="k">if</span> <span class="s2">&quot;id&quot;</span> <span class="ow">in</span> <span class="n">syn</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">syn</span> <span class="o">=</span> <span class="n">syn</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total synapses after combining: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">syn</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">syn</span><span class="o">.</span><span class="n">empty</span> <span class="ow">and</span> <span class="n">logger</span><span class="o">.</span><span class="n">isEnabledFor</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Synapse columns: </span><span class="si">{</span><span class="n">syn</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sample synapse: </span><span class="si">{</span><span class="n">syn</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">syn</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No synapses found for neurons </span><span class="si">{</span><span class="n">neuron_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Attach empty connectors tables</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">neurons</span><span class="p">:</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">connectors</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;connector_id&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;partner_id&quot;</span><span class="p">,</span> <span class="s2">&quot;node_id&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">neurons</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">return_single</span> <span class="k">else</span> <span class="n">neurons</span>  <span class="c1"># Process each neuron</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">neurons</span><span class="p">:</span>
+        <span class="n">presyn</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="n">postsyn</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="n">neuron_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing neuron </span><span class="si">{</span><span class="n">neuron_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Extract presynapses</span>
+        <span class="k">if</span> <span class="n">pre</span> <span class="ow">and</span> <span class="s2">&quot;pre_pt_root_id&quot;</span> <span class="ow">in</span> <span class="n">syn</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">presyn_data</span> <span class="o">=</span> <span class="n">syn</span><span class="p">[</span><span class="n">syn</span><span class="p">[</span><span class="s2">&quot;pre_pt_root_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">neuron_id</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">presyn_data</span><span class="p">)</span><span class="si">}</span><span class="s2"> presynapses for neuron </span><span class="si">{</span><span class="n">neuron_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">presyn_data</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="c1"># Extract coordinates - handle both array and individual column formats</span>
+                <span class="k">if</span> <span class="s2">&quot;pre_pt_position&quot;</span> <span class="ow">in</span> <span class="n">presyn_data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="c1"># Coordinates as array - need to convert from pixels to nm</span>
+                    <span class="n">presyn</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">presyn_data</span><span class="p">[</span><span class="s2">&quot;pre_pt_position&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                                <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="p">(</span>
+                                    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">SCALE_X</span>  <span class="c1"># Convert pixels to nm</span>
+                                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+                                    <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                                <span class="p">)</span>
+                            <span class="p">),</span>
+                            <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">presyn_data</span><span class="p">[</span><span class="s2">&quot;pre_pt_position&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                                <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="p">(</span>
+                                    <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">SCALE_Y</span>  <span class="c1"># Convert pixels to nm</span>
+                                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+                                    <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                                <span class="p">)</span>
+                            <span class="p">),</span>
+                            <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="n">presyn_data</span><span class="p">[</span><span class="s2">&quot;pre_pt_position&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                                <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="p">(</span>
+                                    <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">SCALE_Z</span>  <span class="c1"># Convert pixels to nm</span>
+                                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+                                    <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                                <span class="p">)</span>
+                            <span class="p">),</span>
+                            <span class="s2">&quot;partner_id&quot;</span><span class="p">:</span> <span class="n">presyn_data</span><span class="p">[</span><span class="s2">&quot;post_pt_root_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;pre&quot;</span><span class="p">,</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Individual columns (shouldn&#39;t happen with current implementation, but be safe)</span>
+                    <span class="n">presyn</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">presyn_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                                <span class="s2">&quot;pre_pt_position_x&quot;</span><span class="p">,</span> <span class="n">presyn_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pre_x&quot;</span><span class="p">,</span> <span class="p">[])</span>
+                            <span class="p">)</span>
+                            <span class="o">*</span> <span class="n">SCALE_X</span><span class="p">,</span>
+                            <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">presyn_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                                <span class="s2">&quot;pre_pt_position_y&quot;</span><span class="p">,</span> <span class="n">presyn_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pre_y&quot;</span><span class="p">,</span> <span class="p">[])</span>
+                            <span class="p">)</span>
+                            <span class="o">*</span> <span class="n">SCALE_Y</span><span class="p">,</span>
+                            <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="n">presyn_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                                <span class="s2">&quot;pre_pt_position_z&quot;</span><span class="p">,</span> <span class="n">presyn_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pre_z&quot;</span><span class="p">,</span> <span class="p">[])</span>
+                            <span class="p">)</span>
+                            <span class="o">*</span> <span class="n">SCALE_Z</span><span class="p">,</span>
+                            <span class="s2">&quot;partner_id&quot;</span><span class="p">:</span> <span class="n">presyn_data</span><span class="p">[</span><span class="s2">&quot;post_pt_root_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;pre&quot;</span><span class="p">,</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+
+        <span class="c1"># Extract postsynapses</span>
+        <span class="k">if</span> <span class="n">post</span> <span class="ow">and</span> <span class="s2">&quot;post_pt_root_id&quot;</span> <span class="ow">in</span> <span class="n">syn</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">postsyn_data</span> <span class="o">=</span> <span class="n">syn</span><span class="p">[</span><span class="n">syn</span><span class="p">[</span><span class="s2">&quot;post_pt_root_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">neuron_id</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">postsyn_data</span><span class="p">)</span><span class="si">}</span><span class="s2"> postsynapses for neuron </span><span class="si">{</span><span class="n">neuron_id</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">postsyn_data</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="c1"># Extract coordinates</span>
+                <span class="k">if</span> <span class="s2">&quot;post_pt_position&quot;</span> <span class="ow">in</span> <span class="n">postsyn_data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="n">postsyn</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">postsyn_data</span><span class="p">[</span><span class="s2">&quot;post_pt_position&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                                <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="p">(</span>
+                                    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">SCALE_X</span>  <span class="c1"># Convert pixels to nm</span>
+                                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+                                    <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                                <span class="p">)</span>
+                            <span class="p">),</span>
+                            <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">postsyn_data</span><span class="p">[</span><span class="s2">&quot;post_pt_position&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                                <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="p">(</span>
+                                    <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">SCALE_Y</span>  <span class="c1"># Convert pixels to nm</span>
+                                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+                                    <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                                <span class="p">)</span>
+                            <span class="p">),</span>
+                            <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="n">postsyn_data</span><span class="p">[</span><span class="s2">&quot;post_pt_position&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                                <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="p">(</span>
+                                    <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">SCALE_Z</span>  <span class="c1"># Convert pixels to nm</span>
+                                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+                                    <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                                <span class="p">)</span>
+                            <span class="p">),</span>
+                            <span class="s2">&quot;partner_id&quot;</span><span class="p">:</span> <span class="n">postsyn_data</span><span class="p">[</span><span class="s2">&quot;pre_pt_root_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;post&quot;</span><span class="p">,</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">postsyn</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">postsyn_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                                <span class="s2">&quot;post_pt_position_x&quot;</span><span class="p">,</span> <span class="n">postsyn_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;post_x&quot;</span><span class="p">,</span> <span class="p">[])</span>
+                            <span class="p">)</span>
+                            <span class="o">*</span> <span class="n">SCALE_X</span><span class="p">,</span>
+                            <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">postsyn_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                                <span class="s2">&quot;post_pt_position_y&quot;</span><span class="p">,</span> <span class="n">postsyn_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;post_y&quot;</span><span class="p">,</span> <span class="p">[])</span>
+                            <span class="p">)</span>
+                            <span class="o">*</span> <span class="n">SCALE_Y</span><span class="p">,</span>
+                            <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="n">postsyn_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                                <span class="s2">&quot;post_pt_position_z&quot;</span><span class="p">,</span> <span class="n">postsyn_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;post_z&quot;</span><span class="p">,</span> <span class="p">[])</span>
+                            <span class="p">)</span>
+                            <span class="o">*</span> <span class="n">SCALE_Z</span><span class="p">,</span>
+                            <span class="s2">&quot;partner_id&quot;</span><span class="p">:</span> <span class="n">postsyn_data</span><span class="p">[</span><span class="s2">&quot;pre_pt_root_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;post&quot;</span><span class="p">,</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+
+        <span class="c1"># Combine pre and post synapses</span>
+        <span class="n">connectors</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">presyn</span><span class="p">,</span> <span class="n">postsyn</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Combined </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">connectors</span><span class="p">)</span><span class="si">}</span><span class="s2"> connectors for neuron </span><span class="si">{</span><span class="n">neuron_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">connectors</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No connectors after combining for neuron </span><span class="si">{</span><span class="n">neuron_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">connectors</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;connector_id&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;partner_id&quot;</span><span class="p">,</span> <span class="s2">&quot;node_id&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Drop any rows with NaN coordinates</span>
+        <span class="n">connectors</span> <span class="o">=</span> <span class="n">connectors</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">])</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;After dropping NaNs: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">connectors</span><span class="p">)</span><span class="si">}</span><span class="s2"> connectors&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">connectors</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;All connectors had NaN coordinates for neuron </span><span class="si">{</span><span class="n">neuron_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">connectors</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;connector_id&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;partner_id&quot;</span><span class="p">,</span> <span class="s2">&quot;node_id&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Map synapses to nearest skeleton nodes using KDTree</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">navis</span><span class="o">.</span><span class="n">neuron2KDTree</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="s2">&quot;nodes&quot;</span><span class="p">)</span>
+        <span class="n">dist</span><span class="p">,</span> <span class="n">ix</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">connectors</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Mapped connectors to nodes. Min dist: </span><span class="si">{</span><span class="n">dist</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">, Max dist: </span><span class="si">{</span><span class="n">dist</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> nm&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Filter synapses that are too far from skeleton if clean=True</span>
+        <span class="k">if</span> <span class="n">clean</span><span class="p">:</span>
+            <span class="n">too_far</span> <span class="o">=</span> <span class="n">dist</span> <span class="o">&gt;</span> <span class="n">max_distance</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">too_far</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Filtering </span><span class="si">{</span><span class="n">too_far</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2"> connectors that are &gt; </span><span class="si">{</span><span class="n">max_distance</span><span class="si">}</span><span class="s2"> nm from skeleton&quot;</span>
+                <span class="p">)</span>
+                <span class="n">connectors</span> <span class="o">=</span> <span class="n">connectors</span><span class="p">[</span><span class="o">~</span><span class="n">too_far</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">ix</span> <span class="o">=</span> <span class="n">ix</span><span class="p">[</span><span class="o">~</span><span class="n">too_far</span><span class="p">]</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">dist</span><span class="p">[</span><span class="o">~</span><span class="n">too_far</span><span class="p">]</span>
+
+        <span class="c1"># Add node IDs</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">connectors</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">connectors</span><span class="p">[</span><span class="s2">&quot;node_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">node_id</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span>
+
+            <span class="c1"># Add sequential connector IDs</span>
+            <span class="n">connectors</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;connector_id&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">connectors</span><span class="p">)))</span>
+
+            <span class="c1"># Convert type to categorical to save memory</span>
+            <span class="n">connectors</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">connectors</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Attach to neuron</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">connectors</span> <span class="o">=</span> <span class="n">connectors</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attached </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">connectors</span><span class="p">)</span><span class="si">}</span><span class="s2"> connectors to neuron </span><span class="si">{</span><span class="n">neuron_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No connectors remaining after filtering for neuron </span><span class="si">{</span><span class="n">neuron_id</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">connectors</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;connector_id&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;partner_id&quot;</span><span class="p">,</span> <span class="s2">&quot;node_id&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">neurons</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">return_single</span> <span class="k">else</span> <span class="n">neurons</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By CRANTb Community
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

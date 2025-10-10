@@ -1,0 +1,2030 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Deep Dive: Advanced Neuron Querying &#8212; CRANTpy Documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'deep_dive/advanced_queries';</script>
+    <link rel="icon" href="../_static/logo.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deep Dive: Plotting Neurons" href="visualization.html" />
+    <link rel="prev" title="CRANTpy Tutorial: Exploring the Ant Brain Connectome" href="../tutorial.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">📚 Tutorials available! Check out the Deep Dive Gallery.</div>
+</aside>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="CRANTpy Documentation - Home"/>
+    <script>document.write(`<img src="../_static/logo.png" class="logo__image only-dark" alt="CRANTpy Documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation &amp; Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Quickstart Tutorial</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Advanced Neuron Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Plotting Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="morphology.html">Working with Neuron Morphology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="connectivity.html">Analyzing Connectivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="segmentation.html">Using EM Segmentation Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ngllink.html">From CRANTpy to Neuroglancer</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/modules.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/crantpy.html">crantpy package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../api/crantpy.queries.html">crantpy.queries package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/crantpy.queries.connections.html">crantpy.queries.connections module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/crantpy.queries.neurons.html">crantpy.queries.neurons module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../api/crantpy.utils.html">crantpy.utils package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/crantpy.utils.cave.html">crantpy.utils.cave package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/crantpy.utils.config.html">crantpy.utils.config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/crantpy.utils.decorators.html">crantpy.utils.decorators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/crantpy.utils.exceptions.html">crantpy.utils.exceptions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/crantpy.utils.helpers.html">crantpy.utils.helpers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/crantpy.utils.neuroglancer.html">crantpy.utils.neuroglancer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/crantpy.utils.seatable.html">crantpy.utils.seatable module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/crantpy.utils.types.html">crantpy.utils.types module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../api/crantpy.viz.html">crantpy.viz package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/crantpy.viz.l2.html">crantpy.viz.l2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/crantpy.viz.mesh.html">crantpy.viz.mesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/crantpy.viz.skeletonize.html">crantpy.viz.skeletonize module</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://mybinder.org/v2/gh/Social-Evolution-and-Behavior/crantpy/main?urlpath=lab/tree/docs/deep_dive/advanced_queries.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Binder"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Binder logo" src="../_static/images/logo_binder.svg">
+  </span>
+<span class="btn__text-container">Binder</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/Social-Evolution-and-Behavior/crantpy/blob/main/docs/deep_dive/advanced_queries.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Colab logo" src="../_static/images/logo_colab.png">
+  </span>
+<span class="btn__text-container">Colab</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy/edit/main/docs/deep_dive/advanced_queries.ipynb" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy/issues/new?title=Issue%20on%20page%20%2Fdeep_dive/advanced_queries.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/deep_dive/advanced_queries.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Deep Dive: Advanced Neuron Querying</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#authentication-setup">1. Authentication Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exploring-available-annotation-data">2. Exploring Available Annotation Data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#exploring-data-distribution">Exploring Data Distribution</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-querying-with-neuroncriteria">3. Basic Querying with NeuronCriteria</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#simple-single-criterion-queries">Simple Single-Criterion Queries</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multi-criterion-queries-logical-and">Multi-Criterion Queries (Logical AND)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-filtering-options">4. Advanced Filtering Options</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-regular-expressions">Using Regular Expressions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-with-lists-match-all-parameter">Filtering with Lists: <code class="docutils literal notranslate"><span class="pre">match_all</span></code> Parameter</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#substring-matching-exact-parameter">Substring Matching: <code class="docutils literal notranslate"><span class="pre">exact</span></code> Parameter</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#case-sensitive-matching">Case-Sensitive Matching</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#working-with-annotations">5. Working with Annotations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-id-updating">Automatic ID Updating</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-proofread-status">6. Checking Proofread Status</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#neuroncriteria-as-iterable-and-container">7. NeuronCriteria as Iterable and Container</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-and-caching">8. Performance and Caching</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#analyzing-query-results">9. Analyzing Query Results</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cross-analysis-comparing-populations">Cross-Analysis: Comparing Populations</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#best-practices-and-tips">10. Best Practices and Tips</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#start-broad-then-refine">1. Start Broad, Then Refine</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#use-verbose-true-for-debugging">2. Use <code class="docutils literal notranslate"><span class="pre">verbose=True</span></code> for Debugging</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-available-values-before-querying">3. Inspect Available Values Before Querying</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#key-takeaways">Key Takeaways</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="deep-dive-advanced-neuron-querying">
+<h1>Deep Dive: Advanced Neuron Querying<a class="headerlink" href="#deep-dive-advanced-neuron-querying" title="Link to this heading">#</a></h1>
+<p>This tutorial explores the powerful and flexible querying capabilities of CRANTpy. We’ll go beyond simple filters and dive into:</p>
+<ul class="simple">
+<li><p><strong>Complex, multi-parameter queries</strong></p></li>
+<li><p><strong>Using regular expressions</strong> for flexible matching</p></li>
+<li><p><strong>Inspecting available data</strong> to build your queries</p></li>
+<li><p><strong>Analyzing populations</strong> of neurons returned from queries</p></li>
+</ul>
+<p>Let’s get started by setting up our environment.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import CRANTpy and other necessary libraries</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">crantpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+
+<span class="c1"># Set up logging to see progress</span>
+<span class="n">cp</span><span class="o">.</span><span class="n">set_logging_level</span><span class="p">(</span><span class="s2">&quot;WARNING&quot;</span><span class="p">)</span>  <span class="c1"># Quieter for this tutorial</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CRANTpy loaded successfully!&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Default dataset: </span><span class="si">{</span><span class="n">cp</span><span class="o">.</span><span class="n">CRANT_DEFAULT_DATASET</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CRANTpy loaded successfully!
+Default dataset: latest
+</pre></div>
+</div>
+</div>
+</div>
+<section id="authentication-setup">
+<h2>1. Authentication Setup<a class="headerlink" href="#authentication-setup" title="Link to this heading">#</a></h2>
+<p>First, ensure you are authenticated with the CAVE service.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate and save authentication token (uncomment if first time)</span>
+<span class="c1"># cp.generate_cave_token(save=True)</span>
+
+<span class="c1"># Test connection</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_cave_client</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully connected to datastack: </span><span class="si">{</span><span class="n">client</span><span class="o">.</span><span class="n">datastack_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Server: </span><span class="si">{</span><span class="n">client</span><span class="o">.</span><span class="n">server_address</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Connection failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Please run: cp.generate_cave_token(save=True)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Successfully connected to datastack: kronauer_ant
+Server: https://proofreading.zetta.ai
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="exploring-available-annotation-data">
+<h2>2. Exploring Available Annotation Data<a class="headerlink" href="#exploring-available-annotation-data" title="Link to this heading">#</a></h2>
+<p>To build powerful queries, you first need to know what data you can filter on. Let’s inspect the available annotation fields and their values.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get all available annotation fields</span>
+<span class="n">available_fields</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="o">.</span><span class="n">available_fields</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available annotation fields (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">available_fields</span><span class="p">)</span><span class="si">}</span><span class="s2">):&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">available_fields</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Available annotation fields (25):
+  - alternative_names
+  - annotator_notes
+  - cave_table
+  - cell_class
+  - cell_instance
+  - cell_subtype
+  - cell_type
+  - date_proofread
+  - flow
+  - hemilineage
+  - known_nt
+  - known_nt_source
+  - nerve
+  - ngl_link
+  - nucleus_id
+  - proofread
+  - proofreader_notes
+  - region
+  - root_id
+  - side
+  - status
+  - super_class
+  - tract
+  - user_annotator
+  - user_proofreader
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get an overview of the entire dataset annotations</span>
+<span class="n">all_annotations</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_all_seatable_annotations</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total neurons in dataset: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_annotations</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset shape: </span><span class="si">{</span><span class="n">all_annotations</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">First few rows:&quot;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">all_annotations</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Total neurons in dataset: 6,166
+Dataset shape: (6166, 30)
+
+First few rows:
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>root_id</th>
+      <th>root_id_processed</th>
+      <th>supervoxel_id</th>
+      <th>position</th>
+      <th>nucleus_id</th>
+      <th>nucleus_position</th>
+      <th>root_position</th>
+      <th>cave_table</th>
+      <th>proofread</th>
+      <th>status</th>
+      <th>...</th>
+      <th>cell_subtype</th>
+      <th>cell_instance</th>
+      <th>known_nt</th>
+      <th>known_nt_source</th>
+      <th>alternative_names</th>
+      <th>annotator_notes</th>
+      <th>user_annotator</th>
+      <th>user_proofreader</th>
+      <th>ngl_link</th>
+      <th>date_proofread</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>576460752700282748</td>
+      <td>None</td>
+      <td>74170512125421134</td>
+      <td>[32782, 30214, 1532]</td>
+      <td>72691394107456688</td>
+      <td>[37306, 31317, 1405]</td>
+      <td>[37306, 31317, 1405]</td>
+      <td>None</td>
+      <td>False</td>
+      <td>[DAMAGED, PARTIALLY_PROOFREAD, TRACING_ISSUE]</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>acetylcholine</td>
+      <td>Tanaka et al., 2012 (immuno, mALT, drosophila ...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>[lindsey_lopes]</td>
+      <td>[lindsey_lopes]</td>
+      <td>https://spelunker.cave-explorer.org/#!middleau...</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>576460752681552812</td>
+      <td>None</td>
+      <td>74100212167609429</td>
+      <td>[32121, 31509, 1702]</td>
+      <td>72621025497478503</td>
+      <td>[36772, 28974, 1953]</td>
+      <td>[36772, 28974, 1953]</td>
+      <td>None</td>
+      <td>True</td>
+      <td>[BACKBONE_PROOFREAD]</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>acetylcholine</td>
+      <td>Tanaka et al., 2012 (immuno, mALT, drosophila ...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>[lindsey_lopes]</td>
+      <td>[lindsey_lopes]</td>
+      <td>https://spelunker.cave-explorer.org/#!middleau...</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>576460752666303418</td>
+      <td>None</td>
+      <td>74169069687405059</td>
+      <td>[33220, 8787, 4046]</td>
+      <td>72620682436952978</td>
+      <td>[33727, 8389, 4054]</td>
+      <td>[33727, 8389, 4054]</td>
+      <td>None</td>
+      <td>False</td>
+      <td>[PARTIALLY_PROOFREAD, TRACING_ISSUE]</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>acetylcholine, sNPF</td>
+      <td>Barnstedt et al. 2016 (immuno, KCs, drosophila...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>[lindsey_lopes]</td>
+      <td>[lindsey_lopes]</td>
+      <td>https://spelunker.cave-explorer.org/#!middleau...</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>576460752722405178</td>
+      <td>None</td>
+      <td>74100212167388307</td>
+      <td>[32442, 31693, 1618]</td>
+      <td>72621025497491534</td>
+      <td>[36266, 31490, 2021]</td>
+      <td>[36266, 31490, 2021]</td>
+      <td>None</td>
+      <td>False</td>
+      <td>[PARTIALLY_PROOFREAD, TRACING_ISSUE]</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>acetylcholine</td>
+      <td>Tanaka et al., 2012 (immuno, mALT, drosophila ...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>[lindsey_lopes]</td>
+      <td>[lindsey_lopes]</td>
+      <td>https://spelunker.cave-explorer.org/#!middleau...</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>576460752773799604</td>
+      <td>None</td>
+      <td>74100280887219649</td>
+      <td>[32484, 32119, 1756]</td>
+      <td>72691394308791443</td>
+      <td>[37240, 29878, 2178]</td>
+      <td>[37240, 29878, 2178]</td>
+      <td>None</td>
+      <td>True</td>
+      <td>[BACKBONE_PROOFREAD]</td>
+      <td>...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>acetylcholine</td>
+      <td>Tanaka et al., 2012 (immuno, mALT, drosophila ...</td>
+      <td>None</td>
+      <td>None</td>
+      <td>[lindsey_lopes]</td>
+      <td>[lindsey_lopes]</td>
+      <td>https://spelunker.cave-explorer.org/#!middleau...</td>
+      <td>None</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 30 columns</p>
+</div></div></div>
+</div>
+<section id="exploring-data-distribution">
+<h3>Exploring Data Distribution<a class="headerlink" href="#exploring-data-distribution" title="Link to this heading">#</a></h3>
+<p>Let’s visualize some of the key annotation fields to understand the dataset better.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Explore the distribution of cell types</span>
+<span class="n">cell_type_counts</span> <span class="o">=</span> <span class="n">all_annotations</span><span class="p">[</span><span class="s1">&#39;cell_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Top 30 annotated cell types:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cell_type_counts</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+
+<span class="c1"># Visualize</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">cell_type_counts</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s1">&#39;bar&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;steelblue&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Top 30 Cell Types in CRANT Dataset&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Cell Class&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Number of Neurons&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Top 30 annotated cell types:
+cell_type
+PFN          92
+ER2          54
+ER1          54
+ER2_input    50
+delta7       40
+EPG/PEG      35
+ER1_input    28
+PFN?         27
+PFL          19
+PBt          17
+FBt6         16
+FBt2         15
+FBt          12
+DNa          12
+PEN          11
+FBt5         11
+PFx          11
+ER           10
+ER4           9
+ER3_input     9
+ER3           9
+FBt4          9
+FBt3          9
+PF1           8
+FBt5/6        6
+FBt1          6
+FBt2/3        5
+Fx            5
+LNOm          5
+delta7?       4
+Name: count, dtype: int64
+</pre></div>
+</div>
+<img alt="../_images/e81fc4746ca53b7ee03dd8d8cd93e3bef586ba406ff47576224e3f40aa759c52.png" src="../_images/e81fc4746ca53b7ee03dd8d8cd93e3bef586ba406ff47576224e3f40aa759c52.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="basic-querying-with-neuroncriteria">
+<h2>3. Basic Querying with NeuronCriteria<a class="headerlink" href="#basic-querying-with-neuroncriteria" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">NeuronCriteria</span></code> class is the main interface for filtering neurons. Let’s start with simple queries.</p>
+<section id="simple-single-criterion-queries">
+<h3>Simple Single-Criterion Queries<a class="headerlink" href="#simple-single-criterion-queries" title="Link to this heading">#</a></h3>
+<p>The most basic query is filtering by a single field.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Query neurons by cell class</span>
+<span class="n">olfactory_projection_neurons</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;olfactory_projection_neuron&#39;</span><span class="p">)</span>
+<span class="n">opn_ids</span> <span class="o">=</span> <span class="n">olfactory_projection_neurons</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">opn_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> olfactory projection neurons&quot;</span><span class="p">)</span>
+
+<span class="c1"># Query neurons by side</span>
+<span class="n">left_neurons</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+<span class="n">left_ids</span> <span class="o">=</span> <span class="n">left_neurons</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">left_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> left-side neurons&quot;</span><span class="p">)</span>
+
+<span class="c1"># Query neurons by tract</span>
+<span class="n">malt_neurons</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">tract</span><span class="o">=</span><span class="s1">&#39;mALT&#39;</span><span class="p">)</span>
+<span class="n">malt_ids</span> <span class="o">=</span> <span class="n">malt_neurons</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">malt_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> neurons in mALT tract&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Found 107 olfactory projection neurons
+Found 3648 left-side neurons
+Found 2275 neurons in mALT tract
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="multi-criterion-queries-logical-and">
+<h3>Multi-Criterion Queries (Logical AND)<a class="headerlink" href="#multi-criterion-queries-logical-and" title="Link to this heading">#</a></h3>
+<p>You can combine multiple criteria - the query will return neurons matching <strong>all</strong> criteria (logical AND).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Combine cell class and side</span>
+<span class="n">left_opn</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;olfactory_projection_neuron&#39;</span><span class="p">,</span>
+    <span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span>
+<span class="p">)</span>
+<span class="n">left_opn_ids</span> <span class="o">=</span> <span class="n">left_opn</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">left_opn_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> left olfactory projection neurons&quot;</span><span class="p">)</span>
+
+<span class="c1"># Combine region, side, and proofread status</span>
+<span class="n">mb_left_proofread</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">region</span><span class="o">=</span><span class="s1">&#39;MB&#39;</span><span class="p">,</span>
+    <span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span>
+    <span class="n">proofread</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="n">mb_left_proofread_ids</span> <span class="o">=</span> <span class="n">mb_left_proofread</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mb_left_proofread_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> proofread left mushroom body neurons&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Found 37 left olfactory projection neurons
+Found 30 proofread left mushroom body neurons
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="advanced-filtering-options">
+<h2>4. Advanced Filtering Options<a class="headerlink" href="#advanced-filtering-options" title="Link to this heading">#</a></h2>
+<p>CRANTpy offers powerful filtering options for complex queries.</p>
+<section id="using-regular-expressions">
+<h3>Using Regular Expressions<a class="headerlink" href="#using-regular-expressions" title="Link to this heading">#</a></h3>
+<p>Regular expressions (<code class="docutils literal notranslate"><span class="pre">regex=True</span></code>) enable powerful pattern matching for finding related groups of neurons.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Find all ExR subtypes using regex</span>
+<span class="n">ExR_subtypes</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">cell_type</span><span class="o">=</span><span class="s1">&#39;ExR&#39;</span><span class="p">,</span>  <span class="c1"># Matches ExR_a, ExR_b, etc.</span>
+    <span class="n">regex</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="n">ExR_subtype_ids</span> <span class="o">=</span> <span class="n">ExR_subtypes</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ExR_subtype_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> ExR subtype neurons&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get their annotations to see the specific types</span>
+<span class="n">exR_annotations</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_annotations</span><span class="p">(</span><span class="n">ExR_subtypes</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">ExR subtypes found:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">exR_annotations</span><span class="p">[</span><span class="s1">&#39;cell_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span>
+
+<span class="c1"># More complex regex: Find all tangential neurons (FBt or PBt)</span>
+<span class="n">all_tangential</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">cell_type</span><span class="o">=</span><span class="s1">&#39;[FBt|PBt]&#39;</span><span class="p">,</span>  <span class="c1"># Matches FBt or PBt</span>
+    <span class="n">regex</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="n">all_tangential_ids</span> <span class="o">=</span> <span class="n">all_tangential</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_tangential_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> tangential neurons (FBt/PBt)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Found 6 ExR subtype neurons
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2025-10-10 07:58:43 - WARNING - Failed to update 2 annotation root ID(s). These IDs may no longer exist.
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>ExR subtypes found:
+cell_type
+ExR1    4
+ExR2    2
+Name: count, dtype: int64
+
+Found 450 tangential neurons (FBt/PBt)
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="filtering-with-lists-match-all-parameter">
+<h3>Filtering with Lists: <code class="docutils literal notranslate"><span class="pre">match_all</span></code> Parameter<a class="headerlink" href="#filtering-with-lists-match-all-parameter" title="Link to this heading">#</a></h3>
+<p>When filtering by a list of values on fields that contain lists (like <code class="docutils literal notranslate"><span class="pre">status</span></code> or <code class="docutils literal notranslate"><span class="pre">region</span></code>), the <code class="docutils literal notranslate"><span class="pre">match_all</span></code> parameter controls the matching behavior.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># match_all=False (default): neurons with ANY of the specified statuses</span>
+<span class="n">any_status</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">status</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;BACKBONE_PROOFREAD&#39;</span><span class="p">,</span> <span class="s1">&#39;PRELIM_PROOFREAD&#39;</span><span class="p">],</span>
+    <span class="n">match_all</span><span class="o">=</span><span class="kc">False</span>  <span class="c1"># This is the default</span>
+<span class="p">)</span>
+<span class="n">any_status_ids</span> <span class="o">=</span> <span class="n">any_status</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Neurons with ANY of the specified statuses: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">any_status_ids</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># match_all=True: neurons with ALL of the specified statuses</span>
+<span class="n">all_statuses</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">status</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DAMAGED&#39;</span><span class="p">,</span> <span class="s1">&#39;TRACING_ISSUE&#39;</span><span class="p">],</span>
+    <span class="n">match_all</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">all_statuses_ids</span> <span class="o">=</span> <span class="n">all_statuses</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Neurons with ALL of the specified statuses: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_statuses_ids</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query returned: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Practical example: neurons in multiple regions</span>
+<span class="n">multi_region</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">region</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;MB&#39;</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">],</span>  <span class="c1"># Neurons that innervate both regions</span>
+    <span class="n">match_all</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">multi_region_ids</span> <span class="o">=</span> <span class="n">multi_region</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Neurons in BOTH MB and AL: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">multi_region_ids</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Query returned: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Neurons with ANY of the specified statuses: 715
+Neurons with ALL of the specified statuses: 2
+
+Neurons in BOTH MB and AL: 128
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="substring-matching-exact-parameter">
+<h3>Substring Matching: <code class="docutils literal notranslate"><span class="pre">exact</span></code> Parameter<a class="headerlink" href="#substring-matching-exact-parameter" title="Link to this heading">#</a></h3>
+<p>By default, queries match values exactly. Setting <code class="docutils literal notranslate"><span class="pre">exact=False</span></code> enables substring matching.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># exact=True (default): exact matching only</span>
+<span class="n">exact_match</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;olfactory_projection_neuron&#39;</span><span class="p">,</span>
+    <span class="n">exact</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="n">exact_ids</span> <span class="o">=</span> <span class="n">exact_match</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exact match for &#39;olfactory_projection_neuron&#39;: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">exact_ids</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># exact=False: substring matching</span>
+<span class="n">substring_match</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;projection&#39;</span><span class="p">,</span>  <span class="c1"># Will match any cell_class containing &#39;projection&#39;</span>
+    <span class="n">exact</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="n">substring_ids</span> <span class="o">=</span> <span class="n">substring_match</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Substring match for &#39;projection&#39;: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">substring_ids</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># See what was matched</span>
+<span class="n">substring_annotations</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_annotations</span><span class="p">(</span><span class="n">substring_match</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Cell classes matched (substring &#39;projection&#39;):&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">substring_annotations</span><span class="p">[</span><span class="s1">&#39;cell_class&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Exact match for &#39;olfactory_projection_neuron&#39;: 107
+Substring match for &#39;projection&#39;: 107
+
+Cell classes matched (substring &#39;projection&#39;):
+cell_class
+olfactory_projection_neuron    109
+spiny_kenyon_cell                1
+Name: count, dtype: int64
+
+Cell classes matched (substring &#39;projection&#39;):
+cell_class
+olfactory_projection_neuron    109
+spiny_kenyon_cell                1
+Name: count, dtype: int64
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="case-sensitive-matching">
+<h3>Case-Sensitive Matching<a class="headerlink" href="#case-sensitive-matching" title="Link to this heading">#</a></h3>
+<p>By default, string matching is case-insensitive. Use <code class="docutils literal notranslate"><span class="pre">case=True</span></code> for case-sensitive matching (only applies when <code class="docutils literal notranslate"><span class="pre">regex=True</span></code>).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Case-insensitive (default)</span>
+<span class="n">case_insensitive</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">cell_type</span><span class="o">=</span><span class="s1">&#39;exr&#39;</span><span class="p">,</span>  <span class="c1"># Will match ExR, exr, ExR_a, etc.</span>
+    <span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">case</span><span class="o">=</span><span class="kc">False</span>  <span class="c1"># This is the default</span>
+<span class="p">)</span>
+<span class="n">case_insensitive_ids</span> <span class="o">=</span> <span class="n">case_insensitive</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Case-insensitive match for &#39;exr&#39;: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">case_insensitive_ids</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Case-sensitive</span>
+<span class="n">case_sensitive</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">cell_type</span><span class="o">=</span><span class="s1">&#39;exr&#39;</span><span class="p">,</span>  <span class="c1"># Will only match exact case</span>
+    <span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">case</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">case_sensitive_ids</span> <span class="o">=</span> <span class="n">case_sensitive</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Case-sensitive match for &#39;exr&#39;: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">case_sensitive_ids</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Case-sensitive match returned: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Case-insensitive match for &#39;exr&#39;: 6
+Case-sensitive match returned: No neurons found matching the given criteria.
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="working-with-annotations">
+<h2>5. Working with Annotations<a class="headerlink" href="#working-with-annotations" title="Link to this heading">#</a></h2>
+<p>Beyond just getting root IDs, you can fetch full annotation data for neurons.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get annotations for a NeuronCriteria object</span>
+<span class="n">mb_neurons</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="s1">&#39;MB&#39;</span><span class="p">)</span>
+<span class="n">mb_annotations</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_annotations</span><span class="p">(</span><span class="n">mb_neurons</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrieved annotations for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mb_annotations</span><span class="p">)</span><span class="si">}</span><span class="s2"> MB neurons&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Columns available: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">mb_annotations</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">First few rows:&quot;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">mb_annotations</span><span class="p">[[</span><span class="s1">&#39;root_id&#39;</span><span class="p">,</span> <span class="s1">&#39;cell_class&#39;</span><span class="p">,</span> <span class="s1">&#39;cell_type&#39;</span><span class="p">,</span> <span class="s1">&#39;side&#39;</span><span class="p">,</span> <span class="s1">&#39;region&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1"># Get annotations for specific root IDs</span>
+<span class="n">sample_ids</span> <span class="o">=</span> <span class="n">opn_ids</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+<span class="n">sample_annotations</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_annotations</span><span class="p">(</span><span class="n">sample_ids</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Annotations for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_annotations</span><span class="p">)</span><span class="si">}</span><span class="s2"> specific neurons:&quot;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">sample_annotations</span><span class="p">[[</span><span class="s1">&#39;root_id&#39;</span><span class="p">,</span> <span class="s1">&#39;cell_class&#39;</span><span class="p">,</span> <span class="s1">&#39;cell_type&#39;</span><span class="p">,</span> <span class="s1">&#39;tract&#39;</span><span class="p">]])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Retrieved annotations for 323 MB neurons
+
+Columns available: [&#39;root_id&#39;, &#39;root_id_processed&#39;, &#39;supervoxel_id&#39;, &#39;position&#39;, &#39;nucleus_id&#39;, &#39;nucleus_position&#39;, &#39;root_position&#39;, &#39;cave_table&#39;, &#39;proofread&#39;, &#39;status&#39;, &#39;region&#39;, &#39;proofreader_notes&#39;, &#39;side&#39;, &#39;nerve&#39;, &#39;tract&#39;, &#39;hemilineage&#39;, &#39;flow&#39;, &#39;super_class&#39;, &#39;cell_class&#39;, &#39;cell_type&#39;, &#39;cell_subtype&#39;, &#39;cell_instance&#39;, &#39;known_nt&#39;, &#39;known_nt_source&#39;, &#39;alternative_names&#39;, &#39;annotator_notes&#39;, &#39;user_annotator&#39;, &#39;user_proofreader&#39;, &#39;ngl_link&#39;, &#39;date_proofread&#39;]
+
+First few rows:
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>root_id</th>
+      <th>cell_class</th>
+      <th>cell_type</th>
+      <th>side</th>
+      <th>region</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>576460752700282748</td>
+      <td>olfactory_projection_neuron</td>
+      <td>None</td>
+      <td>left</td>
+      <td>[LH, AL, MB]</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>576460752681552812</td>
+      <td>olfactory_projection_neuron</td>
+      <td>None</td>
+      <td>left</td>
+      <td>[LH, AL, MB]</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>576460752666303418</td>
+      <td>spiny_kenyon_cell</td>
+      <td>None</td>
+      <td>right</td>
+      <td>[MB]</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>576460752722405178</td>
+      <td>olfactory_projection_neuron</td>
+      <td>None</td>
+      <td>left</td>
+      <td>[LH, AL, MB]</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>576460752773799604</td>
+      <td>olfactory_projection_neuron</td>
+      <td>None</td>
+      <td>right</td>
+      <td>[LH, AL, MB]</td>
+    </tr>
+  </tbody>
+</table>
+</div></div><div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Annotations for 10 specific neurons:
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>root_id</th>
+      <th>cell_class</th>
+      <th>cell_type</th>
+      <th>tract</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>576460752700282748</td>
+      <td>olfactory_projection_neuron</td>
+      <td>None</td>
+      <td>mALT</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>576460752681552812</td>
+      <td>olfactory_projection_neuron</td>
+      <td>None</td>
+      <td>mALT</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>576460752722405178</td>
+      <td>olfactory_projection_neuron</td>
+      <td>None</td>
+      <td>mALT</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>576460752773799604</td>
+      <td>olfactory_projection_neuron</td>
+      <td>None</td>
+      <td>mALT</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>576460752656800770</td>
+      <td>olfactory_projection_neuron</td>
+      <td>None</td>
+      <td>lALT</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>576460752722405178</td>
+      <td>spiny_kenyon_cell</td>
+      <td>None</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>576460752681552812</td>
+      <td>None</td>
+      <td>None</td>
+      <td>mALT</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>576460752722405178</td>
+      <td>None</td>
+      <td>None</td>
+      <td>mALT</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>576460752773799604</td>
+      <td>None</td>
+      <td>None</td>
+      <td>mALT</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>576460752700282748</td>
+      <td>None</td>
+      <td>None</td>
+      <td>mALT</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<section id="automatic-id-updating">
+<h3>Automatic ID Updating<a class="headerlink" href="#automatic-id-updating" title="Link to this heading">#</a></h3>
+<p>CRANTpy automatically handles segmentation edits through the <code class="docutils literal notranslate"><span class="pre">update_ids</span></code> parameter. When neurons are edited in the segmentation, their root IDs change. This can cause mismatches between your query IDs and annotation IDs.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># By default, both NeuronCriteria and get_annotations update IDs automatically</span>
+
+<span class="c1"># Example 1: NeuronCriteria automatically updates returned IDs</span>
+<span class="n">nc</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;olfactory_projection_neuron&#39;</span><span class="p">)</span>
+<span class="n">current_ids</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>  <span class="c1"># These are the latest root IDs</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NeuronCriteria returned </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">current_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> neurons with updated IDs&quot;</span><span class="p">)</span>
+
+<span class="c1"># Example 2: get_annotations updates annotation IDs before matching</span>
+<span class="c1"># This ensures that even if you have a newer root ID, it will match</span>
+<span class="c1"># against the updated annotation IDs</span>
+<span class="n">sample_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">current_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># Convert numpy int64 to Python int</span>
+<span class="n">annotations</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_annotations</span><span class="p">(</span><span class="n">sample_id</span><span class="p">)</span>  <span class="c1"># update_ids=True by default</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Successfully retrieved annotations for ID </span><span class="si">{</span><span class="n">sample_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cell class: </span><span class="si">{</span><span class="n">annotations</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;cell_class&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># You can disable automatic updating if needed</span>
+<span class="n">nc_no_update</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;olfactory_projection_neuron&#39;</span><span class="p">,</span> <span class="n">update_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">old_style_ids</span> <span class="o">=</span> <span class="n">nc_no_update</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>  <span class="c1"># IDs as stored in annotations</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Without update_ids: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">old_style_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> neurons&quot;</span><span class="p">)</span>
+
+<span class="c1"># Similarly for get_annotations</span>
+<span class="n">annotations_no_update</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_annotations</span><span class="p">(</span><span class="n">sample_id</span><span class="p">,</span> <span class="n">update_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Annotations retrieved without ID updating&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>NeuronCriteria returned 107 neurons with updated IDs
+
+Successfully retrieved annotations for ID 576460752700282748
+Cell class: olfactory_projection_neuron
+
+Without update_ids: 107 neurons
+Annotations retrieved without ID updating
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>Why is this important?</strong></p>
+<p>When the segmentation is edited (e.g., neurons are merged or split), root IDs change. Without automatic updating:</p>
+<ul class="simple">
+<li><p>Your queries might use outdated IDs that no longer exist</p></li>
+<li><p>Annotations might contain old IDs that don’t match your current data</p></li>
+<li><p>You’d need to manually track and update IDs</p></li>
+</ul>
+<p>With automatic updating enabled (the default):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">NeuronCriteria.get_roots()</span></code> returns the latest root IDs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_annotations()</span></code> updates annotation IDs before matching</p></li>
+<li><p>Everything stays synchronized automatically</p></li>
+<li><p>Per-ID caching makes this efficient</p></li>
+</ul>
+</section>
+</section>
+<section id="checking-proofread-status">
+<h2>6. Checking Proofread Status<a class="headerlink" href="#checking-proofread-status" title="Link to this heading">#</a></h2>
+<p>You can quickly check which neurons are proofread using the <code class="docutils literal notranslate"><span class="pre">is_proofread</span></code> function.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check proofread status for a list of neurons</span>
+<span class="n">sample_ids</span> <span class="o">=</span> <span class="n">opn_ids</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span>
+<span class="n">proofread_status</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">is_proofread</span><span class="p">(</span><span class="n">sample_ids</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Checking proofread status for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">sample_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> neurons:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">neuron_id</span><span class="p">,</span> <span class="n">is_pr</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sample_ids</span><span class="p">,</span> <span class="n">proofread_status</span><span class="p">):</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;✓ Proofread&quot;</span> <span class="k">if</span> <span class="n">is_pr</span> <span class="k">else</span> <span class="s2">&quot;✗ Not proofread&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">neuron_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Summary: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">proofread_status</span><span class="p">)</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">proofread_status</span><span class="p">)</span><span class="si">}</span><span class="s2"> are proofread&quot;</span><span class="p">)</span>
+
+<span class="c1"># You can also check using NeuronCriteria</span>
+<span class="n">proofread_status_criteria</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">is_proofread</span><span class="p">(</span><span class="n">olfactory_projection_neurons</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Of all </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">olfactory_projection_neurons</span><span class="p">)</span><span class="si">}</span><span class="s2"> OPNs, </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">proofread_status_criteria</span><span class="p">)</span><span class="si">}</span><span class="s2"> are proofread&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checking proofread status for 10 neurons:
+  576460752700282748: ✗ Not proofread
+  576460752681552812: ✓ Proofread
+  576460752722405178: ✗ Not proofread
+  576460752773799604: ✓ Proofread
+  576460752656800770: ✓ Proofread
+  576460752722298426: ✗ Not proofread
+  576460752768215072: ✗ Not proofread
+  576460752680204173: ✓ Proofread
+  576460752728003009: ✓ Proofread
+  576460752780951210: ✗ Not proofread
+
+Summary: 5/10 are proofread
+
+Of all 107 OPNs, 65 are proofread
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="neuroncriteria-as-iterable-and-container">
+<h2>7. NeuronCriteria as Iterable and Container<a class="headerlink" href="#neuroncriteria-as-iterable-and-container" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">NeuronCriteria</span></code> objects support Python’s iterator and container protocols, making them very convenient to use.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get length</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of OPNs: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">olfactory_projection_neurons</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Iterate over root IDs</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">First 5 OPN root IDs (using iteration):&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">root_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">olfactory_projection_neurons</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">break</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">root_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check membership</span>
+<span class="n">sample_id</span> <span class="o">=</span> <span class="n">opn_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">is_member</span> <span class="o">=</span> <span class="n">sample_id</span> <span class="ow">in</span> <span class="n">olfactory_projection_neurons</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Is </span><span class="si">{</span><span class="n">sample_id</span><span class="si">}</span><span class="s2"> an OPN? </span><span class="si">{</span><span class="n">is_member</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check a neuron that&#39;s not an OPN</span>
+<span class="n">non_opn_id</span> <span class="o">=</span> <span class="n">left_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># A random left neuron</span>
+<span class="n">is_member</span> <span class="o">=</span> <span class="n">non_opn_id</span> <span class="ow">in</span> <span class="n">olfactory_projection_neurons</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Is </span><span class="si">{</span><span class="n">non_opn_id</span><span class="si">}</span><span class="s2"> an OPN? </span><span class="si">{</span><span class="n">is_member</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Number of OPNs: 107
+
+First 5 OPN root IDs (using iteration):
+  576460752700282748
+  576460752681552812
+  576460752722405178
+  576460752773799604
+  576460752656800770
+
+Is 576460752700282748 an OPN? True
+Is 576460752700282748 an OPN? True
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="performance-and-caching">
+<h2>8. Performance and Caching<a class="headerlink" href="#performance-and-caching" title="Link to this heading">#</a></h2>
+<p>CRANTpy caches annotation data to improve performance. You can control this behavior.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="c1"># First query - may take longer (fetching from Seatable)</span>
+<span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">query1</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;olfactory_projection_neuron&#39;</span><span class="p">,</span> <span class="n">clear_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ids1</span> <span class="o">=</span> <span class="n">query1</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="n">time1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;First query (no cache): </span><span class="si">{</span><span class="n">time1</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="c1"># Second query - should be faster (using cached data)</span>
+<span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">query2</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;olfactory_projection_neuron&#39;</span><span class="p">)</span>
+<span class="n">ids2</span> <span class="o">=</span> <span class="n">query2</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="n">time2</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Second query (cached): </span><span class="si">{</span><span class="n">time2</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="c1"># Force refresh from Seatable</span>
+<span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">query3</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;olfactory_projection_neuron&#39;</span><span class="p">,</span> <span class="n">clear_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ids3</span> <span class="o">=</span> <span class="n">query3</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+<span class="n">time3</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Query with cache refresh: </span><span class="si">{</span><span class="n">time3</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>First query (no cache): 2.984 seconds
+Second query (cached): 0.006 seconds
+Query with cache refresh: 1.749 seconds
+Query with cache refresh: 1.749 seconds
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="analyzing-query-results">
+<h2>9. Analyzing Query Results<a class="headerlink" href="#analyzing-query-results" title="Link to this heading">#</a></h2>
+<p>Once you have a set of neurons, you can perform various analyses on their annotations.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Analyze connectivity patterns by tract</span>
+<span class="n">tracts</span> <span class="o">=</span> <span class="n">all_annotations</span><span class="p">[</span><span class="s1">&#39;tract&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tracts</span><span class="p">)</span><span class="si">}</span><span class="s2"> tracts: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">tracts</span><span class="p">)[:</span><span class="mi">10</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>  <span class="c1"># Show first 10</span>
+
+<span class="c1"># Analyze each tract</span>
+<span class="n">tract_analysis</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">tract</span> <span class="ow">in</span> <span class="n">tracts</span><span class="p">[:</span><span class="mi">8</span><span class="p">]:</span>  <span class="c1"># Analyze first 8 tracts for demonstration</span>
+    <span class="n">tract_neurons</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">tract</span><span class="o">=</span><span class="n">tract</span><span class="p">)</span>
+    <span class="n">tract_ids</span> <span class="o">=</span> <span class="n">tract_neurons</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+    <span class="n">tract_annotations</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_annotations</span><span class="p">(</span><span class="n">tract_neurons</span><span class="p">)</span>
+    
+    <span class="c1"># Count unique cell classes</span>
+    <span class="n">n_cell_classes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tract_annotations</span><span class="p">[</span><span class="s1">&#39;cell_class&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+    <span class="n">n_cell_types</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tract_annotations</span><span class="p">[</span><span class="s1">&#39;cell_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+    
+    <span class="c1"># Count proofread neurons</span>
+    <span class="n">n_proofread</span> <span class="o">=</span> <span class="n">tract_annotations</span><span class="p">[</span><span class="s1">&#39;proofread&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">if</span> <span class="s1">&#39;proofread&#39;</span> <span class="ow">in</span> <span class="n">tract_annotations</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="mi">0</span>
+    
+    <span class="n">tract_analysis</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+        <span class="s1">&#39;tract&#39;</span><span class="p">:</span> <span class="n">tract</span><span class="p">,</span>
+        <span class="s1">&#39;n_neurons&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">tract_ids</span><span class="p">),</span>
+        <span class="s1">&#39;n_cell_classes&#39;</span><span class="p">:</span> <span class="n">n_cell_classes</span><span class="p">,</span>
+        <span class="s1">&#39;n_cell_types&#39;</span><span class="p">:</span> <span class="n">n_cell_types</span><span class="p">,</span>
+        <span class="s1">&#39;n_proofread&#39;</span><span class="p">:</span> <span class="n">n_proofread</span><span class="p">,</span>
+        <span class="s1">&#39;pct_proofread&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="mi">100</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_proofread</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">tract_ids</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span>
+    <span class="p">})</span>
+
+<span class="n">tract_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tract_analysis</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Tract analysis:&quot;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">tract_df</span><span class="p">)</span>
+
+<span class="c1"># Visualize tract composition</span>
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+<span class="n">tract_df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;tract&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;n_neurons&#39;</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;bar&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;steelblue&#39;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Neuron Count by Tract&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Tract&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Number of Neurons&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+
+<span class="n">tract_df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;tract&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;n_cell_classes&#39;</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;bar&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;coral&#39;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Cell Class Diversity by Tract&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Tract&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Number of Cell Classes&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Found 3 tracts: [&#39;mALT&#39;, &#39;lALT&#39;, &#39;mlALT&#39;]...
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2025-10-10 08:02:04 - WARNING - Failed to update 2 annotation root ID(s). These IDs may no longer exist.
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Tract analysis:
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>tract</th>
+      <th>n_neurons</th>
+      <th>n_cell_classes</th>
+      <th>n_cell_types</th>
+      <th>n_proofread</th>
+      <th>pct_proofread</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>mALT</td>
+      <td>2275</td>
+      <td>4</td>
+      <td>0</td>
+      <td>41</td>
+      <td>1.8%</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>lALT</td>
+      <td>227</td>
+      <td>2</td>
+      <td>0</td>
+      <td>29</td>
+      <td>12.8%</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>mlALT</td>
+      <td>235</td>
+      <td>3</td>
+      <td>0</td>
+      <td>3</td>
+      <td>1.3%</td>
+    </tr>
+  </tbody>
+</table>
+</div></div><img alt="../_images/e608bf6eb87a720db5f8cb1a44fb9c675d5ff8663d4a808e5043c228517622bc.png" src="../_images/e608bf6eb87a720db5f8cb1a44fb9c675d5ff8663d4a808e5043c228517622bc.png" />
+</div>
+</div>
+<section id="cross-analysis-comparing-populations">
+<h3>Cross-Analysis: Comparing Populations<a class="headerlink" href="#cross-analysis-comparing-populations" title="Link to this heading">#</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Compare left vs right neurons</span>
+<span class="n">left_neurons</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+<span class="n">right_neurons</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+
+<span class="n">left_ann</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_annotations</span><span class="p">(</span><span class="n">left_neurons</span><span class="p">)</span>
+<span class="n">right_ann</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_annotations</span><span class="p">(</span><span class="n">right_neurons</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Left side: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">left_ann</span><span class="p">)</span><span class="si">}</span><span class="s2"> neurons&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Right side: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">right_ann</span><span class="p">)</span><span class="si">}</span><span class="s2"> neurons&quot;</span><span class="p">)</span>
+
+<span class="c1"># Compare cell class distribution</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Top 5 cell classes on left:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">left_ann</span><span class="p">[</span><span class="s1">&#39;cell_class&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Top 5 cell classes on right:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">right_ann</span><span class="p">[</span><span class="s1">&#39;cell_class&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1"># Visualize comparison</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+
+<span class="n">left_ann</span><span class="p">[</span><span class="s1">&#39;cell_class&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s1">&#39;barh&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;steelblue&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Left Side - Top 10 Cell Classes&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Count&#39;</span><span class="p">)</span>
+
+<span class="n">right_ann</span><span class="p">[</span><span class="s1">&#39;cell_class&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s1">&#39;barh&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;coral&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Right Side - Top 10 Cell Classes&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Count&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Left side: 3792 neurons
+Right side: 1897 neurons
+
+Top 5 cell classes on left:
+cell_class
+descending_neuron              96
+ER                             76
+FBc                            64
+olfactory_projection_neuron    63
+FBt                            52
+Name: count, dtype: int64
+
+Top 5 cell classes on right:
+cell_class
+FBc                            102
+olfactory_projection_neuron     79
+ER                              60
+spiny_kenyon_cell               38
+photo_receptor                  38
+Name: count, dtype: int64
+</pre></div>
+</div>
+<img alt="../_images/48ec59551303f9f904982f831042f22cc32b5acf98fe2fe94fa99904920474e0.png" src="../_images/48ec59551303f9f904982f831042f22cc32b5acf98fe2fe94fa99904920474e0.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="best-practices-and-tips">
+<h2>10. Best Practices and Tips<a class="headerlink" href="#best-practices-and-tips" title="Link to this heading">#</a></h2>
+<p>Here are some best practices for effective querying with CRANTpy.</p>
+<section id="start-broad-then-refine">
+<h3>1. Start Broad, Then Refine<a class="headerlink" href="#start-broad-then-refine" title="Link to this heading">#</a></h3>
+<p>Begin with broad queries and progressively add criteria to narrow down your results.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Step 1: Broad query</span>
+<span class="n">step1</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="s1">&#39;CX&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step 1 - All CX neurons: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">step1</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Step 2: Add side constraint</span>
+<span class="n">step2</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="s1">&#39;CX&#39;</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step 2 - Left CX neurons: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">step2</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Step 3: Add cell class</span>
+<span class="n">step3</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="s1">&#39;CX&#39;</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;ER&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step 3 - Left CX ER neurons: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">step3</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Step 4: Add proofread constraint</span>
+<span class="n">step4</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="s1">&#39;CX&#39;</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;ER&#39;</span><span class="p">,</span> <span class="n">proofread</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step 4 - Proofread left CX ER neurons: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">step4</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Step 1 - All CX neurons: 656
+Step 2 - Left CX neurons: 298
+Step 3 - Left CX ER neurons: 70
+Step 4 - Proofread left CX ER neurons: 59
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="use-verbose-true-for-debugging">
+<h3>2. Use <code class="docutils literal notranslate"><span class="pre">verbose=True</span></code> for Debugging<a class="headerlink" href="#use-verbose-true-for-debugging" title="Link to this heading">#</a></h3>
+<p>Enable verbose mode to see what’s happening during queries.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cp</span><span class="o">.</span><span class="n">set_logging_level</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span> <span class="c1"># this needs to be updated to see messages</span>
+
+<span class="c1"># Without verbose (default)</span>
+<span class="n">query_quiet</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;olfactory_projection_neuron&#39;</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+<span class="n">ids_quiet</span> <span class="o">=</span> <span class="n">query_quiet</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+
+<span class="c1"># With verbose</span>
+<span class="n">query_verbose</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span>
+    <span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;olfactory_projection_neuron&#39;</span><span class="p">,</span>
+    <span class="n">side</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="n">ids_verbose</span> <span class="o">=</span> <span class="n">query_verbose</span><span class="o">.</span><span class="n">get_roots</span><span class="p">()</span>
+
+<span class="n">cp</span><span class="o">.</span><span class="n">set_logging_level</span><span class="p">(</span><span class="s2">&quot;WARNING&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2025-10-10 08:02:05 - DEBUG - Generated cache key: latest for seatable_annotations
+2025-10-10 08:02:05 - DEBUG - Cache hit for seatable_annotations with key: latest
+2025-10-10 08:02:05 - DEBUG - Using cached seatable_annotations.
+2025-10-10 08:02:05 - DEBUG - update_ids_cache: 37 cached, 0 uncached
+2025-10-10 08:02:05 - DEBUG - Using fully cached results from update_ids_cache
+2025-10-10 08:02:05 - DEBUG - Cache hit for seatable_annotations with key: latest
+2025-10-10 08:02:05 - DEBUG - Using cached seatable_annotations.
+2025-10-10 08:02:05 - DEBUG - update_ids_cache: 37 cached, 0 uncached
+2025-10-10 08:02:05 - DEBUG - Using fully cached results from update_ids_cache
+2025-10-10 08:02:05 - DEBUG - Generated cache key: latest for seatable_annotations
+2025-10-10 08:02:05 - DEBUG - Cache hit for seatable_annotations with key: latest
+2025-10-10 08:02:05 - DEBUG - Using cached seatable_annotations.
+2025-10-10 08:02:05 - INFO - Found 37 neurons matching the given criteria.
+2025-10-10 08:02:05 - DEBUG - update_ids_cache: 37 cached, 0 uncached
+2025-10-10 08:02:05 - DEBUG - Using fully cached results from update_ids_cache
+2025-10-10 08:02:05 - DEBUG - Generated cache key: latest for seatable_annotations
+2025-10-10 08:02:05 - DEBUG - Cache hit for seatable_annotations with key: latest
+2025-10-10 08:02:05 - DEBUG - Using cached seatable_annotations.
+2025-10-10 08:02:05 - INFO - Found 37 neurons matching the given criteria.
+2025-10-10 08:02:05 - DEBUG - update_ids_cache: 37 cached, 0 uncached
+2025-10-10 08:02:05 - DEBUG - Using fully cached results from update_ids_cache
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="inspect-available-values-before-querying">
+<h3>3. Inspect Available Values Before Querying<a class="headerlink" href="#inspect-available-values-before-querying" title="Link to this heading">#</a></h3>
+<p>Check what values exist in your fields of interest before building queries.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check what tracts are available</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Available tracts:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">all_annotations</span><span class="p">[</span><span class="s1">&#39;tract&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+
+<span class="c1"># Check what statuses exist</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Available statuses (flatten lists):&quot;</span><span class="p">)</span>
+<span class="n">status_lists</span> <span class="o">=</span> <span class="n">all_annotations</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="n">flat_statuses</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">status</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">status_lists</span> <span class="k">for</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">(</span><span class="n">sublist</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sublist</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">sublist</span><span class="p">])])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">flat_statuses</span><span class="p">)</span>
+
+<span class="c1"># Check cell types for a specific cell class</span>
+<span class="n">fbt_neurons_check</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;FBt&#39;</span><span class="p">)</span>
+<span class="n">fbt_ann_check</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_annotations</span><span class="p">(</span><span class="n">fbt_neurons_check</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Cell types for mushroom_body_intrinsic_neuron:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">fbt_ann_check</span><span class="p">[</span><span class="s1">&#39;cell_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Available tracts:
+[&#39;mALT&#39; &#39;lALT&#39; &#39;mlALT&#39;]
+
+Available statuses (flatten lists):
+{&#39;MISSING_SOMA&#39;, &#39;empty&#39;, &#39;NA&#39;, &#39;MERGE_ERROR&#39;, &#39;MERGE_MONSTER&#39;, &#39;DUPLICATED&#39;, &#39;TO_PROOFREAD&#39;, &#39;BACKBONE_PROOFREAD&#39;, &#39;PARTIALLY_PROOFREAD&#39;, &#39;DAMAGED&#39;, &#39;TRACING_ISSUE&#39;, &#39;THOROUGHLY_PROOFREAD&#39;}
+
+Cell types for mushroom_body_intrinsic_neuron:
+cell_type
+FBt6      16
+FBt2      15
+FBt       12
+FBt5      11
+FBt4       9
+FBt3       9
+FBt1       6
+FBt5/6     6
+FBt2/3     5
+FBt1/2     2
+Name: count, dtype: int64
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h2>
+<p>In this comprehensive deep dive, you learned:</p>
+<p>✅ <strong>NeuronCriteria fundamentals</strong> - Basic and multi-criterion queries<br />
+✅ <strong>Advanced filtering options</strong> - <code class="docutils literal notranslate"><span class="pre">regex</span></code>, <code class="docutils literal notranslate"><span class="pre">match_all</span></code>, <code class="docutils literal notranslate"><span class="pre">exact</span></code>, <code class="docutils literal notranslate"><span class="pre">case</span></code> parameters<br />
+✅ <strong>Working with annotations</strong> - Fetching and analyzing neuron metadata<br />
+✅ <strong>Proofread status checking</strong> - Identifying which neurons are proofread<br />
+✅ <strong>Iterator/container protocols</strong> - Using NeuronCriteria as iterable objects<br />
+✅ <strong>Performance optimization</strong> - Understanding and controlling caching behavior<br />
+✅ <strong>Population analysis</strong> - Comparing and analyzing query results<br />
+✅ <strong>Best practices</strong> - Strategies for efficient and effective querying</p>
+<section id="key-takeaways">
+<h3>Key Takeaways<a class="headerlink" href="#key-takeaways" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Combine criteria</strong>: Use multiple parameters to precisely target neuron populations</p></li>
+<li><p><strong>Leverage regex</strong>: Pattern matching is powerful for finding related neuron groups</p></li>
+<li><p><strong>Understand match_all</strong>: Control how lists are matched (ANY vs ALL)</p></li>
+<li><p><strong>Inspect first</strong>: Always explore available data before building complex queries</p></li>
+<li><p><strong>Use annotations</strong>: Don’t just get IDs - analyze the full metadata</p></li>
+</ol>
+</section>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./deep_dive"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../tutorial.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">CRANTpy Tutorial: Exploring the Ant Brain Connectome</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="visualization.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Deep Dive: Plotting Neurons</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#authentication-setup">1. Authentication Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exploring-available-annotation-data">2. Exploring Available Annotation Data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#exploring-data-distribution">Exploring Data Distribution</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-querying-with-neuroncriteria">3. Basic Querying with NeuronCriteria</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#simple-single-criterion-queries">Simple Single-Criterion Queries</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multi-criterion-queries-logical-and">Multi-Criterion Queries (Logical AND)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-filtering-options">4. Advanced Filtering Options</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-regular-expressions">Using Regular Expressions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-with-lists-match-all-parameter">Filtering with Lists: <code class="docutils literal notranslate"><span class="pre">match_all</span></code> Parameter</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#substring-matching-exact-parameter">Substring Matching: <code class="docutils literal notranslate"><span class="pre">exact</span></code> Parameter</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#case-sensitive-matching">Case-Sensitive Matching</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#working-with-annotations">5. Working with Annotations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-id-updating">Automatic ID Updating</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-proofread-status">6. Checking Proofread Status</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#neuroncriteria-as-iterable-and-container">7. NeuronCriteria as Iterable and Container</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-and-caching">8. Performance and Caching</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#analyzing-query-results">9. Analyzing Query Results</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cross-analysis-comparing-populations">Cross-Analysis: Comparing Populations</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#best-practices-and-tips">10. Best Practices and Tips</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#start-broad-then-refine">1. Start Broad, Then Refine</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#use-verbose-true-for-debugging">2. Use <code class="docutils literal notranslate"><span class="pre">verbose=True</span></code> for Debugging</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-available-values-before-querying">3. Inspect Available Values Before Querying</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#key-takeaways">Key Takeaways</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By CRANTb Community
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

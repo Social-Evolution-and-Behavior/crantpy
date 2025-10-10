@@ -1,0 +1,1389 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Contributing to CRANTpy &#8212; CRANTpy Documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'contribute';</script>
+    <link rel="icon" href="_static/logo.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Acknowledgements" href="acknowledgements.html" />
+    <link rel="prev" title="Frequently Asked Questions" href="faq.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">📚 Tutorials available! Check out the Deep Dive Gallery.</div>
+</aside>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/logo.png" class="logo__image only-light" alt="CRANTpy Documentation - Home"/>
+    <script>document.write(`<img src="_static/logo.png" class="logo__image only-dark" alt="CRANTpy Documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation &amp; Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Quickstart Tutorial</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_dive/visualization.html">Plotting Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_dive/morphology.html">Working with Neuron Morphology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_dive/connectivity.html">Analyzing Connectivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_dive/ngllink.html">From CRANTpy to Neuroglancer</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="api/modules.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/crantpy.html">crantpy package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/crantpy.queries.html">crantpy.queries package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.queries.connections.html">crantpy.queries.connections module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.queries.neurons.html">crantpy.queries.neurons module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/crantpy.utils.html">crantpy.utils package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.cave.html">crantpy.utils.cave package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.config.html">crantpy.utils.config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.decorators.html">crantpy.utils.decorators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.exceptions.html">crantpy.utils.exceptions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.helpers.html">crantpy.utils.helpers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.neuroglancer.html">crantpy.utils.neuroglancer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.seatable.html">crantpy.utils.seatable module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.utils.types.html">crantpy.utils.types module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/crantpy.viz.html">crantpy.viz package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.viz.l2.html">crantpy.viz.l2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.viz.mesh.html">crantpy.viz.mesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/crantpy.viz.skeletonize.html">crantpy.viz.skeletonize module</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="datasets.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy/edit/main/docs/contribute.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy/issues/new?title=Issue%20on%20page%20%2Fcontribute.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/contribute.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Contributing to CRANTpy</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ways-to-contribute">🎯 Ways to Contribute</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-started">🚀 Getting Started</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#development-setup">Development Setup</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development-workflow">📝 Development Workflow</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-branch">1. Create a Branch</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#make-changes">2. Make Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#update-module-imports-required">3. Update Module Imports (Required)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#test-your-changes">4. Test Your Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pre-commit-requirements">5. Pre-Commit Requirements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#commit-and-push">6. Commit and Push</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-pull-request">7. Create Pull Request</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#testing">🧪 Testing</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#running-tests">Running Tests</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#writing-tests">Writing Tests</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation">📖 Documentation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#building-documentation-required">Building Documentation (Required)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-guidelines">Documentation Guidelines</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#docstring-format">Docstring Format</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#code-style-standards">🎨 Code Style &amp; Standards</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#file-structure-requirements">File Structure Requirements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#type-hints-mandatory">Type Hints (Mandatory)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-organization">Module Organization</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#code-formatting">Code Formatting</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#project-structure">Project Structure</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#naming-conventions">Naming Conventions</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#issue-guidelines">🚨 Issue Guidelines</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reporting-bugs">Reporting Bugs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#feature-requests">Feature Requests</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pull-request-guidelines">📋 Pull Request Guidelines</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#before-submitting-checklist">Before Submitting (Checklist)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pull-request-template">Pull Request Template</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#review-process">Review Process</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-process">🏷️ Release Process</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#version-numbers">Version Numbers</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#commit-message-format">Commit Message Format</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#community">💬 Community</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#communication-channels">Communication Channels</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#code-of-conduct">Code of Conduct</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#recognition">🙏 Recognition</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#package-deployment-maintainers-only">📦 Package Deployment (Maintainers Only)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites-for-deployment">Prerequisites for Deployment</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-api-tokens">Create API Tokens</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-setup-with-api-token-script">Quick Setup with API Token Script</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#manual-setup-alternative">Manual Setup (Alternative)</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#configure-environment-variables">Configure Environment Variables</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#security-best-practices">Security Best Practices</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#troubleshooting-token-issues">Troubleshooting Token Issues</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deployment-script-usage">Deployment Script Usage</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-deployment-workflows">Example Deployment Workflows</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-deployment-script-does">What the Deployment Script Does</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#troubleshooting-deployment">Troubleshooting Deployment</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deployment-best-practices">Deployment Best Practices</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#security-notes">Security Notes</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="contributing-to-crantpy">
+<h1>Contributing to CRANTpy<a class="headerlink" href="#contributing-to-crantpy" title="Link to this heading">#</a></h1>
+<p>We welcome contributions to CRANTpy! This guide will help you get started with contributing to the project.</p>
+<section id="ways-to-contribute">
+<h2>🎯 Ways to Contribute<a class="headerlink" href="#ways-to-contribute" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>🐛 <strong>Report bugs</strong> and suggest fixes</p></li>
+<li><p>💡 <strong>Propose new features</strong> and enhancements</p></li>
+<li><p>📖 <strong>Improve documentation</strong> and examples</p></li>
+<li><p>🧪 <strong>Write tests</strong> and improve code coverage</p></li>
+<li><p>🔧 <strong>Submit code</strong> improvements and bug fixes</p></li>
+<li><p>💬 <strong>Help other users</strong> in discussions</p></li>
+</ul>
+</section>
+<section id="getting-started">
+<h2>🚀 Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">#</a></h2>
+<section id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Python 3.10 or higher</p></li>
+<li><p>Git</p></li>
+<li><p><strong>Poetry</strong> (required for dependency management) - Install from <a class="reference external" href="https://python-poetry.org/">python-poetry.org</a></p></li>
+</ul>
+</section>
+<section id="development-setup">
+<h3>Development Setup<a class="headerlink" href="#development-setup" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Fork and clone the repository</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/your-username/crantpy.git
+<span class="nb">cd</span><span class="w"> </span>crantpy
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>Install development dependencies with Poetry</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Poetry is REQUIRED for this project</span>
+poetry<span class="w"> </span>install
+</pre></div>
+</div>
+<p>This will:</p>
+<ul class="simple">
+<li><p>Create a virtual environment</p></li>
+<li><p>Install all dependencies and development tools</p></li>
+<li><p>Set up the project for development</p></li>
+</ul>
+<ol class="arabic simple" start="3">
+<li><p><strong>Set up pre-commit hooks</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>poetry<span class="w"> </span>run<span class="w"> </span>pre-commit<span class="w"> </span>install
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p><strong>Verify installation</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>poetry<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/
+./build_docs.sh<span class="w"> </span>--clean
+</pre></div>
+</div>
+</section>
+</section>
+<section id="development-workflow">
+<h2>📝 Development Workflow<a class="headerlink" href="#development-workflow" title="Link to this heading">#</a></h2>
+<section id="create-a-branch">
+<h3>1. Create a Branch<a class="headerlink" href="#create-a-branch" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/your-feature-name
+<span class="c1"># or</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>fix/issue-number
+</pre></div>
+</div>
+</section>
+<section id="make-changes">
+<h3>2. Make Changes<a class="headerlink" href="#make-changes" title="Link to this heading">#</a></h3>
+<p>Follow these coding standards:</p>
+<ul>
+<li><p><strong>Start each file with UTF-8 encoding and detailed docstring</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module provides XXX functionality for YYY.</span>
+
+<span class="sd">Detailed description of what this module does,</span>
+<span class="sd">its main classes, functions, and usage patterns.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Use type hints</strong> for all function parameters and return values</p></li>
+<li><p><strong>Follow existing code structure</strong> and patterns</p></li>
+<li><p><strong>Add tests</strong> for new functionality</p></li>
+<li><p><strong>Update documentation</strong> as needed</p></li>
+<li><p><strong>Add <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code></strong> files to new folders</p></li>
+</ul>
+</section>
+<section id="update-module-imports-required">
+<h3>3. Update Module Imports (Required)<a class="headerlink" href="#update-module-imports-required" title="Link to this heading">#</a></h3>
+<p>After adding new code, <strong>always</strong> run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>poetry<span class="w"> </span>run<span class="w"> </span>mkinit<span class="w"> </span>--lazy_loader<span class="w"> </span>src/crantpy<span class="w"> </span>--recursive<span class="w"> </span>--inplace
+</pre></div>
+</div>
+<p>This updates the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> files with lazy loading for efficient imports.</p>
+</section>
+<section id="test-your-changes">
+<h3>4. Test Your Changes<a class="headerlink" href="#test-your-changes" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run tests</span>
+poetry<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/
+
+<span class="c1"># Check code style</span>
+poetry<span class="w"> </span>run<span class="w"> </span>black<span class="w"> </span>src/<span class="w"> </span>tests/
+poetry<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>src/<span class="w"> </span>tests/
+
+<span class="c1"># Build and test documentation (REQUIRED before commit)</span>
+./build_docs.sh<span class="w"> </span>--clean
+</pre></div>
+</div>
+</section>
+<section id="pre-commit-requirements">
+<h3>5. Pre-Commit Requirements<a class="headerlink" href="#pre-commit-requirements" title="Link to this heading">#</a></h3>
+<p><strong>Before every commit</strong>, ensure you run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Update lazy imports</span>
+poetry<span class="w"> </span>run<span class="w"> </span>mkinit<span class="w"> </span>--lazy_loader<span class="w"> </span>src/crantpy<span class="w"> </span>--recursive<span class="w"> </span>--inplace
+
+<span class="c1"># 2. Build documentation</span>
+./build_docs.sh<span class="w"> </span>--clean
+
+<span class="c1"># 3. Run tests</span>
+poetry<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/
+
+<span class="c1"># 4. Check code formatting</span>
+poetry<span class="w"> </span>run<span class="w"> </span>black<span class="w"> </span>src/<span class="w"> </span>tests/
+poetry<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>src/<span class="w"> </span>tests/
+</pre></div>
+</div>
+</section>
+<section id="commit-and-push">
+<h3>6. Commit and Push<a class="headerlink" href="#commit-and-push" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat: add new feature description&quot;</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/your-feature-name
+</pre></div>
+</div>
+</section>
+<section id="create-pull-request">
+<h3>7. Create Pull Request<a class="headerlink" href="#create-pull-request" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Open a pull request against the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch</p></li>
+<li><p>Fill out the pull request template</p></li>
+<li><p>Link any related issues</p></li>
+</ul>
+</section>
+</section>
+<section id="testing">
+<h2>🧪 Testing<a class="headerlink" href="#testing" title="Link to this heading">#</a></h2>
+<section id="running-tests">
+<h3>Running Tests<a class="headerlink" href="#running-tests" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run all tests</span>
+poetry<span class="w"> </span>run<span class="w"> </span>pytest
+
+<span class="c1"># Run specific test file</span>
+poetry<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/test_queries.py
+
+<span class="c1"># Run with coverage</span>
+poetry<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>--cov<span class="o">=</span>crantpy<span class="w"> </span>tests/
+</pre></div>
+</div>
+</section>
+<section id="writing-tests">
+<h3>Writing Tests<a class="headerlink" href="#writing-tests" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Place tests in the <code class="docutils literal notranslate"><span class="pre">tests/</span></code> directory</p></li>
+<li><p>Use descriptive test names</p></li>
+<li><p>Test both success and failure cases</p></li>
+<li><p>Mock external dependencies (CAVE API calls)</p></li>
+</ul>
+<p>Example test:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">crantpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">NeuronCriteria</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_neuron_criteria_creation</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test that NeuronCriteria can be created with valid parameters.&quot;&quot;&quot;</span>
+    <span class="n">criteria</span> <span class="o">=</span> <span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;kenyon_cell&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">criteria</span><span class="o">.</span><span class="n">cell_class</span> <span class="o">==</span> <span class="s1">&#39;kenyon_cell&#39;</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_invalid_cell_class</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test that invalid cell class raises appropriate error.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+        <span class="n">NeuronCriteria</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="s1">&#39;invalid_class&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="documentation">
+<h2>📖 Documentation<a class="headerlink" href="#documentation" title="Link to this heading">#</a></h2>
+<section id="building-documentation-required">
+<h3>Building Documentation (Required)<a class="headerlink" href="#building-documentation-required" title="Link to this heading">#</a></h3>
+<p><strong>Always use the provided build script:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build and test documentation</span>
+./build_docs.sh<span class="w"> </span>--clean
+
+<span class="c1"># Build and deploy (for maintainers)</span>
+./build_docs.sh<span class="w"> </span>--clean<span class="w"> </span>--deploy
+</pre></div>
+</div>
+<p><strong>Never use <code class="docutils literal notranslate"><span class="pre">jupyter-book</span> <span class="pre">build</span></code> directly</strong> - use <code class="docutils literal notranslate"><span class="pre">build_docs.sh</span></code> which handles:</p>
+<ul class="simple">
+<li><p>Dependency compatibility fixes</p></li>
+<li><p>Proper error handling</p></li>
+<li><p>Consistent build environment</p></li>
+</ul>
+</section>
+<section id="documentation-guidelines">
+<h3>Documentation Guidelines<a class="headerlink" href="#documentation-guidelines" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Use clear, concise language</p></li>
+<li><p>Include executable code examples</p></li>
+<li><p>Add comprehensive docstrings to all public functions</p></li>
+<li><p>Update relevant tutorials when adding features</p></li>
+<li><p><strong>Test documentation build before every commit</strong></p></li>
+</ul>
+</section>
+<section id="docstring-format">
+<h3>Docstring Format<a class="headerlink" href="#docstring-format" title="Link to this heading">#</a></h3>
+<p>Use Google-style docstrings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_skeletons</span><span class="p">(</span><span class="n">root_ids</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="s1">&#39;latest&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve neuron skeletons for given root IDs.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        root_ids: List of neuron root IDs or single root ID</span>
+<span class="sd">        dataset: Dataset version to use (&#39;latest&#39; or &#39;sandbox&#39;)</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        List of TreeNeuron objects or single TreeNeuron</span>
+<span class="sd">        </span>
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If root_ids is empty or invalid</span>
+<span class="sd">        ConnectionError: If CAVE service is unavailable</span>
+<span class="sd">        </span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; skeleton = cp.get_skeletons(123456789)</span>
+<span class="sd">        &gt;&gt;&gt; skeletons = cp.get_skeletons([123456789, 987654321])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="code-style-standards">
+<h2>🎨 Code Style &amp; Standards<a class="headerlink" href="#code-style-standards" title="Link to this heading">#</a></h2>
+<section id="file-structure-requirements">
+<h3>File Structure Requirements<a class="headerlink" href="#file-structure-requirements" title="Link to this heading">#</a></h3>
+<p><strong>Every new Python file must start with:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module provides [detailed description of functionality].</span>
+
+<span class="sd">[Comprehensive explanation of what this module does, its main classes,</span>
+<span class="sd">functions, and usage patterns. Be as detailed as possible.]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="type-hints-mandatory">
+<h3>Type Hints (Mandatory)<a class="headerlink" href="#type-hints-mandatory" title="Link to this heading">#</a></h3>
+<p>Use type hints for <strong>all</strong> function parameters and return values:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">crantpy.utils.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">NeuronID</span><span class="p">,</span> <span class="n">RootID</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_skeletons</span><span class="p">(</span>
+    <span class="n">root_ids</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">NeuronID</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">NeuronID</span><span class="p">]],</span> 
+    <span class="n">dataset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;latest&#39;</span><span class="p">,</span>
+    <span class="n">simplify</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">TreeNeuron</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">TreeNeuron</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve neuron skeletons with full type specification.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p><strong>Benefits of type hints:</strong></p>
+<ul class="simple">
+<li><p>Easier debugging with type assertion</p></li>
+<li><p>Clear input/output expectations</p></li>
+<li><p>Better IDE support and autocompletion</p></li>
+<li><p>See <code class="docutils literal notranslate"><span class="pre">crantpy/utils/types.py</span></code> for custom compound types</p></li>
+</ul>
+</section>
+<section id="module-organization">
+<h3>Module Organization<a class="headerlink" href="#module-organization" title="Link to this heading">#</a></h3>
+<p><strong>For new folders:</strong></p>
+<ol class="arabic simple">
+<li><p>Always create <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> files</p></li>
+<li><p>After adding code, run the lazy import updater:</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>poetry<span class="w"> </span>run<span class="w"> </span>mkinit<span class="w"> </span>--lazy_loader<span class="w"> </span>src/crantpy<span class="w"> </span>--recursive<span class="w"> </span>--inplace
+</pre></div>
+</div>
+</section>
+<section id="code-formatting">
+<h3>Code Formatting<a class="headerlink" href="#code-formatting" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Use <a class="reference external" href="https://black.readthedocs.io/">Black</a> for code formatting</p></li>
+<li><p>Use <a class="reference external" href="https://ruff.rs/">Ruff</a> for linting</p></li>
+<li><p>Maximum line length: 88 characters</p></li>
+<li><p><strong>Poetry is required</strong> - no pip installations</p></li>
+</ul>
+</section>
+<section id="project-structure">
+<h3>Project Structure<a class="headerlink" href="#project-structure" title="Link to this heading">#</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>src/crantpy/
+├── __init__.py          # Main public API
+├── queries/             # Neuron querying functionality
+├── utils/              # Utility functions
+│   ├── cave/           # CAVE-specific utilities
+│   └── config.py       # Configuration management
+└── viz/                # Visualization tools
+</pre></div>
+</div>
+</section>
+<section id="naming-conventions">
+<h3>Naming Conventions<a class="headerlink" href="#naming-conventions" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Functions</strong>: <code class="docutils literal notranslate"><span class="pre">snake_case</span></code></p></li>
+<li><p><strong>Classes</strong>: <code class="docutils literal notranslate"><span class="pre">PascalCase</span></code></p></li>
+<li><p><strong>Constants</strong>: <code class="docutils literal notranslate"><span class="pre">UPPER_SNAKE_CASE</span></code></p></li>
+<li><p><strong>Private methods</strong>: <code class="docutils literal notranslate"><span class="pre">_snake_case</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="issue-guidelines">
+<h2>🚨 Issue Guidelines<a class="headerlink" href="#issue-guidelines" title="Link to this heading">#</a></h2>
+<section id="reporting-bugs">
+<h3>Reporting Bugs<a class="headerlink" href="#reporting-bugs" title="Link to this heading">#</a></h3>
+<p>Use the bug report template and include:</p>
+<ul class="simple">
+<li><p><strong>Environment details</strong> (Python version, OS, CRANTpy version)</p></li>
+<li><p><strong>Steps to reproduce</strong> the issue</p></li>
+<li><p><strong>Expected vs actual behavior</strong></p></li>
+<li><p><strong>Code example</strong> that demonstrates the bug</p></li>
+<li><p><strong>Error messages</strong> (full traceback)</p></li>
+</ul>
+</section>
+<section id="feature-requests">
+<h3>Feature Requests<a class="headerlink" href="#feature-requests" title="Link to this heading">#</a></h3>
+<p>Use the feature request template and include:</p>
+<ul class="simple">
+<li><p><strong>Clear description</strong> of the proposed feature</p></li>
+<li><p><strong>Use case</strong> and motivation</p></li>
+<li><p><strong>Possible implementation</strong> approach</p></li>
+<li><p><strong>Examples</strong> of how it would be used</p></li>
+</ul>
+</section>
+</section>
+<section id="pull-request-guidelines">
+<h2>📋 Pull Request Guidelines<a class="headerlink" href="#pull-request-guidelines" title="Link to this heading">#</a></h2>
+<section id="before-submitting-checklist">
+<h3>Before Submitting (Checklist)<a class="headerlink" href="#before-submitting-checklist" title="Link to this heading">#</a></h3>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Poetry used</strong> for all dependency management</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>UTF-8 header and docstring</strong> added to new files</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Type hints</strong> added to all functions</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong><code class="docutils literal notranslate"><span class="pre">__init__.py</span></code></strong> files created for new folders</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Lazy imports updated</strong>: <code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">run</span> <span class="pre">mkinit</span> <span class="pre">--lazy_loader</span> <span class="pre">src/crantpy</span> <span class="pre">--recursive</span> <span class="pre">--inplace</span></code></p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Documentation built successfully</strong>: <code class="docutils literal notranslate"><span class="pre">./build_docs.sh</span> <span class="pre">--clean</span></code></p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Tests pass locally</strong>: <code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">run</span> <span class="pre">pytest</span> <span class="pre">tests/</span></code></p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Code formatted</strong>: <code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">run</span> <span class="pre">black</span> <span class="pre">src/</span> <span class="pre">tests/</span></code></p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Linting passes</strong>: <code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">run</span> <span class="pre">ruff</span> <span class="pre">check</span> <span class="pre">src/</span> <span class="pre">tests/</span></code></p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Changelog updated</strong> (for significant changes)</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Commit messages follow conventional format</strong></p></li>
+</ul>
+</section>
+<section id="pull-request-template">
+<h3>Pull Request Template<a class="headerlink" href="#pull-request-template" title="Link to this heading">#</a></h3>
+<p>Your PR should include:</p>
+<ul class="simple">
+<li><p><strong>Description</strong> of changes made</p></li>
+<li><p><strong>Type of change</strong> (bug fix, feature, docs, etc.)</p></li>
+<li><p><strong>Testing</strong> performed</p></li>
+<li><p><strong>Related issues</strong> (if any)</p></li>
+</ul>
+</section>
+<section id="review-process">
+<h3>Review Process<a class="headerlink" href="#review-process" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Automated checks</strong> must pass (CI/CD)</p></li>
+<li><p><strong>Code review</strong> by maintainers</p></li>
+<li><p><strong>Testing</strong> on different environments</p></li>
+<li><p><strong>Documentation review</strong> if applicable</p></li>
+<li><p><strong>Final approval</strong> and merge</p></li>
+</ol>
+</section>
+</section>
+<section id="release-process">
+<h2>🏷️ Release Process<a class="headerlink" href="#release-process" title="Link to this heading">#</a></h2>
+<section id="version-numbers">
+<h3>Version Numbers<a class="headerlink" href="#version-numbers" title="Link to this heading">#</a></h3>
+<p>We follow <a class="reference external" href="https://semver.org/">Semantic Versioning</a>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MAJOR.MINOR.PATCH</span></code> (e.g., 1.2.3)</p></li>
+<li><p><strong>MAJOR</strong>: Breaking changes</p></li>
+<li><p><strong>MINOR</strong>: New features (backward compatible)</p></li>
+<li><p><strong>PATCH</strong>: Bug fixes (backward compatible)</p></li>
+</ul>
+</section>
+<section id="commit-message-format">
+<h3>Commit Message Format<a class="headerlink" href="#commit-message-format" title="Link to this heading">#</a></h3>
+<p>Use <a class="reference external" href="https://www.conventionalcommits.org/">Conventional Commits</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span><span class="p">(</span><span class="n">scope</span><span class="p">):</span> <span class="n">description</span>
+
+<span class="n">feat</span><span class="p">:</span> <span class="n">add</span> <span class="n">new</span> <span class="n">visualization</span> <span class="n">backend</span>
+<span class="n">fix</span><span class="p">:</span> <span class="n">resolve</span> <span class="n">authentication</span> <span class="n">token</span> <span class="n">refresh</span>
+<span class="n">docs</span><span class="p">:</span> <span class="n">update</span> <span class="n">installation</span> <span class="n">guide</span>
+<span class="n">test</span><span class="p">:</span> <span class="n">add</span> <span class="n">tests</span> <span class="k">for</span> <span class="n">neuron</span> <span class="n">queries</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="community">
+<h2>💬 Community<a class="headerlink" href="#community" title="Link to this heading">#</a></h2>
+<section id="communication-channels">
+<h3>Communication Channels<a class="headerlink" href="#communication-channels" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>GitHub Discussions</strong>: General questions and ideas</p></li>
+<li><p><strong>GitHub Issues</strong>: Bug reports and feature requests</p></li>
+<li><p><strong>Email</strong>: <a class="reference external" href="mailto:crantpy-dev&#37;&#52;&#48;example&#46;com">crantpy-dev<span>&#64;</span>example<span>&#46;</span>com</a></p></li>
+</ul>
+</section>
+<section id="code-of-conduct">
+<h3>Code of Conduct<a class="headerlink" href="#code-of-conduct" title="Link to this heading">#</a></h3>
+<p>Please read and follow our <a class="reference internal" href="#CODE_OF_CONDUCT.md"><span class="xref myst">Code of Conduct</span></a>. We are committed to providing a welcoming and inclusive environment for all contributors.</p>
+</section>
+</section>
+<section id="recognition">
+<h2>🙏 Recognition<a class="headerlink" href="#recognition" title="Link to this heading">#</a></h2>
+<p>Contributors are recognized in:</p>
+<ul class="simple">
+<li><p><strong><a class="reference external" href="http://README.md">README.md</a></strong> acknowledgments</p></li>
+<li><p><strong>Release notes</strong> for significant contributions</p></li>
+<li><p><strong>Documentation</strong> author credits</p></li>
+</ul>
+</section>
+<section id="package-deployment-maintainers-only">
+<h2>📦 Package Deployment (Maintainers Only)<a class="headerlink" href="#package-deployment-maintainers-only" title="Link to this heading">#</a></h2>
+<section id="prerequisites-for-deployment">
+<h3>Prerequisites for Deployment<a class="headerlink" href="#prerequisites-for-deployment" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>PyPI Account</strong>: You need accounts on both <a class="reference external" href="https://pypi.org/">PyPI</a> and <a class="reference external" href="https://test.pypi.org/">TestPyPI</a></p></li>
+<li><p><strong>API Tokens</strong>: Create API tokens for both services</p></li>
+<li><p><strong>Poetry Configuration</strong>: Configure Poetry with your API tokens</p></li>
+</ol>
+</section>
+<section id="create-api-tokens">
+<h3>Create API Tokens<a class="headerlink" href="#create-api-tokens" title="Link to this heading">#</a></h3>
+<p><strong>TestPyPI Token:</strong></p>
+<ul class="simple">
+<li><p>Go to: <a class="reference external" href="https://test.pypi.org/manage/account/token/">https://test.pypi.org/manage/account/token/</a></p></li>
+<li><p>Click ‘Add API token’</p></li>
+<li><p>Token name: ‘crantpy-dev’ (or any name you prefer)</p></li>
+<li><p>Scope: ‘Entire account’ (or limit to specific project)</p></li>
+<li><p>Copy the generated token (starts with ‘pypi-’)</p></li>
+</ul>
+<p><strong>PyPI Token:</strong></p>
+<ul class="simple">
+<li><p>Go to: <a class="reference external" href="https://pypi.org/manage/account/token/">https://pypi.org/manage/account/token/</a></p></li>
+<li><p>Click ‘Add API token’</p></li>
+<li><p>Token name: ‘crantpy-dev’ (or any name you prefer)</p></li>
+<li><p>Scope: ‘Entire account’ (or limit to specific project)</p></li>
+<li><p>Copy the generated token (starts with ‘pypi-’)</p></li>
+</ul>
+</section>
+<section id="quick-setup-with-api-token-script">
+<h3>Quick Setup with API Token Script<a class="headerlink" href="#quick-setup-with-api-token-script" title="Link to this heading">#</a></h3>
+<p>We provide an automated script to set up your PyPI tokens:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run the interactive token setup</span>
+./api_token.sh<span class="w"> </span>--setup
+
+<span class="c1"># Check configuration status</span>
+./api_token.sh<span class="w"> </span>--status
+
+<span class="c1"># Test if tokens are working</span>
+./api_token.sh<span class="w"> </span>--test
+
+<span class="c1"># Clean up configuration (if needed)</span>
+./api_token.sh<span class="w"> </span>--cleanup
+</pre></div>
+</div>
+<p>The script will:</p>
+<ul class="simple">
+<li><p>Guide you through getting API tokens from PyPI and TestPyPI</p></li>
+<li><p>Automatically configure your shell environment (.bashrc/.zshrc)</p></li>
+<li><p>Set up Poetry with the correct tokens and repositories</p></li>
+<li><p>Test the configuration to ensure everything works</p></li>
+</ul>
+</section>
+<section id="manual-setup-alternative">
+<h3>Manual Setup (Alternative)<a class="headerlink" href="#manual-setup-alternative" title="Link to this heading">#</a></h3>
+<p>If you prefer to set up tokens manually:</p>
+<section id="configure-environment-variables">
+<h4>Configure Environment Variables<a class="headerlink" href="#configure-environment-variables" title="Link to this heading">#</a></h4>
+<p>Add to your shell configuration file (<code class="docutils literal notranslate"><span class="pre">~/.bashrc</span></code>, <code class="docutils literal notranslate"><span class="pre">~/.zshrc</span></code>, etc.):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># CRANTpy PyPI Tokens</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">POETRY_PYPI_TOKEN_TESTPYPI</span><span class="o">=</span><span class="s2">&quot;pypi-your-testpypi-token-here&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">POETRY_PYPI_TOKEN_PYPI</span><span class="o">=</span><span class="s2">&quot;pypi-your-pypi-token-here&quot;</span>
+</pre></div>
+</div>
+<p>Reload your shell:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>~/.bashrc<span class="w">  </span><span class="c1"># or source ~/.zshrc</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="security-best-practices">
+<h3>Security Best Practices<a class="headerlink" href="#security-best-practices" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Never commit tokens to git</strong>: Tokens are automatically excluded by <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code></p></li>
+<li><p><strong>Use environment variables</strong>: The deployment script supports both Poetry config and environment variables</p></li>
+<li><p><strong>Rotate tokens regularly</strong>: Create new tokens periodically and update your configuration</p></li>
+<li><p><strong>Limit token scope</strong>: When possible, limit tokens to specific projects rather than entire account</p></li>
+</ul>
+</section>
+<section id="troubleshooting-token-issues">
+<h3>Troubleshooting Token Issues<a class="headerlink" href="#troubleshooting-token-issues" title="Link to this heading">#</a></h3>
+<p><strong>Script won’t run:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>chmod<span class="w"> </span>+x<span class="w"> </span>api_token.sh
+./api_token.sh<span class="w"> </span>--setup
+</pre></div>
+</div>
+<p><strong>Tokens not working:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check current status</span>
+./api_token.sh<span class="w"> </span>--status
+
+<span class="c1"># Clean and reconfigure</span>
+./api_token.sh<span class="w"> </span>--cleanup
+./api_token.sh<span class="w"> </span>--setup
+</pre></div>
+</div>
+<p><strong>Environment variables not loading:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Restart terminal or reload shell config</span>
+<span class="nb">source</span><span class="w"> </span>~/.bashrc<span class="w">  </span><span class="c1"># or ~/.zshrc</span>
+</pre></div>
+</div>
+</section>
+<section id="deployment-script-usage">
+<h3>Deployment Script Usage<a class="headerlink" href="#deployment-script-usage" title="Link to this heading">#</a></h3>
+<p>The project includes a comprehensive deployment script (<code class="docutils literal notranslate"><span class="pre">deploy.sh</span></code>) that automates the entire release process:</p>
+<p><strong>Available Commands:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">test-deploy</span></code>: Deploy to TestPyPI for testing</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">deploy</span></code>: Deploy to production PyPI</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">build-only</span></code>: Build package without deploying</p></li>
+</ul>
+<p><strong>Version Bumping:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--bump</span> <span class="pre">patch</span></code>: Bug fixes (0.1.0 → 0.1.1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--bump</span> <span class="pre">minor</span></code>: New features (0.1.0 → 0.2.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--bump</span> <span class="pre">major</span></code>: Breaking changes (0.1.0 → 1.0.0)</p></li>
+</ul>
+<p><strong>Skip Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--skip-tests</span></code>: Skip running pytest</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--skip-docs</span></code>: Skip building documentation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--skip-checks</span></code>: Skip code quality checks</p></li>
+</ul>
+</section>
+<section id="example-deployment-workflows">
+<h3>Example Deployment Workflows<a class="headerlink" href="#example-deployment-workflows" title="Link to this heading">#</a></h3>
+<p><strong>First Release:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Test the release process</span>
+./deploy.sh<span class="w"> </span>--bump<span class="w"> </span>patch<span class="w"> </span>test-deploy
+
+<span class="c1"># 2. Verify the test package</span>
+pip<span class="w"> </span>install<span class="w"> </span>-i<span class="w"> </span>https://test.pypi.org/simple/<span class="w"> </span><span class="nv">crantpy</span><span class="o">==</span><span class="m">0</span>.1.1
+
+<span class="c1"># 3. If everything works, deploy to production</span>
+./deploy.sh<span class="w"> </span>deploy
+</pre></div>
+</div>
+<p><strong>Regular Updates:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># For bug fixes</span>
+./deploy.sh<span class="w"> </span>--bump<span class="w"> </span>patch<span class="w"> </span>deploy
+
+<span class="c1"># For new features  </span>
+./deploy.sh<span class="w"> </span>--bump<span class="w"> </span>minor<span class="w"> </span>deploy
+
+<span class="c1"># For breaking changes</span>
+./deploy.sh<span class="w"> </span>--bump<span class="w"> </span>major<span class="w"> </span>deploy
+</pre></div>
+</div>
+<p><strong>Development Build:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Just build without deploying</span>
+./deploy.sh<span class="w"> </span>build-only
+</pre></div>
+</div>
+</section>
+<section id="what-the-deployment-script-does">
+<h3>What the Deployment Script Does<a class="headerlink" href="#what-the-deployment-script-does" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Pre-flight Checks:</strong></p>
+<ul class="simple">
+<li><p>Verifies Poetry installation</p></li>
+<li><p>Checks project structure</p></li>
+<li><p>Validates git status</p></li>
+</ul>
+</li>
+<li><p><strong>Quality Assurance:</strong></p>
+<ul class="simple">
+<li><p>Updates lazy imports with mkinit</p></li>
+<li><p>Formats code with Black</p></li>
+<li><p>Lints code with Ruff</p></li>
+<li><p>Runs tests with pytest</p></li>
+<li><p>Builds documentation</p></li>
+</ul>
+</li>
+<li><p><strong>Package Building:</strong></p>
+<ul class="simple">
+<li><p>Cleans previous builds</p></li>
+<li><p>Builds with Poetry</p></li>
+<li><p>Validates with twine</p></li>
+</ul>
+</li>
+<li><p><strong>Deployment:</strong></p>
+<ul class="simple">
+<li><p>Deploys to TestPyPI or PyPI</p></li>
+<li><p>Creates git tags for releases</p></li>
+<li><p>Pushes tags to remote</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="troubleshooting-deployment">
+<h3>Troubleshooting Deployment<a class="headerlink" href="#troubleshooting-deployment" title="Link to this heading">#</a></h3>
+<p><strong>Authentication Issues:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check Poetry configuration</span>
+poetry<span class="w"> </span>config<span class="w"> </span>--list
+
+<span class="c1"># Reconfigure tokens</span>
+poetry<span class="w"> </span>config<span class="w"> </span>pypi-token.pypi<span class="w"> </span>your-new-token
+</pre></div>
+</div>
+<p><strong>Build Failures:</strong></p>
+<ul class="simple">
+<li><p>Check that all tests pass: <code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">run</span> <span class="pre">pytest</span></code></p></li>
+<li><p>Verify code quality: <code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">run</span> <span class="pre">ruff</span> <span class="pre">check</span> <span class="pre">src/</span></code></p></li>
+<li><p>Ensure documentation builds: <code class="docutils literal notranslate"><span class="pre">./build_docs.sh</span> <span class="pre">--clean</span></code></p></li>
+</ul>
+<p><strong>Version Conflicts:</strong></p>
+<ul class="simple">
+<li><p>Check existing versions: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">index</span> <span class="pre">versions</span> <span class="pre">crantpy</span></code></p></li>
+<li><p>Use appropriate version bump: <code class="docutils literal notranslate"><span class="pre">--bump</span> <span class="pre">major|minor|patch</span></code></p></li>
+</ul>
+</section>
+<section id="deployment-best-practices">
+<h3>Deployment Best Practices<a class="headerlink" href="#deployment-best-practices" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Always test first</strong>: Use <code class="docutils literal notranslate"><span class="pre">test-deploy</span></code> before <code class="docutils literal notranslate"><span class="pre">deploy</span></code></p></li>
+<li><p><strong>Follow semantic versioning</strong>: Use appropriate bump levels</p></li>
+<li><p><strong>Keep git clean</strong>: Commit changes before deploying</p></li>
+<li><p><strong>Document changes</strong>: Update <a class="reference external" href="http://CHANGELOG.md">CHANGELOG.md</a></p></li>
+<li><p><strong>Tag releases</strong>: The script automatically creates git tags</p></li>
+</ol>
+</section>
+<section id="security-notes">
+<h3>Security Notes<a class="headerlink" href="#security-notes" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Store API tokens securely</p></li>
+<li><p>Never commit tokens to git</p></li>
+<li><p>Use environment variables for CI/CD</p></li>
+<li><p>Regularly rotate tokens</p></li>
+</ul>
+<p>Thank you for contributing to CRANTpy! 🎉</p>
+</section>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="faq.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Frequently Asked Questions</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="acknowledgements.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Acknowledgements</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ways-to-contribute">🎯 Ways to Contribute</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-started">🚀 Getting Started</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#development-setup">Development Setup</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development-workflow">📝 Development Workflow</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-branch">1. Create a Branch</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#make-changes">2. Make Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#update-module-imports-required">3. Update Module Imports (Required)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#test-your-changes">4. Test Your Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pre-commit-requirements">5. Pre-Commit Requirements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#commit-and-push">6. Commit and Push</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-pull-request">7. Create Pull Request</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#testing">🧪 Testing</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#running-tests">Running Tests</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#writing-tests">Writing Tests</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation">📖 Documentation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#building-documentation-required">Building Documentation (Required)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-guidelines">Documentation Guidelines</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#docstring-format">Docstring Format</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#code-style-standards">🎨 Code Style &amp; Standards</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#file-structure-requirements">File Structure Requirements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#type-hints-mandatory">Type Hints (Mandatory)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-organization">Module Organization</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#code-formatting">Code Formatting</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#project-structure">Project Structure</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#naming-conventions">Naming Conventions</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#issue-guidelines">🚨 Issue Guidelines</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reporting-bugs">Reporting Bugs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#feature-requests">Feature Requests</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pull-request-guidelines">📋 Pull Request Guidelines</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#before-submitting-checklist">Before Submitting (Checklist)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pull-request-template">Pull Request Template</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#review-process">Review Process</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-process">🏷️ Release Process</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#version-numbers">Version Numbers</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#commit-message-format">Commit Message Format</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#community">💬 Community</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#communication-channels">Communication Channels</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#code-of-conduct">Code of Conduct</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#recognition">🙏 Recognition</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#package-deployment-maintainers-only">📦 Package Deployment (Maintainers Only)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites-for-deployment">Prerequisites for Deployment</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-api-tokens">Create API Tokens</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-setup-with-api-token-script">Quick Setup with API Token Script</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#manual-setup-alternative">Manual Setup (Alternative)</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#configure-environment-variables">Configure Environment Variables</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#security-best-practices">Security Best Practices</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#troubleshooting-token-issues">Troubleshooting Token Issues</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deployment-script-usage">Deployment Script Usage</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#example-deployment-workflows">Example Deployment Workflows</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-deployment-script-does">What the Deployment Script Does</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#troubleshooting-deployment">Troubleshooting Deployment</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deployment-best-practices">Deployment Best Practices</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#security-notes">Security Notes</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By CRANTb Community
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
