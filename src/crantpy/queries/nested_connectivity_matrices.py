@@ -390,33 +390,32 @@ def plot_nested_connectivity_matrix(
         
         plot_matrix = relative_matrix.loc[row_order, resolved_column_order]
         fig, ax = plt.subplots(figsize=figsize)
-        mask = plot_matrix.values == 0
-        sns.heatmap(
-            plot_matrix.values,
+        # use imshow with NaNs for masked (zero) values to avoid seaborn layout
+        plot_vals = plot_matrix.values.astype(float)
+        mask = plot_vals == 0
+        plot_vals = np.where(mask, np.nan, plot_vals)
+
+        nrows, ncols = plot_vals.shape
+        # map pixels so matrix cell (i, j) is centered at integer coords
+        extent = (-0.5, ncols - 0.5, -0.5, nrows - 0.5)
+        im = ax.imshow(
+            plot_vals,
             cmap=purple_cmap,
             vmin=0,
-            vmax=float(np.nanmax(plot_matrix.values)) if plot_matrix.size else 1.0,
-            square=False,
-            cbar=False,
-            xticklabels=False,
-            yticklabels=False,
-            ax=ax,
-            linewidths=0,
-            rasterized=True,
-            mask=mask,
+            vmax=float(np.nanmax(plot_vals)) if plot_vals.size and not np.all(np.isnan(plot_vals)) else 1.0,
+            aspect='auto',
+            origin='lower',
+            interpolation='nearest',
+            extent=extent,
         )
-        # create matplotlib colorbar from seaborn mappable
-        mappable = ax.collections[0] if ax.collections else None
-        if mappable is not None:
-            cbar = plt.colorbar(mappable, ax=ax, fraction=0.046, pad=0.04)
-            cbar.set_label(cbar_label, fontsize=COLORBAR_LABEL_FONTSIZE, fontweight="bold")
 
-        ax.set_xlabel(
-            "postsynaptic neuron", fontsize=AXIS_LABEL_FONTSIZE, fontweight="bold"
-        )
-        ax.set_ylabel(
-            "presynaptic neuron", fontsize=AXIS_LABEL_FONTSIZE, fontweight="bold"
-        )
+        cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+        cbar.set_label(cbar_label, fontsize=COLORBAR_LABEL_FONTSIZE, fontweight="bold")
+
+        ax.set_xlabel("postsynaptic neuron", fontsize=AXIS_LABEL_FONTSIZE, fontweight="bold")
+        ax.set_ylabel("presynaptic neuron", fontsize=AXIS_LABEL_FONTSIZE, fontweight="bold")
+        ax.set_xlim(extent[0], extent[1])
+        ax.set_ylim(extent[2], extent[3])
         plt.tight_layout()
         if output_path:
             output_dir = os.path.dirname(output_path)
@@ -473,26 +472,30 @@ def plot_nested_connectivity_matrix(
 
     # seaborn rendering for neuron-level matrices
     fig, ax = plt.subplots(figsize=figsize)
-    mask = plot_matrix.values == 0
-    sns.heatmap(
-        plot_matrix.values,
+    plot_vals = plot_matrix.values.astype(float)
+    mask = plot_vals == 0
+    plot_vals = np.where(mask, np.nan, plot_vals)
+
+    nrows, ncols = plot_vals.shape
+    extent = (-0.5, ncols - 0.5, -0.5, nrows - 0.5)
+    # square matrix: keep equal aspect so blocks are squares
+    im = ax.imshow(
+        plot_vals,
         cmap=purple_cmap,
         vmin=color_min,
         vmax=color_max,
-        square=True,
-        cbar=False,
-        xticklabels=False,
-        yticklabels=False,
-        ax=ax,
-        linewidths=0,
-        rasterized=True,
-        mask=mask,
+        aspect='equal',
+        origin='lower',
+        interpolation='nearest',
+        extent=extent,
     )
 
     for cell_type, (start_pos, end_pos) in plot_boundaries.items():
-        width = height = end_pos - start_pos
+        width = end_pos - start_pos
+        height = end_pos - start_pos
+        # rectangle lower-left should be start_pos - 0.5 to align with pixel edges
         rect = Rectangle(
-            (start_pos, start_pos),
+            (start_pos - 0.5, start_pos - 0.5),
             width,
             height,
             linewidth=2,
@@ -503,8 +506,8 @@ def plot_nested_connectivity_matrix(
 
     ax.set_xlabel("Postsynaptic Neuron", fontsize=AXIS_LABEL_FONTSIZE, labelpad=40)
     ax.set_ylabel("Presynaptic Neuron", fontsize=AXIS_LABEL_FONTSIZE, labelpad=40)
-    ax.set_xlim(-0.5, len(plot_matrix) + 0.5)
-    ax.set_ylim(-0.5, len(plot_matrix) + 0.5)
+    ax.set_xlim(-0.5, ncols - 0.5)
+    ax.set_ylim(-0.5, nrows - 0.5)
 
     plt.tight_layout()
 
