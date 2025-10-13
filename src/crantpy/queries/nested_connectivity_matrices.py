@@ -8,7 +8,6 @@ from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import Rectangle
 
@@ -387,33 +386,20 @@ def plot_nested_connectivity_matrix(
     cbar_label = "Relative Weight"
 
     if rectangular_layout:
-        
         plot_matrix = relative_matrix.loc[row_order, resolved_column_order]
         fig, ax = plt.subplots(figsize=figsize)
-        # use imshow with NaNs for masked (zero) values to avoid seaborn layout
-        plot_vals = plot_matrix.values.astype(float)
-        mask = plot_vals == 0
-        plot_vals = np.where(mask, np.nan, plot_vals)
 
+        plot_vals = plot_matrix.values.astype(float)
+        plot_vals = np.where(plot_vals == 0, np.nan, plot_vals)
         nrows, ncols = plot_vals.shape
-        # map pixels so matrix cell (i, j) is centered at integer coords
         extent = (-0.5, ncols - 0.5, -0.5, nrows - 0.5)
-        im = ax.imshow(
-            plot_vals,
-            cmap=purple_cmap,
-            vmin=0,
-            vmax=float(np.nanmax(plot_vals)) if plot_vals.size and not np.all(np.isnan(plot_vals)) else 1.0,
-            aspect='auto',
-            origin='lower',
-            interpolation='nearest',
-            extent=extent,
-        )
+        im = ax.imshow(plot_vals, cmap=purple_cmap, origin='lower', extent=extent, interpolation='nearest')
 
         cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-        cbar.set_label(cbar_label, fontsize=COLORBAR_LABEL_FONTSIZE, fontweight="bold")
+        cbar.set_label('Relative Weight', fontsize=COLORBAR_LABEL_FONTSIZE, fontweight='bold')
 
-        ax.set_xlabel("postsynaptic neuron", fontsize=AXIS_LABEL_FONTSIZE, fontweight="bold")
-        ax.set_ylabel("presynaptic neuron", fontsize=AXIS_LABEL_FONTSIZE, fontweight="bold")
+        ax.set_xlabel('postsynaptic neuron', fontsize=AXIS_LABEL_FONTSIZE, fontweight='bold')
+        ax.set_ylabel('presynaptic neuron', fontsize=AXIS_LABEL_FONTSIZE, fontweight='bold')
         ax.set_xlim(extent[0], extent[1])
         ax.set_ylim(extent[2], extent[3])
         plt.tight_layout()
@@ -421,9 +407,7 @@ def plot_nested_connectivity_matrix(
             output_dir = os.path.dirname(output_path)
             if output_dir:
                 os.makedirs(output_dir, exist_ok=True)
-            plt.savefig(
-                output_path, dpi=PLOT_DPI, bbox_inches="tight", facecolor="white"
-            )
+            plt.savefig(output_path, dpi=PLOT_DPI, bbox_inches='tight', facecolor='white')
         return fig, ax
 
     relative_matrix = pd.DataFrame(relative_matrix).reindex(
@@ -470,42 +454,22 @@ def plot_nested_connectivity_matrix(
         color_min = 0.0
         color_max = 1.0
 
-    # seaborn rendering for neuron-level matrices
+    # simple neuron-level rendering using imshow
     fig, ax = plt.subplots(figsize=figsize)
     plot_vals = plot_matrix.values.astype(float)
-    mask = plot_vals == 0
-    plot_vals = np.where(mask, np.nan, plot_vals)
-
+    plot_vals = np.where(plot_vals == 0, np.nan, plot_vals)
     nrows, ncols = plot_vals.shape
     extent = (-0.5, ncols - 0.5, -0.5, nrows - 0.5)
-    # square matrix: keep equal aspect so blocks are squares
-    im = ax.imshow(
-        plot_vals,
-        cmap=purple_cmap,
-        vmin=color_min,
-        vmax=color_max,
-        aspect='equal',
-        origin='lower',
-        interpolation='nearest',
-        extent=extent,
-    )
+    im = ax.imshow(plot_vals, cmap=purple_cmap, vmin=color_min, vmax=color_max, origin='lower', extent=extent, interpolation='nearest')
 
     for cell_type, (start_pos, end_pos) in plot_boundaries.items():
         width = end_pos - start_pos
         height = end_pos - start_pos
-        # rectangle lower-left should be start_pos - 0.5 to align with pixel edges
-        rect = Rectangle(
-            (start_pos - 0.5, start_pos - 0.5),
-            width,
-            height,
-            linewidth=2,
-            edgecolor="black",
-            facecolor="none",
-        )
+        rect = Rectangle((start_pos - 0.5, start_pos - 0.5), width, height, linewidth=2, edgecolor='black', facecolor='none')
         ax.add_patch(rect)
 
-    ax.set_xlabel("Postsynaptic Neuron", fontsize=AXIS_LABEL_FONTSIZE, labelpad=40)
-    ax.set_ylabel("Presynaptic Neuron", fontsize=AXIS_LABEL_FONTSIZE, labelpad=40)
+    ax.set_xlabel('Postsynaptic Neuron', fontsize=AXIS_LABEL_FONTSIZE, labelpad=40)
+    ax.set_ylabel('Presynaptic Neuron', fontsize=AXIS_LABEL_FONTSIZE, labelpad=40)
     ax.set_xlim(-0.5, ncols - 0.5)
     ax.set_ylim(-0.5, nrows - 0.5)
 
@@ -515,14 +479,12 @@ def plot_nested_connectivity_matrix(
         output_dir = os.path.dirname(output_path)
         if output_dir:
             os.makedirs(output_dir, exist_ok=True)
-        plt.savefig(output_path, dpi=PLOT_DPI, bbox_inches="tight", facecolor="white")
+        plt.savefig(output_path, dpi=PLOT_DPI, bbox_inches='tight', facecolor='white')
 
-    # create matplotlib colorbar from seaborn mappable
-    mappable = ax.collections[0] if ax.collections else None
-    if mappable is not None:
-        cbar = plt.colorbar(mappable, ax=ax, fraction=0.046, pad=0.04)
-        cbar.set_label(cbar_label.lower(), fontsize=COLORBAR_LABEL_FONTSIZE, fontweight="bold")
-        cbar.ax.tick_params(labelsize=COLORBAR_TICK_FONTSIZE)
+    # always add the 'Relative Weight' colorbar
+    cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    cbar.set_label('Relative Weight', fontsize=COLORBAR_LABEL_FONTSIZE, fontweight='bold')
+    cbar.ax.tick_params(labelsize=COLORBAR_TICK_FONTSIZE)
 
     type_names = list(plot_boundaries.keys())
     type_boundary_positions = []
