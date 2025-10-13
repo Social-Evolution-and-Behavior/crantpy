@@ -181,11 +181,22 @@ def create_nested_connectivity_matrix(
         from_id = str(row["type.from"])
         to_id = str(row["type.to"])
         weight = row.get("weightRelative", row.get("weight", 0))
+        try:
+            weight_val = float(weight)
+        except Exception:
+            weight_val = 0.0
         if (
             from_id in connectivity_matrix.index
             and to_id in connectivity_matrix.columns
         ):
-            connectivity_matrix.loc[from_id, to_id] = weight
+            current_cell = connectivity_matrix.loc[from_id, to_id]
+            # coerce the existing cell value to numeric, default to 0.0 on failure
+            current_val = pd.to_numeric(current_cell, errors="coerce")
+            if pd.isna(current_val):
+                current_val = 0.0
+            else:
+                current_val = float(current_val)
+            connectivity_matrix.loc[from_id, to_id] = current_val + weight_val
 
     
     relative_matrix = connectivity_matrix.copy()
