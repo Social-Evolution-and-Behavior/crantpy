@@ -5,11 +5,8 @@ from __future__ import annotations
 import os
 from typing import Any
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.patches import Rectangle
 
 __all__ = [
     "create_nested_connectivity_matrix",
@@ -17,7 +14,6 @@ __all__ = [
     "calculate_relative_weights",
     "convert_synapses_to_filter_format",
 ]
-
 
 
 BOUNDARY_LINE_WIDTH = 2.5
@@ -32,6 +28,89 @@ COLORBAR_TICK_FONTSIZE = 16
 
 
 
+def _build_ordered_neurons(
+    relevant_annotations: pd.DataFrame,
+    neuron_ids: set[str],
+    neuron_id_column: str,
+    cell_type_column: str = "cell_type",
+) -> tuple[list[str], dict[str, tuple[int, int]]]:
+    """Return (ordered_neurons, type_boundaries) using annotation order.
+
+    Preserves first-occurrence order of types in annotations and places
+    annotated neurons first, then remaining neurons sorted alphabetically.
+    """
+    ann = relevant_annotations.copy()
+    if neuron_id_column in ann.columns:
+        ann = ann.assign(**{neuron_id_column: ann[neuron_id_column].astype(str)})
+        ann = ann.drop_duplicates(subset=[neuron_id_column], keep="first")
+    else:
+        ann = ann.copy()
+
+    seen = set()
+    present_types: list[str] = []
+    for c in ann[cell_type_column]:
+        if pd.notna(c) and c not in seen:
+            seen.add(c)
+            present_types.append(c)
+
+    id_to_type_map = {
+        str(k): v
+        for k, v in zip(
+            ann[neuron_id_column].astype(str),
+            ann[cell_type_column],
+        )
+    }
+
+    neuron_ids_str = set(map(str, neuron_ids))
+
+    ordered_neurons: list[str] = []
+    type_boundaries: dict[str, tuple[int, int]] = {}
+    current_pos = 0
+
+    for cell_type in present_types:
+        all_type_neurons = [nid for nid in neuron_ids_str if id_to_type_map.get(nid) == cell_type]
+
+        annotated_neurons = list(
+            ann[ann[cell_type_column] == cell_type][neuron_id_column].astype(str)
+        )
+        annotated_unique = []
+        seen_local = set()
+        for nid in annotated_neurons:
+            if nid in all_type_neurons and nid not in seen_local:
+                seen_local.add(nid)
+                annotated_unique.append(nid)
+
+        remaining = [nid for nid in sorted(all_type_neurons) if nid not in set(annotated_unique)]
+
+        type_neurons = annotated_unique + remaining
+
+        if type_neurons:
+            type_boundaries[cell_type] = (current_pos, current_pos + len(type_neurons))
+            ordered_neurons.extend(type_neurons)
+            current_pos += len(type_neurons)
+
+    unassigned = [nid for nid in sorted(neuron_ids_str) if nid not in set(ordered_neurons)]
+    if unassigned:
+        ordered_neurons.extend(unassigned)
+
+    return ordered_neurons, type_boundaries
+
+
+def _sum_cell_value(cell):
+    """Return a numeric sum for a DataFrame/Series/scalar cell selection.
+
+    Handles DataFrame, Series and scalar values; returns 0.0 for NaN/unconvertible.
+    """
+    try:
+        if isinstance(cell, (pd.DataFrame, pd.Series)):
+            arr = cell.to_numpy()
+            return float(np.nansum(arr))
+        return float(np.nansum(np.asarray(cell)))
+    except Exception:
+        return 0.0
+
+
+
 
 def create_nested_connectivity_matrix(
     connections_df: pd.DataFrame,
@@ -39,6 +118,9 @@ def create_nested_connectivity_matrix(
     cell_type_column: str = "cell_type",
     neuron_id_column: str = "root_id",
     detail_level: str = "type",
+    center_within_types: bool = False,
+    mirror_within_types: bool = False,
+    center_neuron_ids: list[str] | None = None,
 ) -> tuple[pd.DataFrame, dict[str, tuple[int, int]], list[str], dict[Any, Any]]:
     """Create a nested connectivity matrix with optional neuron-level detail.
 
@@ -69,6 +151,16 @@ def create_nested_connectivity_matrix(
         If ``"neuron"``, return the full neuron-by-neuron matrix (and
         boundaries mapping types to index ranges). If ``"type"``, aggregate
         weights into a type-by-type matrix.
+    mirror_within_types : bool, default False
+        When ``True`` and returning neuron details the column order within
+        each type block is reversed relative to the row order. Keep the
+        default ``False`` to have rows and columns share the same ordering.
+    Note
+    ----
+    This function expects a connections-style DataFrame with columns
+    ``type.from`` and ``type.to`` (and preferably ``weightRelative``). If
+    you start from raw synapse rows, call :func:`convert_synapses_to_filter_format`
+    first and pass the resulting DataFrame here.
 
     Returns
     -------
@@ -112,11 +204,20 @@ def create_nested_connectivity_matrix(
 
     
     data = connections_df.copy()
-    if "weightRelative" not in data.columns:
-        
-        if "roi" not in data.columns:
-            data["roi"] = "all"
-        data = calculate_relative_weights(data)
+    if not ("type.from" in data.columns and "type.to" in data.columns):
+        raise KeyError(
+            "connections_df must contain 'type.from' and 'type.to' columns. "
+            "Call convert_synapses_to_filter_format first when starting from raw synapse rows."
+        )
+
+    for _col in ("type.from", "type.to"):
+        if _col in data.columns:
+            data[_col] = data[_col].astype(str)
+
+    if "weightRelative" not in data.columns and "weight" in data.columns:
+        data["weightRelative"] = pd.to_numeric(data["weight"], errors="coerce").fillna(0.0).astype(float)
+    elif "weightRelative" in data.columns:
+        data["weightRelative"] = pd.to_numeric(data["weightRelative"], errors="coerce").fillna(0.0).astype(float)
 
     neuron_ids = set(map(str, data["type.from"])) | set(map(str, data["type.to"]))
 
@@ -148,25 +249,10 @@ def create_nested_connectivity_matrix(
     }
 
     
-    seen = set()
-    present_types = []
-    for c in relevant_annotations["cell_type"]:
-        if pd.notna(c) and c not in seen:
-            seen.add(c)
-            present_types.append(c)
+    ordered_neurons, type_boundaries = _build_ordered_neurons(
+        relevant_annotations, neuron_ids, neuron_id_column, cell_type_column
+    )
 
-    resolved_order = present_types
-
-    ordered_neurons: list[str] = []
-    type_boundaries: dict[str, tuple[int, int]] = {}
-    current_pos = 0
-
-    for cell_type in resolved_order:
-        type_neurons = [nid for nid in neuron_ids if id_to_type.get(nid) == cell_type]
-        if type_neurons:
-            type_boundaries[cell_type] = (current_pos, current_pos + len(type_neurons))
-            ordered_neurons.extend(sorted(type_neurons))
-            current_pos += len(type_neurons)
 
     n_neurons = len(ordered_neurons)
     connectivity_matrix = pd.DataFrame(
@@ -175,35 +261,72 @@ def create_nested_connectivity_matrix(
         columns=pd.Index(ordered_neurons),
     )
 
+
     
     for _, row in data.iterrows():
-        from_id = str(row["type.from"])
-        to_id = str(row["type.to"])
-        weight = row.get("weightRelative", row.get("weight", 0))
         try:
-            weight_val = float(weight)
+            from_id = str(row["type.from"]) if "type.from" in row.index else None
+            to_id = str(row["type.to"]) if "type.to" in row.index else None
         except Exception:
-            weight_val = 0.0
-        if (
-            from_id in connectivity_matrix.index
-            and to_id in connectivity_matrix.columns
-        ):
-            current_cell = connectivity_matrix.loc[from_id, to_id]
-            # coerce the existing cell value to numeric, default to 0.0 on failure
-            current_val = pd.to_numeric(current_cell, errors="coerce")
-            if pd.isna(current_val):
-                current_val = 0.0
-            else:
-                current_val = float(current_val)
-            connectivity_matrix.loc[from_id, to_id] = current_val + weight_val
+            continue
+
+        if from_id is None or to_id is None:
+            continue
+
+        try:
+            weight_val = float(row["weightRelative"])
+        except Exception:
+            try:
+                weight_val = float(row.get("weight", 0))
+            except Exception:
+                weight_val = 0.0
+
+        if from_id not in connectivity_matrix.index or to_id not in connectivity_matrix.columns:
+            continue
+
+        current_cell = connectivity_matrix.at[from_id, to_id]
+        current_val = _sum_cell_value(current_cell)
+        try:
+            connectivity_matrix.at[from_id, to_id] = current_val + weight_val
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to assign to connectivity matrix cell ({from_id},{to_id}). Error: {e}"
+            ) from e
 
     
-    relative_matrix = connectivity_matrix.copy()
+    relative_matrix = connectivity_matrix.reindex(
+        index=ordered_neurons, columns=ordered_neurons
+    )
 
     if detail_level == "neuron":
+        if center_within_types:
+            mirror_within_types = True
+
+        column_order: list[str] | None = None
+        if mirror_within_types:
+            column_order = []
+            for ctype, (start, end) in type_boundaries.items():
+                block = ordered_neurons[start:end]
+                column_order.extend(list(reversed(block)))
+
+            assigned = set(ordered_neurons)
+            unassigned = [nid for nid in sorted(neuron_ids) if nid not in assigned]
+            if unassigned:
+                column_order.extend(list(reversed(unassigned)))
+
+            if len(column_order) != len(ordered_neurons):
+                column_order = list(reversed(ordered_neurons))
+
+            try:
+                relative_matrix = relative_matrix.reindex(
+                    index=ordered_neurons, columns=column_order
+                )
+            except Exception:
+                column_order = None
+
         return relative_matrix, type_boundaries, ordered_neurons, id_to_type
 
-    present_types = [ctype for ctype in resolved_order if ctype in type_boundaries]
+    present_types = [ctype for ctype in type_boundaries.keys()]
     if not present_types:
         return pd.DataFrame(), {}, [], id_to_type
 
@@ -271,7 +394,11 @@ def _filter_neuron_level_matrix(
     if not kept_neurons:
         return matrix, boundaries, ordered_neurons, removed_types
 
-    filtered_matrix = pd.DataFrame(matrix.loc[kept_neurons, kept_neurons]).copy()
+    
+    kept_indices = [i for i, nid in enumerate(ordered_neurons) if nid in kept_neurons]
+    
+    filtered_matrix = matrix.iloc[kept_indices, kept_indices].copy()
+    
     filtered_matrix.index = pd.Index(kept_neurons)
     filtered_matrix.columns = pd.Index(kept_neurons)
 
@@ -290,8 +417,6 @@ def plot_nested_connectivity_matrix(
     figsize: tuple[int, int] = (16, 14),
     show_neuron_labels: bool = False,
     output_path: str | None = None,
-    normalization: str = "global",
-    scale_mode: str = "auto",
     min_neurons_for_plot: int = 4,
     column_boundaries: dict[str, tuple[int, int]] | None = None,
     column_order: list[str] | None = None,
@@ -327,10 +452,8 @@ def plot_nested_connectivity_matrix(
         are downsampled (see ``NEURON_LABEL_STEP_DIVISOR``).
     output_path : str or None
         If provided, the plot will be saved to this path as a PNG.
-    (ploting is seaborn-only; the `use_seaborn` flag was removed)
-    normalization : {"global", "none"}, default "global"
-        Only accepted to preserve compatibility; current implementation uses
-        the matrix values directly (set to "none" to avoid internal scaling).
+    scale_mode : str, default "auto"
+        Scale mode for the plot (currently unused, kept for compatibility).
     min_neurons_for_plot : int, default 4
         When plotting neuron-level matrices, clusters (types) smaller than
         this threshold are filtered out to avoid visual clutter.
@@ -352,9 +475,10 @@ def plot_nested_connectivity_matrix(
     - When ``use_seaborn=True`` zero values are masked for improved contrast.
     """
 
-    normalization = normalization.lower()
-    if normalization not in {"global", "none"}:
-        raise ValueError("normalization must be either 'global' or 'none'")
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import LinearSegmentedColormap
+    from matplotlib.patches import Rectangle
+
 
     colors = [
         "#FFFFFF",
@@ -454,7 +578,6 @@ def plot_nested_connectivity_matrix(
         color_min = 0.0
         color_max = 1.0
 
-    # simple neuron-level rendering using imshow
     fig, ax = plt.subplots(figsize=figsize)
     plot_vals = plot_matrix.values.astype(float)
     plot_vals = np.where(plot_vals == 0, np.nan, plot_vals)
@@ -481,7 +604,6 @@ def plot_nested_connectivity_matrix(
             os.makedirs(output_dir, exist_ok=True)
         plt.savefig(output_path, dpi=PLOT_DPI, bbox_inches='tight', facecolor='white')
 
-    # always add the 'Relative Weight' colorbar
     cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     cbar.set_label('Relative Weight', fontsize=COLORBAR_LABEL_FONTSIZE, fontweight='bold')
     cbar.ax.tick_params(labelsize=COLORBAR_TICK_FONTSIZE)
@@ -550,7 +672,6 @@ def plot_nested_connectivity_matrix(
     )
     ax.set_ylabel("presynaptic neuron", fontsize=AXIS_LABEL_FONTSIZE, fontweight="bold")
 
-    # create colorbar from seaborn mappable (if available)
     mappable = ax.collections[0] if ax.collections else None
     if mappable is not None:
         cbar = plt.colorbar(mappable, ax=ax, fraction=0.046, pad=0.04)
@@ -626,6 +747,7 @@ def convert_synapses_to_filter_format(
     type_from_column: str = "pre_pt_root_id",
     type_to_column: str = "post_pt_root_id",
     weight_column: str = "Weight",
+    which_weights: str = "relative",
 ) -> pd.DataFrame:
     """Convert a synapse-level table to the standard filter/connectivity format.
 
@@ -686,9 +808,12 @@ def convert_synapses_to_filter_format(
         result_df = synapse_counts
     else:
         result_df = result_df.rename(columns={weight_column: "weight"})
+    if which_weights == "relative":
+        result_df = calculate_relative_weights(result_df)
+    else:
+        result_df["weightRelative"] = result_df["weight"]
 
-    result_df = calculate_relative_weights(result_df)
-
+    
     result_df["from"] = result_df["type.from"]
     result_df["to"] = result_df["type.to"]
     result_df["name.from"] = result_df["type.from"]
