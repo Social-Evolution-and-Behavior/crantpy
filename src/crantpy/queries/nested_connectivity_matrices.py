@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+import re
+from dataclasses import dataclass
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -13,9 +15,10 @@ __all__ = [
     "plot_nested_connectivity_matrix",
     "calculate_relative_weights",
     "convert_synapses_to_filter_format",
+    "NestedMatrix",
 ]
 
-
+#macros for custom plots
 BOUNDARY_LINE_WIDTH = 2.5
 BOUNDARY_LINE_ALPHA_INNER = 0.9
 PLOT_DPI = 300
@@ -26,6 +29,155 @@ AXIS_LABEL_FONTSIZE = 18
 COLORBAR_LABEL_FONTSIZE = 18
 COLORBAR_TICK_FONTSIZE = 16
 
+#macros for the custom cmap
+SORT_PRIORITY_ER_PREFIX = 0
+SORT_PRIORITY_OTHER_PREFIX = 1
+SORT_PRIORITY_NO_MATCH = 2
+SORT_FALLBACK_NUMBER = 999999
+
+RELATIVE_WEIGHT_TOLERANCE = 1e-3
+
+COLORBAR_FRACTION = 0.046
+COLORBAR_PAD = 0.04
+#macros for the nests/plots 
+OUTER_BOUNDARY_WIDTH = 3
+OUTER_BOUNDARY_ALPHA = 1.0
+PLOT_PIXEL_OFFSET = 0.5
+
+
+def _sorted_cell_types(types: List[str], preferred: List[str] | None = None) -> List[str]:
+    """Return cell types ordered numerically when possible (ER1, ER2, …)."""
+
+    unique: List[str] = []
+    seen: set[str] = set()
+    for label in types:
+        if label is None:
+            continue
+        if label not in seen:
+            seen.add(label)
+            unique.append(label)
+
+    def sort_key(label: str) -> Tuple[int, int, str]:
+        if not isinstance(label, str):
+            return (SORT_PRIORITY_NO_MATCH, SORT_FALLBACK_NUMBER, str(label))
+
+        prefix_match = re.match(r"([A-Za-z]+)(\d+)(.*)", label)
+        if prefix_match:
+            prefix, number, suffix = prefix_match.groups()
+            priority = SORT_PRIORITY_ER_PREFIX if prefix.upper() == "ER" else SORT_PRIORITY_OTHER_PREFIX
+            return (priority, int(number), suffix.upper())
+
+        return (SORT_PRIORITY_NO_MATCH, SORT_FALLBACK_NUMBER, label.upper())
+
+    ordered = sorted(unique, key=sort_key)
+
+    if preferred:
+        preferred_order = [label for label in preferred if label in seen]
+        preferred_order.extend([label for label in ordered if label not in preferred_order])
+        return preferred_order
+
+    return ordered
+
+
+def _build_type_matrix(
+    matrix: pd.DataFrame,
+    type_boundaries: Dict[str, Tuple[int, int]],
+    ordered_neurons: List[str],
+) -> pd.DataFrame:
+    """Aggregate neuron-level weights into type-to-type blocks."""
+
+    if not type_boundaries:
+        return pd.DataFrame()
+
+    type_names = list(type_boundaries.keys())
+    type_matrix = pd.DataFrame(0.0, index=type_names, columns=type_names)
+
+    for from_type, (row_start, row_end) in type_boundaries.items():
+        from_neurons = ordered_neurons[row_start:row_end]
+        if not from_neurons:
+            continue
+        row_block = matrix.loc[from_neurons]
+
+        for to_type, (col_start, col_end) in type_boundaries.items():
+            to_neurons = ordered_neurons[col_start:col_end]
+            if not to_neurons:
+                continue
+            type_matrix.loc[from_type, to_type] = (
+                row_block.loc[:, to_neurons].sum().sum()
+            )
+
+    return type_matrix
+
+
+@dataclass
+class NestedMatrix:
+    """Container holding neuron- and type-level connectivity matrices."""
+
+    matrix: pd.DataFrame
+    type_boundaries: Dict[str, Tuple[int, int]]
+    ordered_neurons: List[str]
+    neuron_to_type: Dict[str, Any]
+    type_matrix: pd.DataFrame
+
+    def to_type_matrix(self, recompute: bool = False) -> pd.DataFrame:
+        """Return the type-level matrix, recomputing if requested."""
+
+        if recompute or self.type_matrix.empty:
+            self.type_matrix = _build_type_matrix(
+                self.matrix, self.type_boundaries, self.ordered_neurons
+            )
+        return self.type_matrix.copy()
+
+
+def _coerce_to_adjacency_matrix(connectivity: pd.DataFrame) -> pd.DataFrame:
+    """Return a neuron-by-neuron adjacency matrix from various inputs."""
+
+    if not isinstance(connectivity, pd.DataFrame):
+        raise TypeError("connectivity input must be a pandas DataFrame")
+
+    df = connectivity.copy()
+
+    def _pivot(frame: pd.DataFrame, source_col: str, target_col: str, weight_col: str) -> pd.DataFrame:
+        subset = frame[[source_col, target_col, weight_col]].copy()
+        subset[source_col] = subset[source_col].astype(str)
+        subset[target_col] = subset[target_col].astype(str)
+        return (
+            subset.pivot(index=source_col, columns=target_col, values=weight_col)
+            .fillna(0)
+            .astype(float)
+        )
+
+    columns = set(df.columns)
+
+    if {"type.from", "type.to"}.issubset(columns):
+        weight_col = None
+        for candidate in ("weight", "weightRelative", "weight_relative"):
+            if candidate in columns:
+                weight_col = candidate
+                break
+        if weight_col is None:
+            raise ValueError(
+                "Expected a weight column alongside 'type.from'/'type.to' in connectivity DataFrame"
+            )
+        adjacency = _pivot(df, "type.from", "type.to", weight_col)
+    elif {"pre", "post"}.issubset(columns):
+        frame = df.rename(columns={"pre": "source", "post": "target"})
+        if "weight" not in frame.columns:
+            frame["weight"] = 1
+        adjacency = _pivot(frame, "source", "target", "weight")
+    elif {"source", "target"}.issubset(columns):
+        frame = df.copy()
+        if "weight" not in frame.columns and "n_syn" in frame.columns:
+            frame = frame.rename(columns={"n_syn": "weight"})
+        if "weight" not in frame.columns:
+            frame["weight"] = 1
+        adjacency = _pivot(frame, "source", "target", "weight")
+    elif df.index.size and df.columns.size:
+        adjacency = df.astype(float)
+    else:
+        adjacency = df.astype(float)
+
+    return adjacency.fillna(0)
 
 
 def _build_ordered_neurons(
@@ -33,6 +185,7 @@ def _build_ordered_neurons(
     neuron_ids: set[str],
     neuron_id_column: str,
     cell_type_column: str = "cell_type",
+    type_order: List[str] | None = None,
 ) -> tuple[list[str], dict[str, tuple[int, int]]]:
     """Return (ordered_neurons, type_boundaries) using annotation order.
 
@@ -51,7 +204,9 @@ def _build_ordered_neurons(
     for c in ann[cell_type_column]:
         if pd.notna(c) and c not in seen:
             seen.add(c)
-            present_types.append(c)
+            present_types.append(str(c))
+
+    ordered_types = _sorted_cell_types(present_types, preferred=type_order)
 
     id_to_type_map = {
         str(k): v
@@ -67,7 +222,7 @@ def _build_ordered_neurons(
     type_boundaries: dict[str, tuple[int, int]] = {}
     current_pos = 0
 
-    for cell_type in present_types:
+    for cell_type in ordered_types:
         all_type_neurons = [nid for nid in neuron_ids_str if id_to_type_map.get(nid) == cell_type]
 
         annotated_neurons = list(
@@ -96,130 +251,26 @@ def _build_ordered_neurons(
     return ordered_neurons, type_boundaries
 
 
-def _sum_cell_value(cell):
-    """Return a numeric sum for a DataFrame/Series/scalar cell selection.
-
-    Handles DataFrame, Series and scalar values; returns 0.0 for NaN/unconvertible.
-    """
-    try:
-        if isinstance(cell, (pd.DataFrame, pd.Series)):
-            arr = cell.to_numpy()
-            return float(np.nansum(arr))
-        return float(np.nansum(np.asarray(cell)))
-    except Exception:
-        return 0.0
-
-
-
 
 def create_nested_connectivity_matrix(
     connections_df: pd.DataFrame,
     neuron_annotations: pd.DataFrame,
     cell_type_column: str = "cell_type",
     neuron_id_column: str = "root_id",
-    detail_level: str = "type",
-    center_within_types: bool = False,
-    mirror_within_types: bool = False,
-    center_neuron_ids: list[str] | None = None,
-) -> tuple[pd.DataFrame, dict[str, tuple[int, int]], list[str], dict[Any, Any]]:
-    """Create a nested connectivity matrix with optional neuron-level detail.
+    type_order: List[str] | None = None,
+) -> NestedMatrix:
+    """Return a neuron-level nested connectivity matrix grouped by cell type."""
 
-    This helper builds a neuron-by-neuron connectivity matrix (rows = presynaptic,
-    columns = postsynaptic) from a connectivity table and an annotation table
-    mapping neuron identifiers to cell types. The output can be returned either
-    at the aggregated type-level (type-to-type weight matrix) or at the full
-    neuron-level with type block boundaries and ordering.
+    adjacency_matrix = _coerce_to_adjacency_matrix(connections_df)
+    adjacency_matrix.index = adjacency_matrix.index.astype(str)
+    adjacency_matrix.columns = adjacency_matrix.columns.astype(str)
 
-    Parameters
-    ----------
-    connections_df : pd.DataFrame
-        Table of connections. Expected columns (common names used by crantpy):
-        - ``type.from``: presynaptic neuron id
-        - ``type.to``: postsynaptic neuron id
-        - ``weight``: numeric weight or synapse counts
-        Optionally can contain ``weightRelative`` and ``roi`` columns.
-    neuron_annotations : pd.DataFrame
-        Annotation table keyed by neuron id (column set by ``neuron_id_column``)
-        containing a cell type column (default ``cell_type``). The function
-        uses these labels to group neurons into type blocks.
-    cell_type_column : str, default "cell_type"
-        Column name in ``neuron_annotations`` to use as the type label.
-    neuron_id_column : str, default "root_id"
-        Column name in ``neuron_annotations`` that identifies neurons and
-        matches the ids used in ``connections_df``.
-    detail_level : {"type", "neuron"}, default "type"
-        If ``"neuron"``, return the full neuron-by-neuron matrix (and
-        boundaries mapping types to index ranges). If ``"type"``, aggregate
-        weights into a type-by-type matrix.
-    mirror_within_types : bool, default False
-        When ``True`` and returning neuron details the column order within
-        each type block is reversed relative to the row order. Keep the
-        default ``False`` to have rows and columns share the same ordering.
-    Note
-    ----
-    This function expects a connections-style DataFrame with columns
-    ``type.from`` and ``type.to`` (and preferably ``weightRelative``). If
-    you start from raw synapse rows, call :func:`convert_synapses_to_filter_format`
-    first and pass the resulting DataFrame here.
-
-    Returns
-    -------
-    tuple
-        When ``detail_level == 'neuron'``:
-            (relative_matrix, type_boundaries, ordered_neurons, id_to_type)
-            - ``relative_matrix``: DataFrame (n_neurons x n_neurons) of relative
-              weights aligned to ``ordered_neurons``.
-            - ``type_boundaries``: dict mapping type -> (start_index, end_index)
-              giving the slices of ``ordered_neurons`` belonging to each type.
-            - ``ordered_neurons``: list of neuron ids in the order used for rows
-              and columns.
-            - ``id_to_type``: dict mapping neuron id -> type label (or None).
-
-        When ``detail_level == 'type'``:
-            (type_matrix, type_level_boundaries, present_types, id_to_type)
-            - ``type_matrix``: DataFrame aggregated by type (type x type).
-            - ``type_level_boundaries``: boundaries for type-level matrix (each
-              type maps to a 1-row/1-col block).
-            - ``present_types``: list of types present in the returned matrix.
-            - ``id_to_type``: mapping as above.
-
-    Notes
-    -----
-    - If ``weightRelative`` is absent from ``connections_df`` the function
-      computes it by calling :func:`calculate_relative_weights`. A missing
-      ``roi`` column will be filled with the value ``'all'`` before computing
-      relative weights.
-    - The function preserves the order of types found in ``neuron_annotations``
-      (first occurrence order) and falls back to sorting neuron ids alphabetically
-      within each type.
-
-    Example
-    -------
-    >>> type_matrix, boundaries, types, id_map = create_nested_connectivity_matrix(
-    ...     connections_df, neuron_annotations, detail_level='type')
-    """
-
-    if detail_level not in {"type", "neuron"}:
-        raise ValueError("detail_level must be either 'type' or 'neuron'")
-
-    
-    data = connections_df.copy()
-    if not ("type.from" in data.columns and "type.to" in data.columns):
-        raise KeyError(
-            "connections_df must contain 'type.from' and 'type.to' columns. "
-            "Call convert_synapses_to_filter_format first when starting from raw synapse rows."
+    neuron_id_order = list(
+        dict.fromkeys(
+            adjacency_matrix.index.tolist() + adjacency_matrix.columns.tolist()
         )
-
-    for _col in ("type.from", "type.to"):
-        if _col in data.columns:
-            data[_col] = data[_col].astype(str)
-
-    if "weightRelative" not in data.columns and "weight" in data.columns:
-        data["weightRelative"] = pd.to_numeric(data["weight"], errors="coerce").fillna(0.0).astype(float)
-    elif "weightRelative" in data.columns:
-        data["weightRelative"] = pd.to_numeric(data["weightRelative"], errors="coerce").fillna(0.0).astype(float)
-
-    neuron_ids = set(map(str, data["type.from"])) | set(map(str, data["type.to"]))
+    )
+    neuron_ids = set(neuron_id_order)
 
     relevant_annotations = neuron_annotations[
         neuron_annotations[neuron_id_column].astype(str).isin(neuron_ids)
@@ -230,135 +281,55 @@ def create_nested_connectivity_matrix(
             f"Column '{cell_type_column}' not found in annotations dataframe"
         )
 
-    
     def _prepare_type(value: object) -> str | None:
         if value is None or (isinstance(value, float) and np.isnan(value)):
             return None
         value_str = str(value).strip()
         return value_str if value_str else None
 
-    type_series = relevant_annotations[cell_type_column].apply(_prepare_type)
-    relevant_annotations["cell_type"] = type_series
+    relevant_annotations["cell_type"] = relevant_annotations[
+        cell_type_column
+    ].apply(_prepare_type)
 
-    id_to_type = {
-        str(k): (str(v) if pd.notna(v) else None)
-        for k, v in zip(
+    neuron_to_type = {
+        str(neuron_id): cell_type
+        for neuron_id, cell_type in zip(
             relevant_annotations[neuron_id_column].astype(str),
             relevant_annotations["cell_type"],
         )
     }
 
-    
     ordered_neurons, type_boundaries = _build_ordered_neurons(
-        relevant_annotations, neuron_ids, neuron_id_column, cell_type_column
+        relevant_annotations,
+        neuron_ids,
+        neuron_id_column,
+        cell_type_column,
+        type_order,
     )
 
+    if not ordered_neurons:
+        empty = pd.DataFrame()
+        return NestedMatrix(
+            matrix=empty,
+            type_boundaries={},
+            ordered_neurons=[],
+            neuron_to_type=neuron_to_type,
+            type_matrix=empty,
+        )
 
-    n_neurons = len(ordered_neurons)
-    connectivity_matrix = pd.DataFrame(
-        np.zeros((n_neurons, n_neurons)),
-        index=pd.Index(ordered_neurons),
-        columns=pd.Index(ordered_neurons),
+    matrix = adjacency_matrix.reindex(
+        index=ordered_neurons, columns=ordered_neurons, fill_value=0
+    ).astype(float)
+
+    type_matrix = _build_type_matrix(matrix, type_boundaries, ordered_neurons)
+
+    return NestedMatrix(
+        matrix=matrix,
+        type_boundaries=type_boundaries,
+        ordered_neurons=ordered_neurons,
+        neuron_to_type=neuron_to_type,
+        type_matrix=type_matrix,
     )
-
-
-    
-    for _, row in data.iterrows():
-        try:
-            from_id = str(row["type.from"]) if "type.from" in row.index else None
-            to_id = str(row["type.to"]) if "type.to" in row.index else None
-        except Exception:
-            continue
-
-        if from_id is None or to_id is None:
-            continue
-
-        try:
-            weight_val = float(row["weightRelative"])
-        except Exception:
-            try:
-                weight_val = float(row.get("weight", 0))
-            except Exception:
-                weight_val = 0.0
-
-        if from_id not in connectivity_matrix.index or to_id not in connectivity_matrix.columns:
-            continue
-
-        current_cell = connectivity_matrix.at[from_id, to_id]
-        current_val = _sum_cell_value(current_cell)
-        try:
-            connectivity_matrix.at[from_id, to_id] = current_val + weight_val
-        except Exception as e:
-            raise RuntimeError(
-                f"Failed to assign to connectivity matrix cell ({from_id},{to_id}). Error: {e}"
-            ) from e
-
-    
-    relative_matrix = connectivity_matrix.reindex(
-        index=ordered_neurons, columns=ordered_neurons
-    )
-
-    if detail_level == "neuron":
-        if center_within_types:
-            mirror_within_types = True
-
-        column_order: list[str] | None = None
-        if mirror_within_types:
-            column_order = []
-            for ctype, (start, end) in type_boundaries.items():
-                block = ordered_neurons[start:end]
-                column_order.extend(list(reversed(block)))
-
-            assigned = set(ordered_neurons)
-            unassigned = [nid for nid in sorted(neuron_ids) if nid not in assigned]
-            if unassigned:
-                column_order.extend(list(reversed(unassigned)))
-
-            if len(column_order) != len(ordered_neurons):
-                column_order = list(reversed(ordered_neurons))
-
-            try:
-                relative_matrix = relative_matrix.reindex(
-                    index=ordered_neurons, columns=column_order
-                )
-            except Exception:
-                column_order = None
-
-        return relative_matrix, type_boundaries, ordered_neurons, id_to_type
-
-    present_types = [ctype for ctype in type_boundaries.keys()]
-    if not present_types:
-        return pd.DataFrame(), {}, [], id_to_type
-
-    type_to_neurons = {}
-    for cell_type in present_types:
-        type_to_neurons[cell_type] = [
-            nid for nid in ordered_neurons if id_to_type.get(nid) == cell_type
-        ]
-
-    type_matrix = pd.DataFrame(0.0, index=present_types, columns=present_types)
-
-    for from_type in present_types:
-        from_neurons = type_to_neurons[from_type]
-        if not from_neurons:
-            continue
-
-        from_block = relative_matrix.loc[from_neurons]
-        for to_type in present_types:
-            to_neurons = type_to_neurons[to_type]
-            if not to_neurons:
-                continue
-            type_matrix.loc[from_type, to_type] = (
-                from_block.loc[:, to_neurons].sum().sum()
-            )
-
-    type_level_boundaries: dict[str, tuple[int, int]] = {}
-    current_pos = 0
-    for ctype in present_types:
-        type_level_boundaries[ctype] = (current_pos, current_pos + 1)
-        current_pos += 1
-
-    return type_matrix, type_level_boundaries, present_types, id_to_type
 
 
 
@@ -410,10 +381,8 @@ def _filter_neuron_level_matrix(
 
 
 def plot_nested_connectivity_matrix(
-    relative_matrix: pd.DataFrame,
-    type_boundaries: dict[str, tuple[int, int]],
-    ordered_neurons: list[str],
-    neuron_to_type: dict[str, str],
+    nested: NestedMatrix,
+    *,
     figsize: tuple[int, int] = (16, 14),
     show_neuron_labels: bool = False,
     output_path: str | None = None,
@@ -423,57 +392,11 @@ def plot_nested_connectivity_matrix(
     vmin_percentile: float = 0.0,
     vmax_percentile: float = 100.0,
 ):
-    """Plot a nested connectivity matrix with type boundaries and labelling.
+    """Plot a nested neuron-by-neuron connectivity matrix with type boundaries."""
 
-    The function accepts either a square neuron-by-neuron matrix aligned to
-    ``ordered_neurons`` or a rectangular matrix (if columns are a different
-    ordering). It draws a heatmap of relative weights with optional
-    seaborn-based rendering, type-level separators and optional neuron labels.
-
-    Parameters
-    ----------
-    relative_matrix : pd.DataFrame
-        Square (or rectangular) matrix of weights. Rows are presynaptic,
-        columns are postsynaptic. Indices/columns must be aligned with
-        ``ordered_neurons`` when plotting neuron-level matrices.
-    type_boundaries : dict
-        Mapping type -> (start_index, end_index) defining blocks in the
-        matrix corresponding to cell types. For type-level matrices each
-        block typically has size 1.
-    ordered_neurons : list[str]
-        Neuron id ordering used for rows/columns of a neuron-level matrix.
-    neuron_to_type : dict
-        Mapping neuron id -> type label. Used to compute labels and to filter
-        by cluster size when requested.
-    figsize : tuple, optional
-        Matplotlib figure size in inches.
-    show_neuron_labels : bool, default False
-        Show individual neuron ids on the x/y axes. For large matrices labels
-        are downsampled (see ``NEURON_LABEL_STEP_DIVISOR``).
-    output_path : str or None
-        If provided, the plot will be saved to this path as a PNG.
-    scale_mode : str, default "auto"
-        Scale mode for the plot (currently unused, kept for compatibility).
-    min_neurons_for_plot : int, default 4
-        When plotting neuron-level matrices, clusters (types) smaller than
-        this threshold are filtered out to avoid visual clutter.
-    column_boundaries, column_order : optional
-        Advanced options for plotting rectangular matrices with different
-        column groupings or custom column orders.
-    vmin_percentile, vmax_percentile : float
-        Percentiles used to set the colormap minimum and maximum (0-100).
-
-    Returns
-    -------
-    (fig, ax)
-        Matplotlib figure and axes objects for the drawn heatmap.
-
-    Notes
-    -----
-    - The function will draw thick black separators around the whole matrix
-      and thinner separators between type blocks.
-    - When ``use_seaborn=True`` zero values are masked for improved contrast.
-    """
+    relative_matrix = nested.matrix
+    type_boundaries = nested.type_boundaries
+    ordered_neurons = nested.ordered_neurons
 
     import matplotlib.pyplot as plt
     from matplotlib.colors import LinearSegmentedColormap
@@ -507,7 +430,8 @@ def plot_nested_connectivity_matrix(
         or resolved_column_order != row_order
     )
 
-    cbar_label = "Relative Weight"
+    total_weight = float(np.nansum(relative_matrix.values)) if relative_matrix.size else 0.0
+    cbar_label = "Relative Weight" if np.isclose(total_weight, 1.0, rtol=RELATIVE_WEIGHT_TOLERANCE) else "Weight"
 
     if rectangular_layout:
         plot_matrix = relative_matrix.loc[row_order, resolved_column_order]
@@ -516,11 +440,13 @@ def plot_nested_connectivity_matrix(
         plot_vals = plot_matrix.values.astype(float)
         plot_vals = np.where(plot_vals == 0, np.nan, plot_vals)
         nrows, ncols = plot_vals.shape
-        extent = (-0.5, ncols - 0.5, -0.5, nrows - 0.5)
+        extent = (-PLOT_PIXEL_OFFSET, ncols - PLOT_PIXEL_OFFSET, -PLOT_PIXEL_OFFSET, nrows - PLOT_PIXEL_OFFSET)
         im = ax.imshow(plot_vals, cmap=purple_cmap, origin='lower', extent=extent, interpolation='nearest')
 
-        cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-        cbar.set_label('Relative Weight', fontsize=COLORBAR_LABEL_FONTSIZE, fontweight='bold')
+        cbar = plt.colorbar(im, ax=ax, fraction=COLORBAR_FRACTION, pad=COLORBAR_PAD)
+        cbar.set_label(
+            cbar_label.lower(), fontsize=COLORBAR_LABEL_FONTSIZE, fontweight="bold"
+        )
 
         ax.set_xlabel('postsynaptic neuron', fontsize=AXIS_LABEL_FONTSIZE, fontweight='bold')
         ax.set_ylabel('presynaptic neuron', fontsize=AXIS_LABEL_FONTSIZE, fontweight='bold')
@@ -582,19 +508,19 @@ def plot_nested_connectivity_matrix(
     plot_vals = plot_matrix.values.astype(float)
     plot_vals = np.where(plot_vals == 0, np.nan, plot_vals)
     nrows, ncols = plot_vals.shape
-    extent = (-0.5, ncols - 0.5, -0.5, nrows - 0.5)
+    extent = (-PLOT_PIXEL_OFFSET, ncols - PLOT_PIXEL_OFFSET, -PLOT_PIXEL_OFFSET, nrows - PLOT_PIXEL_OFFSET)
     im = ax.imshow(plot_vals, cmap=purple_cmap, vmin=color_min, vmax=color_max, origin='lower', extent=extent, interpolation='nearest')
 
     for cell_type, (start_pos, end_pos) in plot_boundaries.items():
         width = end_pos - start_pos
         height = end_pos - start_pos
-        rect = Rectangle((start_pos - 0.5, start_pos - 0.5), width, height, linewidth=2, edgecolor='black', facecolor='none')
+        rect = Rectangle((start_pos - PLOT_PIXEL_OFFSET, start_pos - PLOT_PIXEL_OFFSET), width, height, linewidth=2, edgecolor='black', facecolor='none')
         ax.add_patch(rect)
 
     ax.set_xlabel('Postsynaptic Neuron', fontsize=AXIS_LABEL_FONTSIZE, labelpad=40)
     ax.set_ylabel('Presynaptic Neuron', fontsize=AXIS_LABEL_FONTSIZE, labelpad=40)
-    ax.set_xlim(-0.5, ncols - 0.5)
-    ax.set_ylim(-0.5, nrows - 0.5)
+    ax.set_xlim(-PLOT_PIXEL_OFFSET, ncols - PLOT_PIXEL_OFFSET)
+    ax.set_ylim(-PLOT_PIXEL_OFFSET, nrows - PLOT_PIXEL_OFFSET)
 
     plt.tight_layout()
 
@@ -604,8 +530,10 @@ def plot_nested_connectivity_matrix(
             os.makedirs(output_dir, exist_ok=True)
         plt.savefig(output_path, dpi=PLOT_DPI, bbox_inches='tight', facecolor='white')
 
-    cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-    cbar.set_label('Relative Weight', fontsize=COLORBAR_LABEL_FONTSIZE, fontweight='bold')
+    cbar = plt.colorbar(im, ax=ax, fraction=COLORBAR_FRACTION, pad=COLORBAR_PAD)
+    cbar.set_label(
+        cbar_label.lower(), fontsize=COLORBAR_LABEL_FONTSIZE, fontweight='bold'
+    )
     cbar.ax.tick_params(labelsize=COLORBAR_TICK_FONTSIZE)
 
     type_names = list(plot_boundaries.keys())
@@ -614,16 +542,16 @@ def plot_nested_connectivity_matrix(
     for cell_type in type_names:
         start_pos, end_pos = plot_boundaries[cell_type]
         if start_pos > 0:
-            boundary_position = start_pos - 0.5
+            boundary_position = start_pos - PLOT_PIXEL_OFFSET
             type_boundary_positions.append(boundary_position)
-            ax.axhline(boundary_position, color="white", linewidth=2, alpha=1.0)
-            ax.axvline(boundary_position, color="white", linewidth=2, alpha=1.0)
+            ax.axhline(boundary_position, color="white", linewidth=2, alpha=OUTER_BOUNDARY_ALPHA)
+            ax.axvline(boundary_position, color="white", linewidth=2, alpha=OUTER_BOUNDARY_ALPHA)
 
     matrix_size = len(plot_matrix)
-    ax.axhline(-0.5, color="black", linewidth=3, alpha=1.0)
-    ax.axhline(matrix_size - 0.5, color="black", linewidth=3, alpha=1.0)
-    ax.axvline(-0.5, color="black", linewidth=3, alpha=1.0)
-    ax.axvline(matrix_size - 0.5, color="black", linewidth=3, alpha=1.0)
+    ax.axhline(-PLOT_PIXEL_OFFSET, color="black", linewidth=OUTER_BOUNDARY_WIDTH, alpha=OUTER_BOUNDARY_ALPHA)
+    ax.axhline(matrix_size - PLOT_PIXEL_OFFSET, color="black", linewidth=OUTER_BOUNDARY_WIDTH, alpha=OUTER_BOUNDARY_ALPHA)
+    ax.axvline(-PLOT_PIXEL_OFFSET, color="black", linewidth=OUTER_BOUNDARY_WIDTH, alpha=OUTER_BOUNDARY_ALPHA)
+    ax.axvline(matrix_size - PLOT_PIXEL_OFFSET, color="black", linewidth=OUTER_BOUNDARY_WIDTH, alpha=OUTER_BOUNDARY_ALPHA)
 
     for boundary_pos in type_boundary_positions:
         ax.axhline(
@@ -674,7 +602,7 @@ def plot_nested_connectivity_matrix(
 
     mappable = ax.collections[0] if ax.collections else None
     if mappable is not None:
-        cbar = plt.colorbar(mappable, ax=ax, fraction=0.046, pad=0.04)
+        cbar = plt.colorbar(mappable, ax=ax, fraction=COLORBAR_FRACTION, pad=COLORBAR_PAD)
         cbar.set_label(
             cbar_label.lower(), fontsize=COLORBAR_LABEL_FONTSIZE, fontweight="bold"
         )
