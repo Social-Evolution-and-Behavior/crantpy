@@ -28,6 +28,7 @@ import skeletor as sk
 from crantpy.utils.cave import get_cave_client, get_cloudvolume
 import trimesh as tm
 from tqdm import tqdm
+from cloudvolume import CloudVolume
 
 from crantpy.utils.config import (
     CRANT_VALID_DATASETS,
@@ -35,6 +36,8 @@ from crantpy.utils.config import (
     SCALE_Y,
     SCALE_Z,
     WHOLE_BRAIN_TISSUE_MESH_URL,
+    NEUROPIL_MESH_URL, 
+    NEUROPIL_MESH_DICT
 )
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.queries.neurons import NeuronCriteria
@@ -401,3 +404,37 @@ def get_brain_mesh_scene(
     plotter.set_viewup([0, -1, 1])
 
     return plotter
+
+
+def load_neuropil_mesh(
+        neuropil_label: str
+) -> tm.Trimesh:
+    """
+    Download and decode a neuropil mesh.
+    Parameters
+    ----------
+    neuropil_label : str
+        The label of the neuropil to load.
+
+    Returns
+    -------
+    trimesh.Trimesh
+        The neuropil mesh.
+
+    """
+
+    # Check if the label exists in the dictionary
+    label_id = None
+    for key, value in NEUROPIL_MESH_DICT.items():
+        if value == neuropil_label:
+            label_id = key
+            break
+
+    if label_id is None:
+        raise ValueError(f"Invalid neuropil label: {neuropil_label}. Available labels are: {list(NEUROPIL_MESH_DICT.values())}")
+
+    vol = CloudVolume(NEUROPIL_MESH_URL, mip=0, fill_missing=False, use_https=True, progress=True)
+    mesh_dict = vol.mesh.get(label_id)
+    mesh = mesh_dict[label_id]
+    tri = tm.Trimesh(vertices=mesh.vertices, faces=mesh.faces)
+    return tri

@@ -104,3 +104,27 @@ WHOLE_BRAIN_TISSUE_MESH_URL = (
 
 # URL for the precomputed aligned EM data
 ALIGNED_EM_URL = "precomputed://gs://dkronauer-ant-001-alignment-final/aligned"
+
+# URL for precomputed neuropil meshes 
+NEUROPIL_MESH_URL = "gs://dkronauer-ant-001-proofreading/neuropil_labels"
+
+# Neuropil Mesh Dict mapping label IDs to names
+NEUROPIL_MESH_DICT = {
+    1: "mushroom_body_pedunculus_and_lobes_left",
+    2: "mushroom_body_medial_calyx_left",
+    3: "mushroom_body_lateral_calyx_left",
+    4: "mushroom_body_pedunculus_and_lobes_right",
+    5: "mushroom_body_medial_calyx_right",
+    6: "mushroom_body_lateral_calyx_right",
+    7: "antennal_lobe_left",
+    8: "antennal_lobe_right",
+    9: "fan_shaped_body",
+    10: "ellipsoid_body",
+    11: "protocerebral_bridge",
+    12: "nodulus_left",
+    13: "nodulus_right",
+    14: "optic_lobe_left",
+    15: "optic_lobe_right",
+    16: "lateral_horn_left",
+    17: "lateral_horn_right",
+}
