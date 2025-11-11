@@ -23,6 +23,7 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
             'detect_soma',
             'get_brain_mesh_scene',
             'get_mesh_neuron',
+            'load_neuropil_mesh',
             'load_whole_brain_mesh',
         ],
         'skeletonize': [
@@ -55,6 +56,6 @@ __all__ = ['_create_node_info_dict', '_preprocess_mesh',
            'get_brain_mesh_scene', 'get_l2_chunk_info', 'get_l2_dotprops',
            'get_l2_graph', 'get_l2_info', 'get_l2_meshes', 'get_l2_skeleton',
            'get_mesh_neuron', 'get_skeletons', 'get_soma_from_annotations',
-           'l2', 'load_whole_brain_mesh', 'mesh', 'skeletonize',
-           'skeletonize_neuron', 'skeletonize_neurons_parallel',
+           'l2', 'load_neuropil_mesh', 'load_whole_brain_mesh', 'mesh',
+           'skeletonize', 'skeletonize_neuron', 'skeletonize_neurons_parallel',
            'suppress_urllib3_connectionpool_warnings']

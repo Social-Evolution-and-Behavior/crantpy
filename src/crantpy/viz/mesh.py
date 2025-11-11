@@ -438,3 +438,4 @@ def load_neuropil_mesh(
     mesh = mesh_dict[label_id]
     tri = tm.Trimesh(vertices=mesh.vertices, faces=mesh.faces)
     return tri
+

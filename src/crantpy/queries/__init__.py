@@ -6,6 +6,7 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
     submodules={
         'connections',
         'neurons',
+        'neuropils',
     },
     submod_attrs={
         'connections': [
@@ -22,10 +23,15 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
             'is_proofread',
             'parse_neuroncriteria',
         ],
+        'neuropils': [
+            'count_synapses_in_mesh',
+            'logger',
+        ],
     },
 )
 
-__all__ = ['NeuronCriteria', 'attach_synapses', 'connections', 'get_adjacency',
-           'get_annotations', 'get_connectivity', 'get_synapse_counts',
-           'get_synapses', 'is_proofread', 'logger', 'neurons',
+__all__ = ['NeuronCriteria', 'attach_synapses', 'connections',
+           'count_synapses_in_mesh', 'get_adjacency', 'get_annotations',
+           'get_connectivity', 'get_synapse_counts', 'get_synapses',
+           'is_proofread', 'logger', 'neurons', 'neuropils',
            'parse_neuroncriteria']
