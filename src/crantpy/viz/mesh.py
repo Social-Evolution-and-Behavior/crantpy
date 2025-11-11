@@ -41,7 +41,7 @@ from crantpy.utils.config import (
 )
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.queries.neurons import NeuronCriteria
-from crantpy.utils.helpers import parse_root_ids
+from crantpy.utils.helpers import parse_root_ids, retry
 
 from neuroglancer_scripts.mesh import read_precomputed_mesh
 import requests
@@ -406,6 +406,7 @@ def get_brain_mesh_scene(
     return plotter
 
 
+@retry
 def load_neuropil_mesh(
         neuropil_label: str
 ) -> tm.Trimesh:
