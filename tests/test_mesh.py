@@ -173,6 +173,163 @@ def test_get_brain_mesh_scene_invalid_input():
         mesh.get_brain_mesh_scene("not_a_real_id_that_will_fail")
 
 
+def test_get_brain_mesh_scene_no_neurons():
+    """Test creating a brain mesh scene without neurons (only brain mesh)."""
+    plotter = mesh.get_brain_mesh_scene(
+        neurons=None,
+        dataset=None,
+        backend="static",
+        progress=False,
+    )
+
+    # Check that it returns a PyVista plotter
+    assert isinstance(plotter, pv.Plotter), "Should return a pv.Plotter object"
+
+    # Check that the plotter has actors (meshes) added
+    assert len(plotter.actors) > 0, "Plotter should have actors"
+
+    # Should have just the brain mesh (1 actor)
+    assert len(plotter.actors) >= 1, "Should have at least the brain mesh"
+
+
+def test_get_brain_mesh_scene_with_neuropil_meshes():
+    """Test creating a brain mesh scene with neuropil meshes."""
+    plotter = mesh.get_brain_mesh_scene(
+        neurons=TEST_ROOT_ID,
+        neuropil_meshes=["antennal_lobe_left", "antennal_lobe_right"],
+        neuropil_mesh_colors=["red", "blue"],
+        neuropil_mesh_alphas=[0.4, 0.5],
+        dataset=None,
+        backend="static",
+        progress=False,
+    )
+
+    # Check that it returns a PyVista plotter
+    assert isinstance(plotter, pv.Plotter), "Should return a pv.Plotter object"
+
+    # Check that the plotter has actors (meshes) added
+    assert len(plotter.actors) > 0, "Plotter should have actors"
+
+    # Should have brain mesh + neuron + 2 neuropil meshes (at least 4 actors)
+    assert (
+        len(plotter.actors) >= 4
+    ), "Should have brain mesh, neuron mesh, and 2 neuropil meshes"
+
+
+def test_get_brain_mesh_scene_neuropil_only():
+    """Test creating a brain mesh scene with only neuropil meshes (no neurons)."""
+    plotter = mesh.get_brain_mesh_scene(
+        neurons=None,
+        neuropil_meshes=["antennal_lobe_left", "mushroom_body_medial_calyx_left"],
+        neuropil_mesh_colors=["green", "purple"],
+        neuropil_mesh_alphas=0.5,  # Single value applied to all
+        dataset=None,
+        backend="static",
+        progress=False,
+    )
+
+    # Check that it returns a PyVista plotter
+    assert isinstance(plotter, pv.Plotter), "Should return a pv.Plotter object"
+
+    # Check that the plotter has actors (meshes) added
+    assert len(plotter.actors) > 0, "Plotter should have actors"
+
+    # Should have brain mesh + 2 neuropil meshes (at least 3 actors)
+    assert (
+        len(plotter.actors) >= 3
+    ), "Should have brain mesh and 2 neuropil meshes"
+
+
+def test_get_brain_mesh_scene_single_neuropil_string():
+    """Test creating a brain mesh scene with a single neuropil mesh as string."""
+    plotter = mesh.get_brain_mesh_scene(
+        neurons=None,
+        neuropil_meshes="antennal_lobe_left",
+        neuropil_mesh_colors="orange",
+        neuropil_mesh_alphas=0.6,
+        dataset=None,
+        backend="static",
+        progress=False,
+    )
+
+    # Check that it returns a PyVista plotter
+    assert isinstance(plotter, pv.Plotter), "Should return a pv.Plotter object"
+
+    # Should have brain mesh + 1 neuropil mesh
+    assert len(plotter.actors) >= 2, "Should have brain mesh and 1 neuropil mesh"
+
+
+def test_get_brain_mesh_scene_neuropil_trimesh_object():
+    """Test creating a brain mesh scene with neuropil as trimesh object."""
+    # Load a neuropil mesh first
+    neuropil_trimesh = mesh.load_neuropil_mesh("antennal_lobe_left")
+    
+    plotter = mesh.get_brain_mesh_scene(
+        neurons=None,
+        neuropil_meshes=neuropil_trimesh,
+        neuropil_mesh_colors="cyan",
+        neuropil_mesh_alphas=0.7,
+        dataset=None,
+        backend="static",
+        progress=False,
+    )
+
+    # Check that it returns a PyVista plotter
+    assert isinstance(plotter, pv.Plotter), "Should return a pv.Plotter object"
+
+    # Should have brain mesh + 1 neuropil mesh
+    assert len(plotter.actors) >= 2, "Should have brain mesh and 1 neuropil mesh"
+
+
+def test_get_brain_mesh_scene_mixed_neuropil_types():
+    """Test creating a brain mesh scene with mixed neuropil types (string and trimesh)."""
+    # Load a neuropil mesh first
+    neuropil_trimesh = mesh.load_neuropil_mesh("antennal_lobe_left")
+    
+    plotter = mesh.get_brain_mesh_scene(
+        neurons=TEST_ROOT_ID,
+        neuropil_meshes=[neuropil_trimesh, "antennal_lobe_right"],
+        neuropil_mesh_alphas=[0.3, 0.4],
+        dataset=None,
+        backend="static",
+        progress=False,
+    )
+
+    # Check that it returns a PyVista plotter
+    assert isinstance(plotter, pv.Plotter), "Should return a pv.Plotter object"
+
+    # Should have brain + neuron + 2 neuropil meshes
+    assert len(plotter.actors) >= 4, "Should have all meshes added"
+
+
+def test_get_brain_mesh_scene_neuropil_alpha_mismatch():
+    """Test that mismatched alpha list length raises ValueError."""
+    with pytest.raises(ValueError) as excinfo:
+        mesh.get_brain_mesh_scene(
+            neurons=None,
+            neuropil_meshes=["antennal_lobe_left", "antennal_lobe_right"],
+            neuropil_mesh_alphas=[0.3],  # Only 1 alpha for 2 meshes
+            backend="static",
+            progress=False,
+        )
+    
+    assert "neuropil_mesh_alphas" in str(excinfo.value)
+
+
+def test_get_brain_mesh_scene_neuropil_color_mismatch():
+    """Test that mismatched color list length raises ValueError."""
+    with pytest.raises(ValueError) as excinfo:
+        mesh.get_brain_mesh_scene(
+            neurons=None,
+            neuropil_meshes=["antennal_lobe_left", "antennal_lobe_right"],
+            neuropil_mesh_colors=["red"],  # Only 1 color for 2 meshes
+            backend="static",
+            progress=False,
+        )
+    
+    assert "neuropil_mesh_colors" in str(excinfo.value)
+
+
 def test_load_neuropil_mesh_valid():
     """Test loading a valid neuropil mesh."""
     neuropil_mesh = mesh.load_neuropil_mesh("antennal_lobe_left")
