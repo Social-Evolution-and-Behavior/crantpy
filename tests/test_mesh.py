@@ -171,3 +171,55 @@ def test_get_brain_mesh_scene_invalid_input():
     """Test get_brain_mesh_scene with invalid input."""
     with pytest.raises(ValueError):
         mesh.get_brain_mesh_scene("not_a_real_id_that_will_fail")
+
+
+def test_load_neuropil_mesh_valid():
+    """Test loading a valid neuropil mesh."""
+    neuropil_mesh = mesh.load_neuropil_mesh("antennal_lobe_left")
+    
+    # Check that it returns a trimesh object
+    assert isinstance(neuropil_mesh, tm.Trimesh), "Should return a trimesh.Trimesh object"
+    
+    # Check that it has vertices and faces
+    assert hasattr(neuropil_mesh, "vertices"), "Mesh should have vertices"
+    assert hasattr(neuropil_mesh, "faces"), "Mesh should have faces"
+    
+    # Check that vertices and faces are not empty
+    assert len(neuropil_mesh.vertices) > 0, "Mesh should have vertices"
+    assert len(neuropil_mesh.faces) > 0, "Mesh should have faces"
+    
+    # Check that vertices are 3D coordinates
+    assert neuropil_mesh.vertices.shape[1] == 3, "Vertices should be 3D coordinates"
+    
+    # Check that faces are triangles
+    assert neuropil_mesh.faces.shape[1] == 3, "Faces should be triangles"
+
+
+def test_load_neuropil_mesh_multiple():
+    """Test loading multiple different neuropil meshes."""
+    meshes = [
+        "antennal_lobe_left",
+        "antennal_lobe_right",
+        "mushroom_body_pedunculus_and_lobes_right"
+    ]
+    
+    for mesh_name in meshes:
+        neuropil_mesh = mesh.load_neuropil_mesh(mesh_name)
+        assert isinstance(neuropil_mesh, tm.Trimesh), f"Should return a trimesh for {mesh_name}"
+        assert len(neuropil_mesh.vertices) > 0, f"Mesh {mesh_name} should have vertices"
+        assert len(neuropil_mesh.faces) > 0, f"Mesh {mesh_name} should have faces"
+
+
+def test_load_neuropil_mesh_invalid_label():
+    """Test loading a neuropil mesh with an invalid label."""
+    with pytest.raises(ValueError) as excinfo:
+        mesh.load_neuropil_mesh("invalid_neuropil_name")
+    
+    assert "Invalid neuropil label" in str(excinfo.value)
+    assert "Available labels are" in str(excinfo.value)
+
+
+def test_load_neuropil_mesh_wrong_type():
+    """Test loading a neuropil mesh with wrong type input."""
+    with pytest.raises((ValueError, TypeError, AttributeError)):
+        mesh.load_neuropil_mesh(123)  # Should be a string

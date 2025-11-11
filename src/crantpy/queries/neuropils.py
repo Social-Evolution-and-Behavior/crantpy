@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 def count_synapses_in_mesh(
     neuron_ids: Union[int, str, List[Union[int, str]], "NeuronCriteria"],
     neuropil_mesh_names: Union[str, List[str]],
+    threshold: int = 1,
     materialization: Optional[str] = "latest",
     update_ids: bool = True,
     dataset: Optional[str] = None,
@@ -48,13 +49,12 @@ def count_synapses_in_mesh(
     neuropil_mesh_names : str or list of str
         Name(s) of neuropil mesh(es) to load and check against. Must be valid neuropil
         labels from the NEUROPIL_MESH_DICT configuration.
+    threshold : int, default 1
+        Minimum number of synapses required between neuron pairs to be included.
+        This is passed to get_synapses().
     materialization : str, default 'latest'
         Materialization version to use. 'latest' (default) or 'live' for live table.
         This is passed to get_synapses().
-    return_pixels : bool, default True
-        Whether to request synapse positions in pixels (True) or nanometers (False).
-        Note: Internally, coordinates are converted to nanometers for mesh comparison
-        regardless of this setting.
     update_ids : bool, default True
         Whether to automatically update outdated root IDs to their latest versions
         before querying. This is passed to get_synapses().
@@ -125,7 +125,7 @@ def count_synapses_in_mesh(
     synapses = get_synapses(
         pre_ids=query_ids_parsed,
         post_ids=None,  # Don't filter by postsynaptic neurons
-        threshold=1,
+        threshold=threshold,
         min_size=None,
         materialization=materialization,
         return_pixels=False,
