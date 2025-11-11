@@ -9,12 +9,10 @@ import logging
 from typing import List, Optional, Union, TYPE_CHECKING
 import pandas as pd
 import numpy as np
-import navis
 import trimesh as tm
-from crantpy.utils.cave.load import get_cave_client
-from crantpy.utils.config import CRANT_VALID_DATASETS, SCALE_X, SCALE_Y, SCALE_Z
+from crantpy.utils.config import CRANT_VALID_DATASETS
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
-from crantpy.utils.helpers import parse_root_ids, retry
+from crantpy.utils.helpers import parse_root_ids
 from crantpy.queries.connections import get_synapses
 from crantpy.viz.mesh import load_neuropil_mesh
 from crantpy.utils.config import NEUROPIL_MESH_DICT
@@ -198,5 +196,258 @@ def count_synapses_in_mesh(
     
     logger.info("Synapse counting complete")
     return result_df.reset_index()
+
+
+@inject_dataset(allowed=CRANT_VALID_DATASETS)
+def get_synapses_in_mesh(
+    mesh: tm.Trimesh,
+    threshold: int = 1,
+    min_size: Optional[int] = None,
+    materialization: Optional[str] = "latest",
+    return_pixels: bool = True,
+    clean: bool = True,
+    mesh_coordinates: str = "nm",
+    dataset: Optional[str] = None,
+) -> pd.DataFrame:
+    """
+    Query all synapses within a given mesh volume.
+
+    This function queries the synapse table and filters for synapses whose center point
+    coordinates fall within the provided mesh volume. This is useful for analyzing
+    synaptic connectivity within a specific anatomical region.
+
+    Parameters
+    ----------
+    mesh : trimesh.Trimesh
+        A trimesh object representing the volume to query. Synapses whose center point
+        coordinates fall within this mesh will be returned. The mesh should be in the
+        same coordinate space as the synapse data (typically nanometers).
+    threshold : int, default 1
+        Minimum number of synapses required between a neuron pair to be retained.
+        Synaptic connections (pre-post pairs) with fewer synapses are filtered out.
+    min_size : int, optional
+        Minimum size for filtering synapses. If specified, only synapses with size
+        greater than or equal to this value will be included.
+    materialization : str, default 'latest'
+        Materialization version to use. 'latest' (default) or 'live' for live table.
+    return_pixels : bool, default True
+        Whether to convert coordinate columns from nanometers to pixels.
+        If True (default), coordinates in ctr_pt_position, pre_pt_position, and
+        post_pt_position are converted using dataset scale factors.
+        If False, coordinates remain in nanometer units.
+    clean : bool, default True
+        Whether to perform cleanup of the synapse data:
+        - Remove autapses (self-connections)
+        - Remove connections involving neuron ID 0 (background)
+    mesh_coordinates : str, default "nm"
+        Coordinate system of the mesh. Either "nm" (nanometers) or "voxels" (pixels).
+        If "nm", both the query and mesh.contains() will use nanometer coordinates.
+        If "voxels", the mesh bounds will be converted to nanometers for the database
+        query, and synapse coordinates will be converted to voxels for mesh.contains().
+    dataset : str, optional
+        Dataset to use for the query. If None, uses the default dataset.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame of synapses within the mesh, with the same columns as returned by
+        get_synapses(), including an additional boolean column 'in_mesh' that is True
+        for all returned synapses.
+
+    Examples
+    --------
+    >>> import crantpy as cp
+    >>> import trimesh as tm
+    >>> # Load a neuropil mesh
+    >>> mesh = cp.load_neuropil_mesh('antennal_lobe_left')
+    >>>
+    >>> # Get all synapses within the mesh
+    >>> synapses = cp.get_synapses_in_mesh(mesh)
+    >>>
+    >>> # Get synapses with minimum threshold (only pairs with 3+ synapses)
+    >>> synapses = cp.get_synapses_in_mesh(mesh, threshold=3)
+    >>>
+    >>> # Get synapses with minimum size threshold
+    >>> synapses = cp.get_synapses_in_mesh(mesh, min_size=50)
+    >>>
+    >>> # Get live data without cleaning
+    >>> synapses = cp.get_synapses_in_mesh(mesh, materialization='live', clean=False)
+    >>>
+    >>> # Use a mesh in voxel coordinates instead of nanometers
+    >>> synapses = cp.get_synapses_in_mesh(mesh_voxels, mesh_coordinates='voxels')
+
+    Notes
+    -----
+    - This function first filters synapses using the mesh's bounding box, then performs
+      precise point-in-mesh testing only on synapses within the bounding box. This is
+      much more efficient than querying all synapses in the dataset.
+    - Synapse positions are extracted from the 'ctr_pt_position' column (center point),
+      which stores coordinates in nanometer space by default in the CAVE database.
+    - The mesh_coordinates parameter controls coordinate conversion: meshes from
+      load_neuropil_mesh() are typically in nanometers, while custom meshes may be
+      in voxel space.
+    - The threshold parameter filters connection pairs (pre-post neuron pairs), not
+      individual synapses. Pairs with fewer synapses than the threshold are excluded.
+    - The mesh.contains() method uses ray casting, so meshes should be closed/watertight
+      for accurate results.
+    - The return_pixels parameter only affects the output coordinates, not the query.
+
+    See Also
+    --------
+    get_synapses : Query synapses by pre/post neuron IDs
+    count_synapses_in_mesh : Count synapses from specific neurons within meshes
+    load_neuropil_mesh : Load neuropil mesh by name
+    """
+    from crantpy.utils.cave.load import get_cave_client
+    from crantpy.utils.config import SCALE_X, SCALE_Y, SCALE_Z
+    from crantpy.utils.helpers import retry
+
+    # Get CAVE client
+    client = get_cave_client(dataset=dataset)
+
+    # Validate mesh_coordinates parameter
+    if mesh_coordinates not in ["nm", "voxels"]:
+        raise ValueError("mesh_coordinates must be either 'nm' or 'voxels'")
+
+    # Get mesh bounding box for efficient spatial filtering
+    min_coords, max_coords = mesh.bounds
+    logger.info(f"Mesh bounding box ({mesh_coordinates}): min={min_coords}, max={max_coords}")
+    
+    # Convert mesh bounds to nanometers if needed (CAVE database uses nanometer coordinates)
+    if mesh_coordinates == "voxels":
+        # Convert from voxels to nanometers for the database query
+        min_coords_nm = np.array([
+            min_coords[0] * SCALE_X,
+            min_coords[1] * SCALE_Y,
+            min_coords[2] * SCALE_Z
+        ])
+        max_coords_nm = np.array([
+            max_coords[0] * SCALE_X,
+            max_coords[1] * SCALE_Y,
+            max_coords[2] * SCALE_Z
+        ])
+        logger.info(f"Converted to nanometers for query: min={min_coords_nm}, max={max_coords_nm}")
+    else:
+        # Mesh is already in nanometers
+        min_coords_nm = min_coords
+        max_coords_nm = max_coords
+    
+    # Build spatial filter using bounding box in nanometer coordinates
+    bbox = [min_coords_nm.tolist(), max_coords_nm.tolist()]
+    filter_spatial_dict = {
+        "ctr_pt_position": bbox
+    }
+
+    # Query synapses from the database with bounding box filter
+    logger.info("Querying synapses within mesh bounding box...")
+    try:
+        if materialization == "live":
+            syn = retry(client.materialize.live_query)(
+                table="synapses_v2",
+                timestamp=datetime.datetime.now(datetime.timezone.utc),
+                filter_spatial_dict=filter_spatial_dict,
+            )
+        elif materialization == "latest":
+            materialization_version = retry(client.materialize.most_recent_version)()
+            syn = retry(client.materialize.query_table)(
+                table="synapses_v2",
+                materialization_version=materialization_version,
+                filter_spatial_dict=filter_spatial_dict,
+            )
+        else:
+            raise ValueError("materialization must be either 'live' or 'latest'")
+    except Exception as e:
+        # If spatial filtering not supported, fall back to querying all synapses
+        logger.warning(f"Spatial filtering failed ({e}), falling back to full query")
+        if materialization == "live":
+            syn = retry(client.materialize.live_query)(
+                table="synapses_v2",
+                timestamp=datetime.datetime.now(datetime.timezone.utc),
+            )
+        elif materialization == "latest":
+            materialization_version = retry(client.materialize.most_recent_version)()
+            syn = retry(client.materialize.query_table)(
+                table="synapses_v2",
+                materialization_version=materialization_version,
+            )
+        else:
+            raise ValueError("materialization must be either 'live' or 'latest'")
+
+    if syn.empty:
+        logger.warning("No synapses found in bounding box")
+        return syn
+
+    logger.info(f"Retrieved {len(syn)} synapses within bounding box")
+
+    # Extract x, y, z coordinates from ctr_pt_position
+    logger.info("Extracting coordinates from ctr_pt_position...")
+    
+    # The ctr_pt_position column contains [x, y, z] coordinates in nanometers
+    synapse_coords = np.array([
+        [pos[0], pos[1], pos[2]]
+        for pos in syn['ctr_pt_position'].values
+    ])
+    
+    # Convert coordinates if needed for mesh.contains() check
+    if mesh_coordinates == "voxels":
+        # Convert synapse coordinates from nanometers to voxels to match mesh
+        synapse_coords_for_mesh = synapse_coords.copy()
+        synapse_coords_for_mesh[:, 0] = synapse_coords[:, 0] / SCALE_X
+        synapse_coords_for_mesh[:, 1] = synapse_coords[:, 1] / SCALE_Y
+        synapse_coords_for_mesh[:, 2] = synapse_coords[:, 2] / SCALE_Z
+        logger.debug("Converted synapse coordinates from nanometers to voxels for mesh check")
+    else:
+        # Mesh is in nanometers, use coordinates as-is
+        synapse_coords_for_mesh = synapse_coords
+    
+    # Check which synapses are inside the mesh (MAIN FILTERING STEP)
+    logger.info(f"Checking {len(synapse_coords_for_mesh)} synapses against mesh...")
+    inside_mask = mesh.contains(synapse_coords_for_mesh)
+    
+    logger.info(f"Found {inside_mask.sum()} synapses inside mesh")
+    
+    # Filter to only synapses inside the mesh
+    syn = syn[inside_mask].copy()
+    
+    if syn.empty:
+        logger.warning("No synapses found within mesh")
+        return syn
+
+    # Apply size filter if specified
+    if min_size is not None and "size" in syn.columns:
+        syn = syn[syn["size"] >= min_size]
+        logger.info(f"After size filtering: {len(syn)} synapses")
+
+    # Apply threshold filtering by connection counts between pre-post pairs
+    if threshold > 1:
+        # Count synapses for each pre-post pair
+        pair_counts = syn.groupby(["pre_pt_root_id", "post_pt_root_id"]).size()
+        valid_pairs = pair_counts[pair_counts >= threshold].index
+        # Filter to keep only pairs that meet the threshold
+        syn = syn.set_index(["pre_pt_root_id", "post_pt_root_id"])
+        syn = syn.loc[syn.index.isin(valid_pairs)]
+        syn = syn.reset_index()  # This preserves the columns instead of dropping them
+        logger.info(f"After threshold filtering: {len(syn)} synapses")
+
+    # Clean up synapses if requested
+    if clean:
+        # Remove autapses (self-connections)
+        syn = syn[syn["pre_pt_root_id"] != syn["post_pt_root_id"]]
+        # Remove connections involving background (ID 0)
+        syn = syn[(syn["pre_pt_root_id"] != 0) & (syn["post_pt_root_id"] != 0)]
+        logger.info(f"After cleaning: {len(syn)} synapses")
+
+    if syn.empty:
+        logger.warning("No synapses remaining after filtering")
+        return syn
+
+    # Convert coordinates to pixels if requested
+    if return_pixels and not syn.empty:
+        from crantpy.queries.connections import _convert_coordinates_to_pixels
+        syn = _convert_coordinates_to_pixels(syn)
+    
+    logger.info(f"Returning {len(syn)} synapses within mesh")
+    return syn
+
 
 

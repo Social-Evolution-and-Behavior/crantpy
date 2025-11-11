@@ -845,6 +845,7 @@ def locs_to_supervoxels(
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 def locs_to_segments(
     locs: Union[np.ndarray, pd.DataFrame],
+    mip: int = 0,
     timestamp: Optional[Union[str, Timestamp]] = None,
     coordinates: str = "nm",
     progress: bool = True,
@@ -858,6 +859,10 @@ def locs_to_segments(
     locs :          array-like | pandas.DataFrame
                     Array of x/y/z coordinates. If DataFrame must contain
                     'x', 'y', 'z' columns.
+    mip :           int
+                    Scale to query. Lower mip = more precise but slower;
+                    higher mip = faster but less precise. The default is 0
+                    which is the highest resolution.
     timestamp :     Timestamp, optional
                     Get roots at given date (and time). Int must be unix
                     timestamp. String must be ISO 8601 - e.g. '2021-11-15'.
@@ -883,7 +888,7 @@ def locs_to_segments(
     array([720575940631693610, 720575940631693610])
     """
     svoxels = locs_to_supervoxels(
-        locs, coordinates=coordinates, dataset=dataset, progress=progress
+        locs, mip=mip, coordinates=coordinates, dataset=dataset, progress=progress
     )
 
     return supervoxels_to_roots(
