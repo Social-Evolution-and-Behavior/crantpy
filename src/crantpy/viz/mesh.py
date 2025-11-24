@@ -340,10 +340,10 @@ def get_brain_mesh_scene(
     omit_failures: Optional[bool] = None,
     threads: int = 5,
     progress: bool = True,
-    brain_mesh_color: str = "grey",
+    brain_mesh_color: Union[str, tuple, list] = "grey",
     brain_mesh_alpha: float = 0.1,
     neuron_mesh_alpha: float = 1,
-    neuron_mesh_colors: list = None,
+    neuron_mesh_colors: Union[List[Union[str, tuple, list]], None] = None,
     neuropil_meshes: Union[
         str,
         tm.Trimesh,
@@ -351,7 +351,7 @@ def get_brain_mesh_scene(
         None
     ] = None,
     neuropil_mesh_alphas: Union[float, List[float], None] = None,
-    neuropil_mesh_colors: Union[str, List[str], None] = None,
+    neuropil_mesh_colors: Union[str, tuple, list, List[Union[str, tuple, list]], None] = None,
     backend: str = "static",
 ) -> pv.Plotter:
     """
@@ -369,14 +369,16 @@ def get_brain_mesh_scene(
         The number of threads to use for loading meshes, by default 5
     progress : bool, optional
         Whether to show a progress bar, by default True
-    brain_mesh_color : Optional[str], optional
-        The color of the brain mesh, by default "grey"
+    brain_mesh_color : Union[str, tuple, list], optional
+        The color of the brain mesh. Can be a color name string (e.g., "grey") or an RGB/RGBA 
+        tuple/list (e.g., (0.5, 0.5, 0.5) or [128, 128, 128, 255]), by default "grey"
     brain_mesh_alpha : Optional[float], optional
         The transparency of the brain mesh, by default 0.1
     neuron_mesh_alpha : Optional[float], optional
         The transparency of the neuron meshes, by default 1
-    neuron_mesh_colors : list, optional
-        List of colors for neuron meshes. If None, random colors are generated, by default None
+    neuron_mesh_colors : Union[List[Union[str, tuple, list]], None], optional
+        List of colors for neuron meshes. Each color can be a string or RGB/RGBA tuple/list. 
+        If None, random colors are generated, by default None
     neuropil_meshes : Union[str, tm.Trimesh, List[Union[str, tm.Trimesh]], None], optional
         Neuropil meshes to add to the scene. Can be a single neuropil label string, a trimesh object,
         or a list of neuropil label strings and/or trimesh objects. If strings are provided, the
@@ -384,9 +386,10 @@ def get_brain_mesh_scene(
     neuropil_mesh_alphas : Union[float, List[float], None], optional
         Transparency value(s) for neuropil meshes. Can be a single float applied to all neuropil
         meshes or a list of floats (one per neuropil mesh). If None, defaults to 0.3, by default None
-    neuropil_mesh_colors : Union[str, List[str], None], optional
-        Color(s) for neuropil meshes. Can be a single color applied to all neuropil meshes or a list
-        of colors (one per neuropil mesh). If None, random colors are generated, by default None
+    neuropil_mesh_colors : Union[str, tuple, list, List[Union[str, tuple, list]], None], optional
+        Color(s) for neuropil meshes. Can be a single color (string or RGB/RGBA tuple/list) applied 
+        to all neuropil meshes or a list of colors (one per neuropil mesh). If None, random colors 
+        are generated, by default None
     backend : Optional[str], optional
         The pyvista backend to use ('static', 'trame', 'client'), by default 'static'
 
@@ -478,17 +481,24 @@ def get_brain_mesh_scene(
         # Process neuropil mesh colors
         if neuropil_mesh_colors is None:
             neuropil_colors = sns.color_palette("husl", len(neuropil_trimeshes))
-        elif isinstance(neuropil_mesh_colors, str):
+        elif isinstance(neuropil_mesh_colors, (str, tuple)):
+            # Single color (string or RGB tuple) applied to all meshes
             neuropil_colors = [neuropil_mesh_colors] * len(neuropil_trimeshes)
         elif isinstance(neuropil_mesh_colors, list):
-            if len(neuropil_mesh_colors) != len(neuropil_trimeshes):
-                raise ValueError(
-                    f"Number of neuropil_mesh_colors ({len(neuropil_mesh_colors)}) "
-                    f"does not match number of neuropil meshes ({len(neuropil_trimeshes)})"
-                )
-            neuropil_colors = neuropil_mesh_colors
+            # Check if it's a single RGB color (list of 3 or 4 numbers) or a list of colors
+            if len(neuropil_mesh_colors) > 0 and isinstance(neuropil_mesh_colors[0], (int, float)):
+                # It's a single RGB/RGBA color as a list
+                neuropil_colors = [neuropil_mesh_colors] * len(neuropil_trimeshes)
+            else:
+                # It's a list of colors
+                if len(neuropil_mesh_colors) != len(neuropil_trimeshes):
+                    raise ValueError(
+                        f"Number of neuropil_mesh_colors ({len(neuropil_mesh_colors)}) "
+                        f"does not match number of neuropil meshes ({len(neuropil_trimeshes)})"
+                    )
+                neuropil_colors = neuropil_mesh_colors
         else:
-            raise ValueError("neuropil_mesh_colors must be a string or list of strings")
+            raise ValueError("neuropil_mesh_colors must be a string, tuple, list, or list of colors")
 
     logging.info("Converting meshes to PyVista PolyData format...")
     # Convert to pv.PolyData
