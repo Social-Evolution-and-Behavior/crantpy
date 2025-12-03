@@ -739,7 +739,7 @@ def get_l2_dotprops(
     Returns
     -------
     navis.NeuronList
-        List of Dotprops.
+        List of Dotprops in microns.
     """
     if omit_failures not in (None, True, False):
         raise ValueError(
@@ -841,7 +841,9 @@ def get_l2_dotprops(
             )
         )
         dps[-1]._l2_chunks_missing = len(ids_) - len(this_info)
-    return navis.NeuronList(dps)
+    
+    # Convert to micrometers by dividing by 1000 
+    return navis.NeuronList(dps) / 1000 
 
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
