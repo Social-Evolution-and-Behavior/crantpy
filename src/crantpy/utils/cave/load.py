@@ -166,6 +166,10 @@ def get_cloudvolume(
     if not seg_source:
         raise ValueError("Invalid segmentation source.")
 
+    # Pass the CAVE token as secrets to CloudVolume
+    if "secrets" not in defaults:
+        defaults["secrets"] = client.auth.token
+
     # get the cloudvolume
     vol = cv.CloudVolume(seg_source, **defaults)
     vol.path = seg_source
