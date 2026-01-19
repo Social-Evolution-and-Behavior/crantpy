@@ -723,14 +723,14 @@ files = [
 
 [[package]]
 name = "caveclient"
-version = "7.11.1"
+version = "8.0.1"
 description = "A client for interacting with the Connectome Annotation Versioning Engine"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "caveclient-7.11.1-py3-none-any.whl", hash = "sha256:5ad7ff115238b0c76e72b2dbdaa37ce316574faeeef9da09a4002611d2dc5c4c"},
-    {file = "caveclient-7.11.1.tar.gz", hash = "sha256:1db285f675ea6e0f6fc5e6723fbe326dcd93977466bd74060571c511e5f5a09f"},
+    {file = "caveclient-8.0.1-py3-none-any.whl", hash = "sha256:8282c0eca83b9c7c8a4516026d8e4c9175ba376532fea9a3df0f6407f8dd6bff"},
+    {file = "caveclient-8.0.1.tar.gz", hash = "sha256:cca8ca3209de599248ea386f431565fb4192d88b84811a6880d131d2bd6c0181"},
 ]
 
 [package.dependencies]
@@ -10342,4 +10342,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "795e9d3643f3c0ca028bf6e21ec48ab8ea001bdb5b02b2c49b9a6273b3b77b1a"
+content-hash = "435bae39bfd924d400b0124f952669571c0e06f57dd22ccddea5a3439f61b91b"
