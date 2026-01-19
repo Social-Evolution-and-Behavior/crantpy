@@ -201,7 +201,8 @@ def count_synapses_in_mesh(
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 def get_synapses_in_mesh(
     mesh: tm.Trimesh,
-    threshold: int = 1,
+    min_synapses_per_neuron: int = 1,
+    min_synapses_per_pair: int = 1,
     min_size: Optional[int] = None,
     materialization: Optional[str] = "latest",
     return_pixels: bool = True,
@@ -222,8 +223,11 @@ def get_synapses_in_mesh(
         A trimesh object representing the volume to query. Synapses whose center point
         coordinates fall within this mesh will be returned. The mesh should be in the
         same coordinate space as the synapse data (typically nanometers).
-    threshold : int, default 1
-        Minimum number of synapses required between a neuron pair to be retained.
+    min_synapses_per_neuron : int, default 1
+        Minimum number of synapses required from a presynaptic neuron within the mesh
+        to be retained. Presynaptic neurons with fewer synapses are filtered out entirely.
+    min_synapses_per_pair : int, default 1
+        Minimum number of synapses required between a neuron pair (pre-post) to be retained.
         Synaptic connections (pre-post pairs) with fewer synapses are filtered out.
     min_size : int, optional
         Minimum size for filtering synapses. If specified, only synapses with size
@@ -264,8 +268,11 @@ def get_synapses_in_mesh(
     >>> # Get all synapses within the mesh
     >>> synapses = cp.get_synapses_in_mesh(mesh)
     >>>
-    >>> # Get synapses with minimum threshold (only pairs with 3+ synapses)
-    >>> synapses = cp.get_synapses_in_mesh(mesh, threshold=3)
+    >>> # Get synapses with minimum pair threshold (only pairs with 3+ synapses)
+    >>> synapses = cp.get_synapses_in_mesh(mesh, min_synapses_per_pair=3)
+    >>>
+    >>> # Get synapses from neurons with at least 10 total synapses in the mesh
+    >>> synapses = cp.get_synapses_in_mesh(mesh, min_synapses_per_neuron=10)
     >>>
     >>> # Get synapses with minimum size threshold
     >>> synapses = cp.get_synapses_in_mesh(mesh, min_size=50)
@@ -286,8 +293,13 @@ def get_synapses_in_mesh(
     - The mesh_coordinates parameter controls coordinate conversion: meshes from
       load_neuropil_mesh() are typically in nanometers, while custom meshes may be
       in voxel space.
-    - The threshold parameter filters connection pairs (pre-post neuron pairs), not
-      individual synapses. Pairs with fewer synapses than the threshold are excluded.
+    - The min_synapses_per_neuron parameter filters out entire presynaptic neurons if
+      they have fewer than the specified number of synapses within the mesh.
+    - The min_synapses_per_pair parameter filters connection pairs (pre-post neuron pairs),
+      keeping only pairs with the minimum number of synapses specified.
+    - Both filters are applied independently; a synapse is retained only if its presynaptic
+      neuron meets the min_synapses_per_neuron threshold AND its pre-post pair meets
+      the min_synapses_per_pair threshold.
     - The mesh.contains() method uses ray casting, so meshes should be closed/watertight
       for accurate results.
     - The return_pixels parameter only affects the output coordinates, not the query.
@@ -440,6 +452,33 @@ def get_synapses_in_mesh(
         # Remove connections involving background (ID 0)
         syn = syn[(syn["pre_pt_root_id"] != 0) & (syn["post_pt_root_id"] != 0)]
         logger.info(f"After cleaning: {len(syn)} synapses")
+
+    if syn.empty:
+        logger.warning("No synapses remaining after filtering")
+        return syn
+
+    # Apply neuron-level filtering if specified
+    if min_synapses_per_neuron > 1:
+        # Count synapses for each neuron (both as pre and post)
+        pre_counts = syn["pre_pt_root_id"].value_counts()
+        post_counts = syn["post_pt_root_id"].value_counts()
+        # Combine counts: for each neuron, total synapses it participates in
+        all_neuron_counts = pre_counts.add(post_counts, fill_value=0)
+        valid_neurons = all_neuron_counts[all_neuron_counts >= min_synapses_per_neuron].index
+        # Filter to keep only synapses where both pre and post neurons meet the threshold
+        syn = syn[(syn["pre_pt_root_id"].isin(valid_neurons)) & (syn["post_pt_root_id"].isin(valid_neurons))]
+        logger.info(f"After neuron filtering: {len(syn)} synapses from {len(valid_neurons)} neurons with >= {min_synapses_per_neuron} synapses")
+
+    # Apply pair-level filtering if specified
+    if min_synapses_per_pair > 1:
+        # Count synapses for each pre-post pair
+        pair_counts = syn.groupby(["pre_pt_root_id", "post_pt_root_id"]).size()
+        valid_pairs = pair_counts[pair_counts >= min_synapses_per_pair].index
+        # Filter to keep only pairs that meet the threshold
+        syn = syn.set_index(["pre_pt_root_id", "post_pt_root_id"])
+        syn = syn.loc[syn.index.isin(valid_pairs)]
+        syn = syn.reset_index()  # This preserves the columns instead of dropping them
+        logger.info(f"After pair filtering: {len(syn)} synapses with >= {min_synapses_per_pair} synapses per pair")
 
     if syn.empty:
         logger.warning("No synapses remaining after filtering")
