@@ -49,6 +49,7 @@ vtk = "^9.5.2"
 pyperclip = "^1.11.0"
 trame-vtk = "^2.10.0"
 trame-vuetify = "^3.1.0"
+openpyxl = "^3.1.5"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"

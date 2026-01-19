@@ -379,36 +379,40 @@ def get_synapses_in_mesh(
 
     logger.info(f"Retrieved {len(syn)} synapses within bounding box")
 
-    # Extract x, y, z coordinates from ctr_pt_position
-    logger.info("Extracting coordinates from ctr_pt_position...")
-    
-    # The ctr_pt_position column contains [x, y, z] coordinates in nanometers
-    synapse_coords = np.array([
-        [pos[0], pos[1], pos[2]]
-        for pos in syn['ctr_pt_position'].values
-    ])
-    
-    # Convert coordinates if needed for mesh.contains() check
-    if mesh_coordinates == "voxels":
-        # Convert synapse coordinates from nanometers to voxels to match mesh
-        synapse_coords_for_mesh = synapse_coords.copy()
-        synapse_coords_for_mesh[:, 0] = synapse_coords[:, 0] / SCALE_X
-        synapse_coords_for_mesh[:, 1] = synapse_coords[:, 1] / SCALE_Y
-        synapse_coords_for_mesh[:, 2] = synapse_coords[:, 2] / SCALE_Z
-        logger.debug("Converted synapse coordinates from nanometers to voxels for mesh check")
-    else:
-        # Mesh is in nanometers, use coordinates as-is
-        synapse_coords_for_mesh = synapse_coords
-    
-    # Check which synapses are inside the mesh (MAIN FILTERING STEP)
-    logger.info(f"Checking {len(synapse_coords_for_mesh)} synapses against mesh...")
-    inside_mask = mesh.contains(synapse_coords_for_mesh)
-    
-    logger.info(f"Found {inside_mask.sum()} synapses inside mesh")
-    
-    # Filter to only synapses inside the mesh
-    syn = syn[inside_mask].copy()
-    
+    for col in ['ctr_pt_position', 'pre_pt_position', 'post_pt_position']:
+        if col not in syn.columns:
+            raise ValueError(f"Expected column '{col}' not found in synapse data")
+
+        # Extract x, y, z coordinates from the specified column
+        logger.info(f"Extracting coordinates from {col}...")
+        
+        # The specified column contains [x, y, z] coordinates in nanometers
+        synapse_coords = np.array([
+            [pos[0], pos[1], pos[2]]
+            for pos in syn[col].values
+        ])
+        
+        # Convert coordinates if needed for mesh.contains() check
+        if mesh_coordinates == "voxels":
+            # Convert synapse coordinates from nanometers to voxels to match mesh
+            synapse_coords_for_mesh = synapse_coords.copy()
+            synapse_coords_for_mesh[:, 0] = synapse_coords[:, 0] / SCALE_X
+            synapse_coords_for_mesh[:, 1] = synapse_coords[:, 1] / SCALE_Y
+            synapse_coords_for_mesh[:, 2] = synapse_coords[:, 2] / SCALE_Z
+            logger.debug("Converted synapse coordinates from nanometers to voxels for mesh check")
+        else:
+            # Mesh is in nanometers, use coordinates as-is
+            synapse_coords_for_mesh = synapse_coords
+        
+        # Check which synapses are inside the mesh (MAIN FILTERING STEP)
+        logger.info(f"Checking {len(synapse_coords_for_mesh)} synapses against mesh using {col} column...")
+        inside_mask = mesh.contains(synapse_coords_for_mesh)
+        
+        logger.info(f"Found {inside_mask.sum()} synapses using {col} column inside mesh")
+        
+        # Filter to only synapses inside the mesh
+        syn = syn[inside_mask].copy()
+        
     if syn.empty:
         logger.warning("No synapses found within mesh")
         return syn
