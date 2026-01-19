@@ -434,17 +434,6 @@ def get_synapses_in_mesh(
         syn = syn[syn["size"] >= min_size]
         logger.info(f"After size filtering: {len(syn)} synapses")
 
-    # Apply threshold filtering by connection counts between pre-post pairs
-    if threshold > 1:
-        # Count synapses for each pre-post pair
-        pair_counts = syn.groupby(["pre_pt_root_id", "post_pt_root_id"]).size()
-        valid_pairs = pair_counts[pair_counts >= threshold].index
-        # Filter to keep only pairs that meet the threshold
-        syn = syn.set_index(["pre_pt_root_id", "post_pt_root_id"])
-        syn = syn.loc[syn.index.isin(valid_pairs)]
-        syn = syn.reset_index()  # This preserves the columns instead of dropping them
-        logger.info(f"After threshold filtering: {len(syn)} synapses")
-
     # Clean up synapses if requested
     if clean:
         # Remove autapses (self-connections)
