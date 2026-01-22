@@ -28,6 +28,7 @@ import skeletor as sk
 from crantpy.utils.cave import get_cave_client, get_cloudvolume
 import trimesh as tm
 from tqdm import tqdm
+from cloudvolume import CloudVolume
 
 from crantpy.utils.config import (
     CRANT_VALID_DATASETS,
@@ -35,10 +36,12 @@ from crantpy.utils.config import (
     SCALE_Y,
     SCALE_Z,
     WHOLE_BRAIN_TISSUE_MESH_URL,
+    NEUROPIL_MESH_URL, 
+    NEUROPIL_MESH_DICT
 )
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.queries.neurons import NeuronCriteria
-from crantpy.utils.helpers import parse_root_ids
+from crantpy.utils.helpers import parse_root_ids, retry
 
 from neuroglancer_scripts.mesh import read_precomputed_mesh
 import requests
@@ -262,6 +265,7 @@ def detect_soma(
     return center
 
 
+@retry
 def load_whole_brain_mesh() -> tm.Trimesh:
     """
     Download and decode a whole-brain tissue mesh.
@@ -283,6 +287,42 @@ def load_whole_brain_mesh() -> tm.Trimesh:
     return brain_trimesh
 
 
+@retry
+def load_neuropil_mesh(
+        neuropil_label: str
+) -> tm.Trimesh:
+    """
+    Download and decode a neuropil mesh.
+    Parameters
+    ----------
+    neuropil_label : str
+        The label of the neuropil to load.
+
+    Returns
+    -------
+    trimesh.Trimesh
+        The neuropil mesh.
+
+    """
+
+    # Check if the label exists in the dictionary
+    label_id = None
+    for key, value in NEUROPIL_MESH_DICT.items():
+        if value == neuropil_label:
+            label_id = key
+            break
+
+    if label_id is None:
+        raise ValueError(f"Invalid neuropil label: {neuropil_label}. Available labels are: {list(NEUROPIL_MESH_DICT.values())}")
+
+    vol = CloudVolume(NEUROPIL_MESH_URL, mip=0, fill_missing=False, use_https=True, progress=True)
+    mesh_dict = vol.mesh.get(label_id)
+    mesh = mesh_dict[label_id]
+    tri = tm.Trimesh(vertices=mesh.vertices, faces=mesh.faces)
+    return tri
+
+
+
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
 @parse_neuroncriteria()
 def get_brain_mesh_scene(
@@ -294,24 +334,33 @@ def get_brain_mesh_scene(
         navis.NeuronList,
         "NeuronCriteria",
         List[Union[int, str, tm.Trimesh, navis.MeshNeuron, "NeuronCriteria"]],
-    ],
+        None,
+    ] = None,
     dataset: Optional[str] = None,
     omit_failures: Optional[bool] = None,
     threads: int = 5,
     progress: bool = True,
-    brain_mesh_color: str = "grey",
+    brain_mesh_color: Union[str, tuple, list] = "grey",
     brain_mesh_alpha: float = 0.1,
     neuron_mesh_alpha: float = 1,
-    neuron_mesh_colors: list = None,
-    backend: str = "client",
+    neuron_mesh_colors: Union[List[Union[str, tuple, list]], None] = None,
+    neuropil_meshes: Union[
+        str,
+        tm.Trimesh,
+        List[Union[str, tm.Trimesh]],
+        None
+    ] = None,
+    neuropil_mesh_alphas: Union[float, List[float], None] = None,
+    neuropil_mesh_colors: Union[str, tuple, list, List[Union[str, tuple, list]], None] = None,
+    backend: str = "static",
 ) -> pv.Plotter:
     """
     Create a 3D scene of the brain mesh with the specified neurons in random colors.
 
     Parameters
     ----------
-    neurons : Union[int, str, tm.Trimesh, navis.MeshNeuron, navis.NeuronList, 'NeuronCriteria', List[Union[int, str, tm.Trimesh, navis.MeshNeuron, 'NeuronCriteria']]]
-        The neurons to highlight in the scene.
+    neurons : Union[int, str, tm.Trimesh, navis.MeshNeuron, navis.NeuronList, 'NeuronCriteria', List[Union[int, str, tm.Trimesh, navis.MeshNeuron, 'NeuronCriteria']], None], optional
+        The neurons to highlight in the scene. If None, only brain and neuropil meshes will be shown, by default None
     dataset : Optional[str], optional
         The dataset to use for fetching neuron meshes, by default None
     omit_failures : Optional[bool], optional
@@ -320,84 +369,198 @@ def get_brain_mesh_scene(
         The number of threads to use for loading meshes, by default 5
     progress : bool, optional
         Whether to show a progress bar, by default True
-    brain_mesh_color : Optional[str], optional
-        The color of the brain mesh, by default "grey"
+    brain_mesh_color : Union[str, tuple, list], optional
+        The color of the brain mesh. Can be a color name string (e.g., "grey") or an RGB/RGBA 
+        tuple/list (e.g., (0.5, 0.5, 0.5) or [128, 128, 128, 255]), by default "grey"
     brain_mesh_alpha : Optional[float], optional
         The transparency of the brain mesh, by default 0.1
     neuron_mesh_alpha : Optional[float], optional
         The transparency of the neuron meshes, by default 1
+    neuron_mesh_colors : Union[List[Union[str, tuple, list]], None], optional
+        List of colors for neuron meshes. Each color can be a string or RGB/RGBA tuple/list. 
+        If None, random colors are generated, by default None
+    neuropil_meshes : Union[str, tm.Trimesh, List[Union[str, tm.Trimesh]], None], optional
+        Neuropil meshes to add to the scene. Can be a single neuropil label string, a trimesh object,
+        or a list of neuropil label strings and/or trimesh objects. If strings are provided, the
+        function will attempt to load them using load_neuropil_mesh(), by default None
+    neuropil_mesh_alphas : Union[float, List[float], None], optional
+        Transparency value(s) for neuropil meshes. Can be a single float applied to all neuropil
+        meshes or a list of floats (one per neuropil mesh). If None, defaults to 0.3, by default None
+    neuropil_mesh_colors : Union[str, tuple, list, List[Union[str, tuple, list]], None], optional
+        Color(s) for neuropil meshes. Can be a single color (string or RGB/RGBA tuple/list) applied 
+        to all neuropil meshes or a list of colors (one per neuropil mesh). If None, random colors 
+        are generated, by default None
     backend : Optional[str], optional
-        The pyvista backend to use ('static', 'trame', 'client'), by default 'client'
+        The pyvista backend to use ('static', 'trame', 'client'), by default 'static'
 
     Returns
     -------
     pv.Plotter
         The 3D scene containing the brain mesh and highlighted neurons.
     """
+    logging.info("Loading whole brain mesh...")
     # Load the whole brain mesh
     brain_trimesh = load_whole_brain_mesh()
+    logging.info(f"Whole brain mesh loaded: {len(brain_trimesh.vertices)} vertices, {len(brain_trimesh.faces)} faces")
 
-    # Load neuron meshes
-    neuron_meshes = get_mesh_neuron(
-        neurons,
-        dataset=dataset,
-        omit_failures=omit_failures,
-        threads=threads,
-        progress=progress,
-    )
+    # Load neuron meshes if provided
+    neuron_meshes = []
+    if neurons is not None:
+        logging.info("Loading neuron meshes...")
+        # Load neuron meshes
+        neuron_meshes_result = get_mesh_neuron(
+            neurons,
+            dataset=dataset,
+            omit_failures=omit_failures,
+            threads=threads,
+            progress=progress,
+        )
+        logging.info(f"Loaded {len(neuron_meshes_result) if isinstance(neuron_meshes_result, navis.NeuronList) else 1} neuron mesh(es)")
 
-    # Convert to Trimesh objects
-    if isinstance(neuron_meshes, navis.MeshNeuron):
-        neuron_meshes = [
-            tm.Trimesh(
-                vertices=neuron_meshes.vertices,
-                faces=neuron_meshes.faces,
-                process=False,
-            )
-        ]
-    elif isinstance(neuron_meshes, navis.NeuronList):
-        neuron_meshes = [
-            tm.Trimesh(vertices=n.vertices, faces=n.faces, process=False)
-            for n in neuron_meshes
-        ]
+        # Convert to Trimesh objects
+        if isinstance(neuron_meshes_result, navis.MeshNeuron):
+            neuron_meshes = [
+                tm.Trimesh(
+                    vertices=neuron_meshes_result.vertices,
+                    faces=neuron_meshes_result.faces,
+                    process=False,
+                )
+            ]
+        elif isinstance(neuron_meshes_result, navis.NeuronList):
+            neuron_meshes = [
+                tm.Trimesh(vertices=n.vertices, faces=n.faces, process=False)
+                for n in neuron_meshes_result
+            ]
+        else:
+            # Throw error if unexpected type
+            raise ValueError("Unexpected type for neuron_meshes")
     else:
-        # Throw error if unexpected type
-        raise ValueError("Unexpected type for neuron_meshes")
+        logging.info("No neurons provided, skipping neuron mesh loading")
 
+    # Process neuropil meshes if provided
+    neuropil_trimeshes = []
+    if neuropil_meshes is not None:
+        logging.info("Processing neuropil meshes...")
+        # Normalize to list
+        if not isinstance(neuropil_meshes, list):
+            neuropil_meshes = [neuropil_meshes]
+        
+        logging.info(f"Loading {len(neuropil_meshes)} neuropil mesh(es)...")
+        # Load neuropil meshes
+        for neuropil in neuropil_meshes:
+            if isinstance(neuropil, str):
+                logging.info(f"Loading neuropil mesh from label: {neuropil}")
+                # Load from string label
+                neuropil_trimeshes.append(load_neuropil_mesh(neuropil))
+            elif isinstance(neuropil, tm.Trimesh):
+                logging.info(f"Using provided trimesh object with {len(neuropil.vertices)} vertices")
+                # Already a trimesh object
+                neuropil_trimeshes.append(neuropil)
+            else:
+                raise ValueError(
+                    f"Neuropil mesh must be a string label or trimesh.Trimesh object, got {type(neuropil)}"
+                )
+        
+        logging.info(f"Successfully loaded {len(neuropil_trimeshes)} neuropil mesh(es)")
+        
+        # Process neuropil mesh alphas
+        if neuropil_mesh_alphas is None:
+            neuropil_alphas = [0.3] * len(neuropil_trimeshes)
+        elif isinstance(neuropil_mesh_alphas, (int, float)):
+            neuropil_alphas = [float(neuropil_mesh_alphas)] * len(neuropil_trimeshes)
+        elif isinstance(neuropil_mesh_alphas, list):
+            if len(neuropil_mesh_alphas) != len(neuropil_trimeshes):
+                raise ValueError(
+                    f"Number of neuropil_mesh_alphas ({len(neuropil_mesh_alphas)}) "
+                    f"does not match number of neuropil meshes ({len(neuropil_trimeshes)})"
+                )
+            neuropil_alphas = neuropil_mesh_alphas
+        else:
+            raise ValueError("neuropil_mesh_alphas must be a float or list of floats")
+        
+        # Process neuropil mesh colors
+        if neuropil_mesh_colors is None:
+            neuropil_colors = sns.color_palette("husl", len(neuropil_trimeshes))
+        elif isinstance(neuropil_mesh_colors, (str, tuple)):
+            # Single color (string or RGB tuple) applied to all meshes
+            neuropil_colors = [neuropil_mesh_colors] * len(neuropil_trimeshes)
+        elif isinstance(neuropil_mesh_colors, list):
+            # Check if it's a single RGB color (list of 3 or 4 numbers) or a list of colors
+            if len(neuropil_mesh_colors) > 0 and isinstance(neuropil_mesh_colors[0], (int, float)):
+                # It's a single RGB/RGBA color as a list
+                neuropil_colors = [neuropil_mesh_colors] * len(neuropil_trimeshes)
+            else:
+                # It's a list of colors
+                if len(neuropil_mesh_colors) != len(neuropil_trimeshes):
+                    raise ValueError(
+                        f"Number of neuropil_mesh_colors ({len(neuropil_mesh_colors)}) "
+                        f"does not match number of neuropil meshes ({len(neuropil_trimeshes)})"
+                    )
+                neuropil_colors = neuropil_mesh_colors
+        else:
+            raise ValueError("neuropil_mesh_colors must be a string, tuple, list, or list of colors")
+
+    logging.info("Converting meshes to PyVista PolyData format...")
     # Convert to pv.PolyData
     brain_pv = pv.PolyData(
         brain_trimesh.vertices,
         np.hstack((np.full((len(brain_trimesh.faces), 1), 3), brain_trimesh.faces)),
     )
-    neuron_meshes_pv = [
-        pv.PolyData(
-            neuron.vertices,
-            np.hstack((np.full((len(neuron.faces), 1), 3), neuron.faces)),
-        )
-        for neuron in neuron_meshes
-    ]
+    
+    neuron_meshes_pv = []
+    if neuron_meshes:
+        neuron_meshes_pv = [
+            pv.PolyData(
+                neuron.vertices,
+                np.hstack((np.full((len(neuron.faces), 1), 3), neuron.faces)),
+            )
+            for neuron in neuron_meshes
+        ]
+    
+    # Convert neuropil meshes to pv.PolyData
+    neuropil_meshes_pv = []
+    if neuropil_trimeshes:
+        neuropil_meshes_pv = [
+            pv.PolyData(
+                neuropil.vertices,
+                np.hstack((np.full((len(neuropil.faces), 1), 3), neuropil.faces)),
+            )
+            for neuropil in neuropil_trimeshes
+        ]
 
     # Set backend for pyvista (local or trame)
     pv.set_jupyter_backend(backend)
+    logging.info(f"Using PyVista backend: {backend}")
 
     # Create a PyVista plotter
+    logging.info("Creating PyVista scene...")
     plotter = pv.Plotter()
 
     # Add the brain mesh
+    logging.info(f"Adding brain mesh (color={brain_mesh_color}, alpha={brain_mesh_alpha})")
     plotter.add_mesh(brain_pv, color=brain_mesh_color, opacity=brain_mesh_alpha)
 
-    # Generate random colors for neurons if not provided
-    if neuron_mesh_colors is None or len(neuron_mesh_colors) != len(neuron_meshes_pv):
-        neuron_colors = sns.color_palette("bright", len(neuron_meshes_pv))
-    else:
-        neuron_colors = neuron_mesh_colors
+    # Add the neuron meshes if present
+    if neuron_meshes_pv:
+        # Generate random colors for neurons if not provided
+        if neuron_mesh_colors is None or len(neuron_mesh_colors) != len(neuron_meshes_pv):
+            neuron_colors = sns.color_palette("bright", len(neuron_meshes_pv))
+        else:
+            neuron_colors = neuron_mesh_colors
 
-    # Add the neuron meshes
-    for neuron_pv, color in zip(neuron_meshes_pv, neuron_colors):
-        plotter.add_mesh(neuron_pv, color=color, opacity=neuron_mesh_alpha)
+        logging.info(f"Adding {len(neuron_meshes_pv)} neuron mesh(es) (alpha={neuron_mesh_alpha})")
+        for neuron_pv, color in zip(neuron_meshes_pv, neuron_colors):
+            plotter.add_mesh(neuron_pv, color=color, opacity=neuron_mesh_alpha)
+
+    # Add the neuropil meshes
+    if neuropil_meshes_pv:
+        logging.info(f"Adding {len(neuropil_meshes_pv)} neuropil mesh(es)")
+        for neuropil_pv, color, alpha in zip(neuropil_meshes_pv, neuropil_colors, neuropil_alphas):
+            plotter.add_mesh(neuropil_pv, color=color, opacity=alpha)
 
     # Set camera position
     plotter.view_xy(negative=True)
     plotter.set_viewup([0, -1, 1])
 
+    logging.info("Brain mesh scene created successfully")
     return plotter

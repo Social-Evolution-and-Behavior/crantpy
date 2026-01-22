@@ -33,7 +33,7 @@ from tqdm import tqdm
 from crantpy.utils.config import CRANT_VALID_DATASETS, SCALE_X, SCALE_Y, SCALE_Z
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.queries.neurons import NeuronCriteria
-from crantpy.utils.helpers import parse_root_ids
+from crantpy.utils.helpers import parse_root_ids, retry
 
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
@@ -739,7 +739,7 @@ def get_l2_dotprops(
     Returns
     -------
     navis.NeuronList
-        List of Dotprops.
+        List of Dotprops in microns.
     """
     if omit_failures not in (None, True, False):
         raise ValueError(
@@ -755,7 +755,7 @@ def get_l2_dotprops(
 
     # Load the L2 IDs
     with ThreadPoolExecutor(max_workers=max_threads) as pool:
-        get_l2_ids = partial(client.chunkedgraph.get_leaves, stop_layer=2)
+        get_l2_ids = partial(retry(client.chunkedgraph.get_leaves), stop_layer=2)
         futures = pool.map(get_l2_ids, root_ids)
         l2_ids = [
             f
@@ -799,7 +799,7 @@ def get_l2_dotprops(
         for chunk_ix in np.arange(0, len(l2_ids_all), chunk_size):
             chunk = l2_ids_all[chunk_ix : chunk_ix + chunk_size]
             l2_info.update(
-                client.l2cache.get_l2data(chunk.tolist(), attributes=attributes)
+                retry(client.l2cache.get_l2data)(chunk.tolist(), attributes=attributes)
             )
             pbar.update(len(chunk))
 
@@ -841,7 +841,9 @@ def get_l2_dotprops(
             )
         )
         dps[-1]._l2_chunks_missing = len(ids_) - len(this_info)
-    return navis.NeuronList(dps)
+    
+    # Convert to micrometers by dividing by 1000 
+    return navis.NeuronList(dps) / 1000 
 
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)

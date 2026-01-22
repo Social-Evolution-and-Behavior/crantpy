@@ -24,7 +24,7 @@ packages = [{include = "crantpy", from = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.14"
-caveclient = "^7.7.1"
+caveclient = "^8.0.1"
 seatable-api = "^3.0.0"
 navis = {extras = ["all"], version = "^1.10.0"}
 mkinit = "^1.1.0"
@@ -47,6 +47,9 @@ pyvista = "^0.46.3"
 trame = "^3.12.0"
 vtk = "^9.5.2"
 pyperclip = "^1.11.0"
+trame-vtk = "^2.10.0"
+trame-vuetify = "^3.1.0"
+openpyxl = "^3.1.5"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"

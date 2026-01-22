@@ -1126,3 +1126,4 @@ def attach_synapses(
             )
 
     return neurons[0] if return_single else neurons
+
