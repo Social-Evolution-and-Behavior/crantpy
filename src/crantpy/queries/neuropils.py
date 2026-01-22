@@ -28,7 +28,8 @@ logger = logging.getLogger(__name__)
 def count_synapses_in_mesh(
     neuron_ids: Union[int, str, List[Union[int, str]], "NeuronCriteria"],
     neuropil_mesh_names: Union[str, List[str]],
-    threshold: int = 1,
+    min_synapses_per_neuron: int = 1,
+    min_synapses_per_pair: int = 1,
     materialization: Optional[str] = "latest",
     update_ids: bool = True,
     dataset: Optional[str] = None,
@@ -47,9 +48,12 @@ def count_synapses_in_mesh(
     neuropil_mesh_names : str or list of str
         Name(s) of neuropil mesh(es) to load and check against. Must be valid neuropil
         labels from the NEUROPIL_MESH_DICT configuration.
-    threshold : int, default 1
-        Minimum number of synapses required between neuron pairs to be included.
-        This is passed to get_synapses().
+    min_synapses_per_neuron : int, default 1
+        Minimum number of synapses required from a presynaptic neuron within the mesh
+        to be retained. Presynaptic neurons with fewer synapses are filtered out entirely.
+    min_synapses_per_pair : int, default 1
+        Minimum number of synapses required between a neuron pair (pre-post) to be retained.
+        Synaptic connections (pre-post pairs) with fewer synapses are filtered out.
     materialization : str, default 'latest'
         Materialization version to use. 'latest' (default) or 'live' for live table.
         This is passed to get_synapses().
@@ -123,7 +127,6 @@ def count_synapses_in_mesh(
     synapses = get_synapses(
         pre_ids=query_ids_parsed,
         post_ids=None,  # Don't filter by postsynaptic neurons
-        threshold=threshold,
         min_size=None,
         materialization=materialization,
         return_pixels=False,
@@ -143,6 +146,34 @@ def count_synapses_in_mesh(
     # If no synapses found, return empty result
     if synapses.empty:
         logger.warning("No synapses found for the specified neurons")
+        return result_df
+    
+    # Apply neuron-level filtering if specified
+    if min_synapses_per_neuron > 1:
+        # Count synapses for each neuron (both as pre and post)
+        pre_counts = synapses["pre_pt_root_id"].value_counts()
+        post_counts = synapses["post_pt_root_id"].value_counts()
+        # Combine counts: for each neuron, total synapses it participates in
+        all_neuron_counts = pre_counts.add(post_counts, fill_value=0)
+        valid_neurons = all_neuron_counts[all_neuron_counts >= min_synapses_per_neuron].index
+        # Filter to keep only synapses where both pre and post neurons meet the threshold
+        synapses = synapses[(synapses["pre_pt_root_id"].isin(valid_neurons)) & (synapses["post_pt_root_id"].isin(valid_neurons))]
+        logger.info(f"After neuron filtering: {len(synapses)} synapses from {len(valid_neurons)} neurons with >= {min_synapses_per_neuron} synapses")
+
+    # Apply pair-level filtering if specified
+    if min_synapses_per_pair > 1:
+        # Count synapses for each pre-post pair
+        pair_counts = synapses.groupby(["pre_pt_root_id", "post_pt_root_id"]).size()
+        valid_pairs = pair_counts[pair_counts >= min_synapses_per_pair].index
+        # Filter to keep only pairs that meet the threshold
+        synapses = synapses.set_index(["pre_pt_root_id", "post_pt_root_id"])
+        synapses = synapses.loc[synapses.index.isin(valid_pairs)]
+        synapses = synapses.reset_index()  # This preserves the columns instead of dropping them
+        logger.info(f"After pair filtering: {len(synapses)} synapses with >= {min_synapses_per_pair} synapses per pair")
+    
+    # If no synapses remaining after filtering, return empty result
+    if synapses.empty:
+        logger.warning("No synapses remaining after filtering")
         return result_df
     
     # Load neuropil meshes
