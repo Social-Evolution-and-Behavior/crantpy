@@ -156,8 +156,8 @@ def count_synapses_in_mesh(
         # Combine counts: for each neuron, total synapses it participates in
         all_neuron_counts = pre_counts.add(post_counts, fill_value=0)
         valid_neurons = all_neuron_counts[all_neuron_counts >= min_synapses_per_neuron].index
-        # Filter to keep only synapses where both pre and post neurons meet the threshold
-        synapses = synapses[(synapses["pre_pt_root_id"].isin(valid_neurons)) & (synapses["post_pt_root_id"].isin(valid_neurons))]
+        # Filter to keep only synapses where either pre or post neuron meets the threshold
+        synapses = synapses[(synapses["pre_pt_root_id"].isin(valid_neurons)) | (synapses["post_pt_root_id"].isin(valid_neurons))]
         logger.info(f"After neuron filtering: {len(synapses)} synapses from {len(valid_neurons)} neurons with >= {min_synapses_per_neuron} synapses")
 
     # Apply pair-level filtering if specified
@@ -485,8 +485,8 @@ def get_synapses_in_mesh(
         # Combine counts: for each neuron, total synapses it participates in
         all_neuron_counts = pre_counts.add(post_counts, fill_value=0)
         valid_neurons = all_neuron_counts[all_neuron_counts >= min_synapses_per_neuron].index
-        # Filter to keep only synapses where both pre and post neurons meet the threshold
-        syn = syn[(syn["pre_pt_root_id"].isin(valid_neurons)) & (syn["post_pt_root_id"].isin(valid_neurons))]
+        # Filter to keep only synapses where either pre or post neuron meets the threshold
+        syn = syn[(syn["pre_pt_root_id"].isin(valid_neurons)) | (syn["post_pt_root_id"].isin(valid_neurons))]
         logger.info(f"After neuron filtering: {len(syn)} synapses from {len(valid_neurons)} neurons with >= {min_synapses_per_neuron} synapses")
 
     # Apply pair-level filtering if specified

@@ -249,41 +249,59 @@ def test_count_synapses_in_mesh_invalid_neuropil(mock_load_mesh):
 
 @patch('crantpy.queries.neuropils.load_neuropil_mesh')
 @patch('crantpy.queries.neuropils.get_synapses')
-def test_count_synapses_in_mesh_with_threshold(mock_get_synapses, mock_load_mesh):
-    """Test counting synapses with different threshold values."""
-    # Mock mesh
-    mock_mesh = create_mock_mesh_with_contains(inside_count=50, total=60)
-    mock_load_mesh.return_value = mock_mesh
-    
-    # Mock synapse data - both calls return same data
-    mock_synapses = create_synapse_data_for_neurons([TEST_SINGLE_NEURON], synapses_per_neuron=60)
+def test_count_synapses_in_mesh_with_min_synapses_per_neuron(mock_get_synapses, mock_load_mesh):
+    """Test counting synapses with min_synapses_per_neuron filtering."""
+    # Mock synapse data with multiple neurons - both have >= 20 synapses
+    mock_synapses = pd.DataFrame({
+        'pre_pt_root_id': [TEST_MULTIPLE_NEURONS[0]] * 30 + [TEST_MULTIPLE_NEURONS[1]] * 30,
+        'post_pt_root_id': [888888] * 60,
+        'pre_pt_position': [[10000, 20000, 30000] for _ in range(60)],
+    })
     mock_get_synapses.return_value = mock_synapses
     
-    # Test with default threshold (1)
-    result_default = count_synapses_in_mesh(
-        neuron_ids=TEST_SINGLE_NEURON,
-        neuropil_mesh_names=TEST_SINGLE_NEUROPIL,
-        threshold=1,
-        dataset="latest"
-    )
+    # Mock mesh with 60 synapses (all inside)
+    mock_mesh = create_mock_mesh_with_contains(inside_count=60, total=60)
+    mock_load_mesh.return_value = mock_mesh
     
-    # Test with higher threshold (should have same or fewer synapses)
-    result_higher = count_synapses_in_mesh(
-        neuron_ids=TEST_SINGLE_NEURON,
+    # Test with min_synapses_per_neuron=1 - should include both neurons
+    result_permissive = count_synapses_in_mesh(
+        neuron_ids=TEST_MULTIPLE_NEURONS,
         neuropil_mesh_names=TEST_SINGLE_NEUROPIL,
-        threshold=3,
+        min_synapses_per_neuron=1,
         dataset="latest"
     )
     
     # Both should be valid DataFrames
-    assert isinstance(result_default, pd.DataFrame)
-    assert isinstance(result_higher, pd.DataFrame)
+    assert isinstance(result_permissive, pd.DataFrame)
+    assert len(result_permissive) > 0, "Should have rows for valid neurons"
+
+
+@patch('crantpy.queries.neuropils.load_neuropil_mesh')
+@patch('crantpy.queries.neuropils.get_synapses')
+def test_count_synapses_in_mesh_with_min_synapses_per_pair(mock_get_synapses, mock_load_mesh):
+    """Test counting synapses with min_synapses_per_pair filtering."""
+    # Mock synapse data with multiple connections, all with >= 25 synapses per pair
+    mock_synapses = pd.DataFrame({
+        'pre_pt_root_id': [TEST_SINGLE_NEURON] * 60,
+        'post_pt_root_id': [888888] * 30 + [999999] * 30,  # Two different postsynaptic neurons
+        'pre_pt_position': [[10000, 20000, 30000] for _ in range(60)],
+    })
+    mock_get_synapses.return_value = mock_synapses
     
-    # Both should have the same count since mesh filtering is the same
-    count_default = result_default[TEST_SINGLE_NEUROPIL].iloc[0]
-    count_higher = result_higher[TEST_SINGLE_NEUROPIL].iloc[0]
-    # They might be the same or higher could be less depending on threshold filtering
-    assert count_higher <= count_default + 1, "Higher threshold should not significantly increase synapse count"
+    # Mock mesh with 60 synapses (all inside)
+    mock_mesh = create_mock_mesh_with_contains(inside_count=60, total=60)
+    mock_load_mesh.return_value = mock_mesh
+    
+    # Test with min_synapses_per_pair=1 - should include both pairs
+    result_permissive = count_synapses_in_mesh(
+        neuron_ids=TEST_SINGLE_NEURON,
+        neuropil_mesh_names=TEST_SINGLE_NEUROPIL,
+        min_synapses_per_pair=1,
+        dataset="latest"
+    )
+    
+    # Both should be valid DataFrames
+    assert isinstance(result_permissive, pd.DataFrame)
 
 
 @patch('crantpy.queries.neuropils.load_neuropil_mesh')
