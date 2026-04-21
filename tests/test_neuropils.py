@@ -10,7 +10,6 @@ import numpy as np
 import requests
 import trimesh as tm
 from unittest.mock import patch, MagicMock
-import crantpy.queries.neuropils as neuropils_module
 from crantpy.queries.neurons import NeuronCriteria
 from crantpy.queries.neuropils import (
     count_synapses_in_mesh,
@@ -1019,72 +1018,6 @@ def test_get_synapses_in_mesh_loc_all_drops_synapse_if_any_position_is_outside(
     assert mock_contains.call_count == 2
 
 
-@patch("crantpy.queries.neuropils._batched_mesh_contains")
-@patch("crantpy.queries.neuropils._query_synapses_in_bbox")
-@patch("crantpy.utils.cave.load.get_cave_client")
-def test_get_synapses_in_mesh_batches_row_level_containment_without_changing_results(
-    mock_get_client,
-    mock_query_bbox,
-    mock_contains,
-    monkeypatch,
-):
-    """Large synapse tables should be checked in row batches while preserving output."""
-    monkeypatch.setattr(neuropils_module, "_SYNAPSE_MESH_ROW_BATCH_SIZE", 2)
-
-    mock_get_client.return_value = MagicMock()
-    mock_query_bbox.return_value = (
-        pd.DataFrame(
-            {
-                "ctr_pt_position": [
-                    [10.0, 20.0, 30.0],
-                    [40.0, 50.0, 60.0],
-                    [70.0, 80.0, 90.0],
-                ],
-                "pre_pt_position": [
-                    [11.0, 21.0, 31.0],
-                    [41.0, 51.0, 61.0],
-                    [71.0, 81.0, 91.0],
-                ],
-                "post_pt_position": [
-                    [12.0, 22.0, 32.0],
-                    [42.0, 52.0, 62.0],
-                    [72.0, 82.0, 92.0],
-                ],
-                "pre_pt_root_id": [111, 222, 333],
-                "post_pt_root_id": [444, 555, 666],
-            }
-        ),
-        42,
-    )
-    mock_contains.side_effect = [
-        np.array([True, False], dtype=bool),
-        np.array([True], dtype=bool),
-    ]
-
-    mock_mesh = MagicMock()
-    mock_mesh.bounds = (
-        np.array([0.0, 0.0, 0.0]),
-        np.array([100.0, 100.0, 100.0]),
-    )
-
-    result = get_synapses_in_mesh(
-        mesh=mock_mesh,
-        return_pixels=False,
-        dataset="latest",
-    )
-
-    assert list(result["pre_pt_root_id"]) == [111, 333]
-    assert mock_contains.call_count == 2
-    np.testing.assert_allclose(
-        mock_contains.call_args_list[0].args[1],
-        [[10.0, 20.0, 30.0], [40.0, 50.0, 60.0]],
-    )
-    np.testing.assert_allclose(
-        mock_contains.call_args_list[1].args[1],
-        [[70.0, 80.0, 90.0]],
-    )
-
-
 # ============================================================================
 # Tests for _query_synapses_in_bbox() subdivision logic
 # ============================================================================
@@ -1264,14 +1197,9 @@ def test_get_synapses_in_neuropils_basic(
     )
 
     assert isinstance(result, dict)
-    assert set(result.keys()) == {
-        "fan_shaped_body",
-        "ellipsoid_body",
-        "fan_shaped_body, ellipsoid_body",
-    }
+    assert set(result.keys()) == {"fan_shaped_body", "ellipsoid_body"}
     assert len(result["fan_shaped_body"]) == 6  # 6 True in mesh_a.contains mask
     assert len(result["ellipsoid_body"]) == 4  # 4 True in mesh_b.contains mask
-    assert len(result["fan_shaped_body, ellipsoid_body"]) == 10
     # Only one CAVE query should have been made
     mock_query_bbox.assert_called_once()
     mock_get_client.assert_called_once_with(dataset="latest", clear_cache=True)
@@ -1302,10 +1230,8 @@ def test_get_synapses_in_neuropils_empty_result(
     assert isinstance(result, dict)
     assert "fan_shaped_body" in result
     assert "ellipsoid_body" in result
-    assert "fan_shaped_body, ellipsoid_body" in result
     assert result["fan_shaped_body"].empty
     assert result["ellipsoid_body"].empty
-    assert result["fan_shaped_body, ellipsoid_body"].empty
 
 
 @patch("crantpy.queries.neuropils._query_synapses_in_bbox")

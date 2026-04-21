@@ -29,8 +29,7 @@ logger = logging.getLogger(__name__)
 # CAVE silently truncates query results at this row count
 CAVE_ROW_LIMIT = 200_000
 _MAX_SUBDIVISION_DEPTH = 8
-_MESH_CONTAINS_BATCH_SIZE = 1_000
-_SYNAPSE_MESH_ROW_BATCH_SIZE = 1_000
+_MESH_CONTAINS_BATCH_SIZE = 50_000
 
 
 def _filter_by_neuron_count(
@@ -158,44 +157,6 @@ def _batched_mesh_contains(
         logger.debug(f"mesh.contains batch {start}-{end} of {n}")
         result[start:end] = mesh.contains(points[start:end])
     return result
-
-
-def _compute_synapse_mesh_inside_mask(
-    syn: pd.DataFrame,
-    mesh: tm.Trimesh,
-    point_column: str,
-    mesh_coordinates: str,
-    scale: np.ndarray,
-    row_batch_size: Optional[int] = None,
-) -> np.ndarray:
-    """Compute a point-in-mesh mask without materializing all coordinates at once."""
-    n = len(syn)
-    if n == 0:
-        return np.zeros(0, dtype=bool)
-    if row_batch_size is None:
-        row_batch_size = _SYNAPSE_MESH_ROW_BATCH_SIZE
-
-    inside_mask = np.empty(n, dtype=bool)
-    total_inside = 0
-
-    for start in range(0, n, row_batch_size):
-        end = min(start + row_batch_size, n)
-        chunk = syn.iloc[start:end]
-        chunk_coords = np.asarray(chunk[point_column].tolist(), dtype=float)
-
-        if mesh_coordinates == "voxels":
-            chunk_coords = chunk_coords / scale
-
-        chunk_mask = _batched_mesh_contains(
-            mesh,
-            chunk_coords,
-            batch_size=row_batch_size,
-        )
-        inside_mask[start:end] = chunk_mask
-        total_inside += int(chunk_mask.sum())
-
-    logger.info("Found %d synapses inside mesh (%s)", total_inside, point_column)
-    return inside_mask
 
 
 class _CircuitBreaker:
@@ -846,18 +807,20 @@ def get_synapses_in_mesh(
         if col not in syn.columns:
             raise ValueError(f"Expected column '{col}' not found in synapse data")
 
+        synapse_coords = np.vstack(syn[col].values).astype(float)
+
+        if mesh_coordinates == "voxels":
+            synapse_coords_for_mesh = synapse_coords / _SCALE
+        else:
+            synapse_coords_for_mesh = synapse_coords
+
         logger.info(
             "Checking %d synapses against mesh using %s...",
-            len(syn),
+            len(synapse_coords_for_mesh),
             col,
         )
-        inside_mask = _compute_synapse_mesh_inside_mask(
-            syn,
-            mesh,
-            point_column=col,
-            mesh_coordinates=mesh_coordinates,
-            scale=_SCALE,
-        )
+        inside_mask = _batched_mesh_contains(mesh, synapse_coords_for_mesh)
+        logger.info("Found %d synapses inside mesh (%s)", inside_mask.sum(), col)
 
         syn = syn[inside_mask].copy()
 
@@ -989,7 +952,6 @@ def get_synapses_in_neuropils(
         raise ValueError("materialization must be either 'live' or 'latest'")
 
     _validate_neuropil_names(neuropil_names)
-    combined_key = ", ".join(neuropil_names)
 
     # Load all meshes
     logger.info(f"Loading {len(neuropil_names)} neuropil meshes...")
@@ -1074,9 +1036,7 @@ def get_synapses_in_neuropils(
 
     if syn.empty:
         logger.warning("No synapses found in union bounding box")
-        empty_results = {name: syn.copy() for name in neuropil_names}
-        empty_results[combined_key] = syn.copy()
-        return empty_results
+        return {name: syn.copy() for name in neuropil_names}
 
     logger.info(f"Retrieved {len(syn)} synapses within union bounding box")
 
@@ -1095,23 +1055,16 @@ def get_synapses_in_neuropils(
 
     if syn.empty:
         logger.warning("No synapses remaining after global filtering")
-        empty_results = {name: syn.copy() for name in neuropil_names}
-        empty_results[combined_key] = syn.copy()
-        return empty_results
+        return {name: syn.copy() for name in neuropil_names}
 
-    _SCALE = np.array([SCALE_X, SCALE_Y, SCALE_Z], dtype=float)
+    # Extract center-point coordinates in the shared mesh/query coordinate space
+    ctr_coords = np.vstack(syn["ctr_pt_position"].values).astype(float)
 
     # Assign synapses to each neuropil and apply per-neuropil filtering
     results: Dict[str, pd.DataFrame] = {}
     for name, mesh in meshes.items():
         logger.info(f"Checking synapses against {name} mesh...")
-        inside_mask = _compute_synapse_mesh_inside_mask(
-            syn,
-            mesh,
-            point_column="ctr_pt_position",
-            mesh_coordinates="nm",
-            scale=_SCALE,
-        )
+        inside_mask = _batched_mesh_contains(mesh, ctr_coords)
         neuropil_syn = syn[inside_mask].copy()
         logger.info(f"Found {len(neuropil_syn)} synapses inside {name}")
 
@@ -1140,11 +1093,6 @@ def get_synapses_in_neuropils(
         results[name] = neuropil_syn
 
     total = sum(len(df) for df in results.values())
-    if combined_key:
-        combined_df = pd.concat(results.values(), ignore_index=True)
-        if "id" in combined_df.columns:
-            combined_df = combined_df.drop_duplicates(subset="id")
-        results[combined_key] = combined_df
     logger.info(
         f"Returning {total} total synapses across {len(neuropil_names)} neuropils"
     )
