@@ -2,7 +2,10 @@ import pytest
 import numpy as np
 import pyvista as pv
 import trimesh as tm
+from unittest.mock import MagicMock, patch
+
 from crantpy.viz import mesh
+from crantpy.utils.config import NEUROPIL_MESH_ALIASES, NEUROPIL_MESH_DICT
 
 # Example root IDs for testing
 TEST_ROOT_ID = 576460752681552812
@@ -235,9 +238,7 @@ def test_get_brain_mesh_scene_neuropil_only():
     assert len(plotter.actors) > 0, "Plotter should have actors"
 
     # Should have brain mesh + 2 neuropil meshes (at least 3 actors)
-    assert (
-        len(plotter.actors) >= 3
-    ), "Should have brain mesh and 2 neuropil meshes"
+    assert len(plotter.actors) >= 3, "Should have brain mesh and 2 neuropil meshes"
 
 
 def test_get_brain_mesh_scene_single_neuropil_string():
@@ -263,7 +264,7 @@ def test_get_brain_mesh_scene_neuropil_trimesh_object():
     """Test creating a brain mesh scene with neuropil as trimesh object."""
     # Load a neuropil mesh first
     neuropil_trimesh = mesh.load_neuropil_mesh("antennal_lobe_left")
-    
+
     plotter = mesh.get_brain_mesh_scene(
         neurons=None,
         neuropil_meshes=neuropil_trimesh,
@@ -285,7 +286,7 @@ def test_get_brain_mesh_scene_mixed_neuropil_types():
     """Test creating a brain mesh scene with mixed neuropil types (string and trimesh)."""
     # Load a neuropil mesh first
     neuropil_trimesh = mesh.load_neuropil_mesh("antennal_lobe_left")
-    
+
     plotter = mesh.get_brain_mesh_scene(
         neurons=TEST_ROOT_ID,
         neuropil_meshes=[neuropil_trimesh, "antennal_lobe_right"],
@@ -312,7 +313,7 @@ def test_get_brain_mesh_scene_neuropil_alpha_mismatch():
             backend="static",
             progress=False,
         )
-    
+
     assert "neuropil_mesh_alphas" in str(excinfo.value)
 
 
@@ -326,28 +327,30 @@ def test_get_brain_mesh_scene_neuropil_color_mismatch():
             backend="static",
             progress=False,
         )
-    
+
     assert "neuropil_mesh_colors" in str(excinfo.value)
 
 
 def test_load_neuropil_mesh_valid():
     """Test loading a valid neuropil mesh."""
     neuropil_mesh = mesh.load_neuropil_mesh("antennal_lobe_left")
-    
+
     # Check that it returns a trimesh object
-    assert isinstance(neuropil_mesh, tm.Trimesh), "Should return a trimesh.Trimesh object"
-    
+    assert isinstance(
+        neuropil_mesh, tm.Trimesh
+    ), "Should return a trimesh.Trimesh object"
+
     # Check that it has vertices and faces
     assert hasattr(neuropil_mesh, "vertices"), "Mesh should have vertices"
     assert hasattr(neuropil_mesh, "faces"), "Mesh should have faces"
-    
+
     # Check that vertices and faces are not empty
     assert len(neuropil_mesh.vertices) > 0, "Mesh should have vertices"
     assert len(neuropil_mesh.faces) > 0, "Mesh should have faces"
-    
+
     # Check that vertices are 3D coordinates
     assert neuropil_mesh.vertices.shape[1] == 3, "Vertices should be 3D coordinates"
-    
+
     # Check that faces are triangles
     assert neuropil_mesh.faces.shape[1] == 3, "Faces should be triangles"
 
@@ -357,21 +360,133 @@ def test_load_neuropil_mesh_multiple():
     meshes = [
         "antennal_lobe_left",
         "antennal_lobe_right",
-        "mushroom_body_pedunculus_and_lobes_right"
+        "mushroom_body_pedunculus_and_lobes_right",
     ]
-    
+
     for mesh_name in meshes:
         neuropil_mesh = mesh.load_neuropil_mesh(mesh_name)
-        assert isinstance(neuropil_mesh, tm.Trimesh), f"Should return a trimesh for {mesh_name}"
+        assert isinstance(
+            neuropil_mesh, tm.Trimesh
+        ), f"Should return a trimesh for {mesh_name}"
         assert len(neuropil_mesh.vertices) > 0, f"Mesh {mesh_name} should have vertices"
         assert len(neuropil_mesh.faces) > 0, f"Mesh {mesh_name} should have faces"
+
+
+def test_neuropil_mesh_config_includes_new_labels_and_alias():
+    """The config should expose the new source labels and nodulus_right alias."""
+    assert NEUROPIL_MESH_DICT[17] == "pb_glomerulus_L5"
+    assert NEUROPIL_MESH_DICT[27] == "gall_left"
+    assert NEUROPIL_MESH_DICT[33] == "NOc_r"
+    assert NEUROPIL_MESH_ALIASES["nodulus_right"] == [
+        "NOc_r",
+        "NOm1_r",
+        "NOm2_r",
+        "NOs_r",
+    ]
+
+
+def _make_mock_cloudvolume_mesh(offset):
+    """Create a small synthetic mesh fragment for CloudVolume mocking."""
+    mesh_obj = MagicMock()
+    mesh_obj.vertices = np.array(
+        [
+            [offset + 0.0, 0.0, 0.0],
+            [offset + 1.0, 0.0, 0.0],
+            [offset + 0.0, 1.0, 0.0],
+        ],
+        dtype=float,
+    )
+    mesh_obj.faces = np.array([[0, 1, 2]], dtype=np.int64)
+    return mesh_obj
+
+
+@patch("crantpy.viz.mesh._get_precomputed_mesh_source")
+@pytest.mark.parametrize(
+    ("neuropil_label", "expected_label_id"),
+    [
+        ("pb_glomerulus_L5", 17),
+        ("gall_left", 27),
+        ("NOc_r", 33),
+    ],
+)
+def test_load_neuropil_mesh_supports_new_source_labels(
+    mock_get_source,
+    neuropil_label,
+    expected_label_id,
+):
+    """Direct labels from the new source should resolve to the expected IDs."""
+    mock_source = MagicMock()
+    mock_source.get.return_value = {
+        expected_label_id: _make_mock_cloudvolume_mesh(offset=float(expected_label_id))
+    }
+    mock_get_source.return_value = mock_source
+
+    neuropil_mesh = mesh.load_neuropil_mesh(neuropil_label)
+
+    mock_source.get.assert_called_once_with(expected_label_id, lod=0)
+    assert isinstance(neuropil_mesh, tm.Trimesh)
+    assert len(neuropil_mesh.faces) == 1
+
+
+@patch("crantpy.viz.mesh._get_precomputed_mesh_source")
+def test_load_neuropil_mesh_nodulus_right_alias_concatenates_subregions(
+    mock_get_source,
+):
+    """The nodulus_right alias should load and concatenate all right-nodulus subregions."""
+    mock_source = MagicMock()
+
+    def _get(label_id, lod=0):
+        assert lod == 0
+        return {label_id: _make_mock_cloudvolume_mesh(offset=float(label_id))}
+
+    mock_source.get.side_effect = _get
+    mock_get_source.return_value = mock_source
+
+    neuropil_mesh = mesh.load_neuropil_mesh("nodulus_right")
+
+    called_ids = [call.args[0] for call in mock_source.get.call_args_list]
+    called_lods = [call.kwargs["lod"] for call in mock_source.get.call_args_list]
+    assert called_ids == [33, 34, 35, 36]
+    assert called_lods == [0, 0, 0, 0]
+    assert isinstance(neuropil_mesh, tm.Trimesh)
+    assert len(neuropil_mesh.faces) == 4
+    assert len(neuropil_mesh.vertices) == 12
+
+
+@patch("crantpy.viz.mesh._get_precomputed_mesh_source")
+def test_load_neuropil_mesh_from_arbitrary_source_uses_supplied_mapping(
+    mock_get_source,
+):
+    """The private source loader should respect notebook-supplied mappings and aliases."""
+    mock_source = MagicMock()
+
+    def _get(label_id, lod=0):
+        assert lod == 0
+        return {label_id: _make_mock_cloudvolume_mesh(offset=float(label_id))}
+
+    mock_source.get.side_effect = _get
+    mock_get_source.return_value = mock_source
+
+    neuropil_mesh = mesh._load_neuropil_mesh_from_source(
+        "legacy_combo",
+        "precomputed://https://example.org/mesh",
+        {1: "foo", 2: "bar"},
+        {"legacy_combo": ["foo", "bar"]},
+    )
+
+    called_ids = [call.args[0] for call in mock_source.get.call_args_list]
+    called_lods = [call.kwargs["lod"] for call in mock_source.get.call_args_list]
+    assert called_ids == [1, 2]
+    assert called_lods == [0, 0]
+    assert isinstance(neuropil_mesh, tm.Trimesh)
+    assert len(neuropil_mesh.faces) == 2
 
 
 def test_load_neuropil_mesh_invalid_label():
     """Test loading a neuropil mesh with an invalid label."""
     with pytest.raises(ValueError) as excinfo:
         mesh.load_neuropil_mesh("invalid_neuropil_name")
-    
+
     assert "Invalid neuropil label" in str(excinfo.value)
     assert "Available labels are" in str(excinfo.value)
 

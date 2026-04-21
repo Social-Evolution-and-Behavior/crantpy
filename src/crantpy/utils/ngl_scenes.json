@@ -8,16 +8,24 @@
             "y": [8e-9, "m"],
             "z": [4.2e-8, "m"]
         },
-        "position": [25148.333984375, 19334.7421875, 1531.5],
-        "crossSectionScale": 85.66190459506113,
-        "projectionScale": 78956.25548751229,
+        "position": [24362.115234375, 17556.220703125, 2277.5],
+        "crossSectionScale": 11.427265777306706,
+        "projectionOrientation": [
+            0.4978545308113098,
+            -0.16119328141212463,
+            0.11896531283855438,
+            -0.8438038229942322
+        ],
+        "projectionScale": 11622.319704402184,
         "projectionDepth": 541651.3969244945,
         "layers": [],
+        "showDefaultAnnotations": false,
         "showSlices": false,
         "selectedLayer": {
             "visible": true,
             "layer": "proofreadable seg"
         },
+        "projectionBackgroundColor": "#fcfcfc",
         "layout": {
             "type": "xy-3d",
             "orthographicProjection": true
@@ -33,43 +41,45 @@
         "type": "segmentation",
         "source": {
             "url": "graphene://middleauth+https://data.proofreading.zetta.ai/segmentation/table/{dataset}",
-            "subsources": {
-                "default": true,
-                "graph": true,
-                "bounds": true,
-                "mesh": true
-            },
-            "enableDefaultSubsources": false,
             "state": {
-                "multicut": {
-                    "sinks": [],
-                    "sources": []
-                },
+                "findPath": {},
                 "merge": {
                     "merges": []
                 },
-                "findPath": {}
+                "multicut": {
+                    "sinks": [],
+                    "sources": []
+                }
             }
         },
-        "tab": "source",
+        "tab": "segments",
+        "selectedAlpha": 0.4,
+        "meshRenderScale": 0.25,
+        "crossSectionRenderScale": 0.0625,
         "segments": [],
-        "colorSeed": 1212430833,
+        "colorSeed": 2894582002,
         "name": "proofreadable seg"
     },
     "CRANT_BRAIN_MESH_LAYER": {
         "type": "segmentation",
         "source": "precomputed://gs://dkronauer-ant-001-alignment-final/tissue_mesh/mesh#type=mesh",
-        "tab": "segments",
-        "objectAlpha": 0.11,
+        "tab": "rendering",
+        "objectAlpha": 0,
         "hoverHighlight": false,
         "segments": ["1"],
         "segmentQuery": "1",
-        "name": "brain mesh"
+        "colorSeed": 2102323114,
+        "segmentDefaultColor": "#ffffff",
+        "segmentColors": {
+            "1": "#ffffff"
+        },
+        "name": "brain mesh",
+        "visible": false
     },
     "CRANT_MERGE_BIASED_SEG_LAYER": {
         "type": "segmentation",
         "source": "precomputed://gs://dkronauer-ant-001-segmentations-prod/ng/seg/240904-finetune-v3.2-0.21-size-1x",
-        "tab": "segments",
+        "tab": "rendering",
         "meshRenderScale": 0.31183193310826596,
         "segments": [],
         "colorSeed": 2474154087,
@@ -82,6 +92,49 @@
         "tab": "source",
         "segments": [],
         "name": "nuclei",
+        "visible": false
+    },
+    "CRANT_NEUROPIL_MESH_LAYER": {
+        "type": "segmentation",
+        "source": {
+            "url": "https://raw.githubusercontent.com/yigityargili991/haberkernlab_mesh_repo/579e39a5b9a0be836ff857f08c0db866579b75e0/|neuroglancer-precomputed:",
+            "transform": {
+                "matrix": [
+                    [1, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 1, 0]
+                ],
+                "outputDimensions": {
+                    "x": [8e-9, "m"],
+                    "y": [8e-9, "m"],
+                    "z": [4.2e-8, "m"]
+                }
+            }
+        },
+        "tab": "rendering",
+        "objectAlpha": 0.39,
+        "segments": [
+            "32", "33", "34", "35",
+            "!7", "!8",
+            "28", "29",
+            "10", "9",
+            "26", "27",
+            "!14", "!15",
+            "!3", "!6", "!2", "!5", "!1", "!4",
+            "12",
+            "!13", "!16", "!17", "!18", "!19", "!20", "!21", "!22", "!23", "!24", "!25",
+            "30", "31",
+            "!11"
+        ],
+        "name": "hlab-meshes-v2"
+    },
+    "CRANT_AL_GLOMERULI_LAYER": {
+        "type": "segmentation",
+        "source": "https://raw.githubusercontent.com/GiacomoGlotzer/crantb_glomeruli_mesh_repo/c4ee8270152bd4fc5bcb0984ffc52c1aa27ecaa6/AL_glomeruli_combined_final_v3/AL_glomeruli_combined_final_v3/|neuroglancer-precomputed:",
+        "tab": "rendering",
+        "objectAlpha": 0.06,
+        "segments": [],
+        "name": "AL_glomeruli_combined_final_v3",
         "visible": false
     },
     "CRANT_DATASETS": {

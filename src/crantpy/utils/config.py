@@ -94,6 +94,9 @@ SEARCH_EXCLUDED_ANNOTATION_FIELDS = [
 # Voxel resolution in nm
 SCALE_X, SCALE_Y, SCALE_Z = 8, 8, 42
 
+# Voxel offset kept for backward compatibility. Neuropil meshes are already aligned.
+VOXEL_OFFSET = (0, 0, 0)
+
 # Neuroglancer URL for the whole brain tissue mesh
 WHOLE_BRAIN_TISSUE_MESH_URL = (
     "https://www.googleapis.com/storage/v1/b/"
@@ -105,10 +108,10 @@ WHOLE_BRAIN_TISSUE_MESH_URL = (
 # URL for the precomputed aligned EM data
 ALIGNED_EM_URL = "precomputed://gs://dkronauer-ant-001-alignment-final/aligned"
 
-# URL for precomputed neuropil meshes 
-NEUROPIL_MESH_URL = "gs://dkronauer-ant-001-proofreading/neuropil_labels"
+# URL for precomputed neuropil meshes
+NEUROPIL_MESH_URL = "precomputed://https://raw.githubusercontent.com/yigityargili991/haberkernlab_mesh_repo/6d007140ff8b15dd20b4110b8c22b556e76c6f14/"
 
-# Neuropil Mesh Dict mapping label IDs to names
+# Neuropil Mesh Dict mapping source label IDs to names
 NEUROPIL_MESH_DICT = {
     1: "mushroom_body_pedunculus_and_lobes_left",
     2: "mushroom_body_medial_calyx_left",
@@ -122,9 +125,33 @@ NEUROPIL_MESH_DICT = {
     10: "ellipsoid_body",
     11: "protocerebral_bridge",
     12: "nodulus_left",
-    13: "nodulus_right",
-    14: "optic_lobe_left",
-    15: "optic_lobe_right",
-    16: "lateral_horn_left",
-    17: "lateral_horn_right",
+    13: "optic_lobe_left",
+    14: "optic_lobe_right",
+    15: "lateral_horn_left",
+    16: "lateral_horn_right",
+    17: "pb_glomerulus_L5",
+    18: "pb_glomerulus_L6",
+    19: "pb_glomerulus_L7",
+    20: "pb_glomerulus_L8",
+    21: "pb_glomerulus_R1",
+    22: "pb_glomerulus_R2",
+    23: "pb_glomerulus_R3",
+    24: "pb_glomerulus_R5",
+    25: "pb_glomerulus_R7",
+    26: "pb_glomerulus_R8",
+    27: "gall_left",
+    28: "gall_right",
+    29: "bulb_left",
+    30: "bulb_right",
+    31: "posterior_optic_tubercle_left",
+    32: "posterior_optic_tubercle_right",
+    33: "NOc_r",
+    34: "NOm1_r",
+    35: "NOm2_r",
+    36: "NOs_r",
+}
+
+# Compatibility aliases for labels no longer present as single source segments.
+NEUROPIL_MESH_ALIASES = {
+    "nodulus_right": ["NOc_r", "NOm1_r", "NOm2_r", "NOs_r"],
 }

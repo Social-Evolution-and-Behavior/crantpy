@@ -6,7 +6,7 @@ This module contains functions to query neuropil information from the CRANTb dat
 
 import datetime
 import logging
-from typing import List, Optional, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, Union, TYPE_CHECKING
 import pandas as pd
 import numpy as np
 import trimesh as tm
@@ -14,13 +14,455 @@ from crantpy.utils.config import CRANT_VALID_DATASETS
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.utils.helpers import parse_root_ids
 from crantpy.queries.connections import get_synapses
-from crantpy.viz.mesh import load_neuropil_mesh
-from crantpy.utils.config import NEUROPIL_MESH_DICT
+from crantpy.viz.mesh import (
+    get_supported_neuropil_mesh_labels,
+    load_neuropil_mesh,
+    resolve_neuropil_mesh_label_ids,
+)
+from crantpy.utils.config import SCALE_X, SCALE_Y, SCALE_Z
 
 if TYPE_CHECKING:
     from crantpy.queries.neurons import NeuronCriteria
 
 logger = logging.getLogger(__name__)
+
+# CAVE silently truncates query results at this row count
+CAVE_ROW_LIMIT = 200_000
+_MAX_SUBDIVISION_DEPTH = 8
+_MESH_CONTAINS_BATCH_SIZE = 1_000
+_SYNAPSE_MESH_ROW_BATCH_SIZE = 1_000
+
+
+def _filter_by_neuron_count(
+    syn: pd.DataFrame, min_count: int, label: str = ""
+) -> pd.DataFrame:
+    """Drop synapses unless both pre- and post-neuron have >= *min_count* synapses."""
+    pre_counts = syn["pre_pt_root_id"].value_counts()
+    post_counts = syn["post_pt_root_id"].value_counts()
+    all_neuron_counts = pre_counts.add(post_counts, fill_value=0)
+    valid_neurons = all_neuron_counts[all_neuron_counts >= min_count].index
+    syn = syn[
+        (syn["pre_pt_root_id"].isin(valid_neurons))
+        & (syn["post_pt_root_id"].isin(valid_neurons))
+    ]
+    logger.info(
+        "After neuron filtering%s: %d synapses from %d neurons with >= %d synapses",
+        f" in {label}" if label else "",
+        len(syn),
+        len(valid_neurons),
+        min_count,
+    )
+    return syn
+
+
+def _filter_by_pair_count(
+    syn: pd.DataFrame, min_count: int, label: str = ""
+) -> pd.DataFrame:
+    """Drop synapses unless their pre/post pair has >= *min_count* synapses."""
+    pair_counts = syn.groupby(["pre_pt_root_id", "post_pt_root_id"]).size()
+    valid_pairs = pair_counts[pair_counts >= min_count].index
+    syn = syn.set_index(["pre_pt_root_id", "post_pt_root_id"])
+    syn = syn.loc[syn.index.isin(valid_pairs)]
+    syn = syn.reset_index()
+    logger.info(
+        "After pair filtering%s: %d synapses with >= %d synapses per pair",
+        f" in {label}" if label else "",
+        len(syn),
+        min_count,
+    )
+    return syn
+
+
+def _normalize_synapse_root_ids(
+    syn: pd.DataFrame, dataset: Optional[str] = None
+) -> pd.DataFrame:
+    """Map synapse root-ID columns to their latest roots.
+
+    Mesh queries return the root IDs stored in the queried materialization.
+    To align results with current proofreading/annotation tables, normalize
+    all returned root IDs to their latest roots before downstream filtering.
+    """
+    id_columns = [c for c in ("pre_pt_root_id", "post_pt_root_id") if c in syn.columns]
+    if syn.empty or not id_columns:
+        return syn
+
+    unique_ids = pd.unique(
+        pd.concat([syn[col] for col in id_columns], ignore_index=True).dropna()
+    )
+    unique_ids = np.asarray(unique_ids)
+    unique_ids = unique_ids[unique_ids != 0]
+    if len(unique_ids) == 0:
+        return syn
+
+    from crantpy.utils.cave.segmentation import update_ids as _update_ids
+
+    logger.info(
+        "Normalizing %d unique synapse root ID(s) to latest roots", len(unique_ids)
+    )
+    updates = _update_ids(
+        unique_ids.tolist(),
+        dataset=dataset,
+        progress=False,
+        clear_cache=True,
+    )
+
+    if updates.empty:
+        logger.warning(
+            "Root-ID normalization returned no mapping data; leaving synapse IDs unchanged"
+        )
+        return syn
+
+    id_map = dict(zip(updates["old_id"], updates["new_id"]))
+    unresolved = (
+        int((updates["confidence"] == 0).sum())
+        if "confidence" in updates.columns
+        else 0
+    )
+    changed = int(updates["changed"].sum()) if "changed" in updates.columns else 0
+    if unresolved:
+        logger.warning(
+            "Could not normalize %d synapse root ID(s); leaving those IDs unchanged",
+            unresolved,
+        )
+    if changed:
+        logger.info("Updated %d synapse root ID(s) to newer roots", changed)
+
+    syn = syn.copy()
+    for col in id_columns:
+        syn[col] = syn[col].map(id_map).fillna(syn[col]).astype(np.int64)
+    return syn
+
+
+def _validate_neuropil_names(names: List[str]) -> None:
+    """Raise ``ValueError`` if any name is not a supported neuropil label."""
+    for name in names:
+        try:
+            resolve_neuropil_mesh_label_ids(name)
+        except ValueError as exc:
+            raise ValueError(
+                f"Invalid neuropil name: {name!r}. "
+                f"Available: {get_supported_neuropil_mesh_labels()}"
+            ) from exc
+
+
+def _batched_mesh_contains(
+    mesh: tm.Trimesh, points: np.ndarray, batch_size: int = _MESH_CONTAINS_BATCH_SIZE
+) -> np.ndarray:
+    """Run ``mesh.contains`` in batches to avoid OOM on large point sets."""
+    n = len(points)
+    if n <= batch_size:
+        return mesh.contains(points)
+    result = np.empty(n, dtype=bool)
+    for start in range(0, n, batch_size):
+        end = min(start + batch_size, n)
+        logger.debug(f"mesh.contains batch {start}-{end} of {n}")
+        result[start:end] = mesh.contains(points[start:end])
+    return result
+
+
+def _compute_synapse_mesh_inside_mask(
+    syn: pd.DataFrame,
+    mesh: tm.Trimesh,
+    point_column: str,
+    mesh_coordinates: str,
+    scale: np.ndarray,
+    row_batch_size: Optional[int] = None,
+) -> np.ndarray:
+    """Compute a point-in-mesh mask without materializing all coordinates at once."""
+    n = len(syn)
+    if n == 0:
+        return np.zeros(0, dtype=bool)
+    if row_batch_size is None:
+        row_batch_size = _SYNAPSE_MESH_ROW_BATCH_SIZE
+
+    inside_mask = np.empty(n, dtype=bool)
+    total_inside = 0
+
+    for start in range(0, n, row_batch_size):
+        end = min(start + row_batch_size, n)
+        chunk = syn.iloc[start:end]
+        chunk_coords = np.asarray(chunk[point_column].tolist(), dtype=float)
+
+        if mesh_coordinates == "voxels":
+            chunk_coords = chunk_coords / scale
+
+        chunk_mask = _batched_mesh_contains(
+            mesh,
+            chunk_coords,
+            batch_size=row_batch_size,
+        )
+        inside_mask[start:end] = chunk_mask
+        total_inside += int(chunk_mask.sum())
+
+    logger.info("Found %d synapses inside mesh (%s)", total_inside, point_column)
+    return inside_mask
+
+
+class _CircuitBreaker:
+    """Lightweight circuit breaker for CAVE API calls.
+
+    States:
+      - CLOSED  (normal):  requests flow through
+      - OPEN    (tripped): requests are blocked; raises immediately
+      - HALF_OPEN (probe): one probe request is allowed through
+
+    Transitions:
+      CLOSED  -> OPEN       after ``failure_threshold`` consecutive failures
+      OPEN    -> HALF_OPEN  after ``recovery_timeout`` seconds
+      HALF_OPEN -> CLOSED   if the probe request succeeds
+      HALF_OPEN -> OPEN     if the probe request fails
+    """
+
+    CLOSED = "CLOSED"
+    OPEN = "OPEN"
+    HALF_OPEN = "HALF_OPEN"
+
+    def __init__(self, failure_threshold=5, recovery_timeout=60):
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout = recovery_timeout
+        self._state = self.CLOSED
+        self._failure_count = 0
+        self._last_failure_time = None
+
+    @property
+    def state(self):
+        if self._state == self.OPEN and self._last_failure_time is not None:
+            import time as _time
+
+            elapsed = _time.time() - self._last_failure_time
+            if elapsed >= self.recovery_timeout:
+                self._state = self.HALF_OPEN
+                logger.info(
+                    f"Circuit breaker OPEN -> HALF_OPEN after "
+                    f"{elapsed:.0f}s cooldown, allowing probe request"
+                )
+        return self._state
+
+    def record_success(self):
+        if self._state in (self.HALF_OPEN, self.OPEN):
+            logger.info("Circuit breaker -> CLOSED (probe succeeded)")
+        self._failure_count = 0
+        self._state = self.CLOSED
+
+    def record_failure(self):
+        import time as _time
+
+        self._failure_count += 1
+        self._last_failure_time = _time.time()
+        if self._state == self.HALF_OPEN:
+            self._state = self.OPEN
+            logger.warning(
+                "Circuit breaker HALF_OPEN -> OPEN (probe failed), "
+                f"blocking requests for {self.recovery_timeout}s"
+            )
+        elif self._failure_count >= self.failure_threshold:
+            self._state = self.OPEN
+            logger.warning(
+                f"Circuit breaker -> OPEN after {self._failure_count} consecutive "
+                f"failures, blocking requests for {self.recovery_timeout}s"
+            )
+
+    def __repr__(self):
+        return (
+            f"_CircuitBreaker(state={self.state}, failures={self._failure_count}/"
+            f"{self.failure_threshold})"
+        )
+
+
+# Shared circuit breaker for all CAVE synapse queries
+_cave_breaker = _CircuitBreaker(failure_threshold=5, recovery_timeout=120)
+
+
+def _query_with_breaker(func, *args, operation=None, **kwargs):
+    """Execute a CAVE call through the circuit breaker + retry logic.
+
+    If the breaker is OPEN, waits for the recovery timeout before attempting
+    a probe. Uses aggressive retries (15 attempts, 10s linear backoff) within
+    each circuit-breaker cycle.
+    """
+    import time as _time
+    import requests
+    from crantpy.utils.helpers import retry
+
+    operation_name = operation or getattr(func, "__name__", repr(func))
+    state = _cave_breaker.state
+    logger.debug(
+        "Executing CAVE query '%s' through breaker (state=%s, args=%d, kwargs=%s)",
+        operation_name,
+        state,
+        len(args),
+        sorted(kwargs),
+    )
+    if state == _CircuitBreaker.OPEN:
+        wait = _cave_breaker.recovery_timeout
+        if _cave_breaker._last_failure_time is not None:
+            elapsed = _time.time() - _cave_breaker._last_failure_time
+            wait = max(0, _cave_breaker.recovery_timeout - elapsed)
+        logger.warning(
+            "Circuit breaker is OPEN - waiting %.0fs before probe request for '%s'",
+            wait,
+            operation_name,
+        )
+        _time.sleep(wait)
+        # After sleeping, state should transition to HALF_OPEN
+        _ = _cave_breaker.state
+
+    attempt_count = 0
+    saw_request_failure = False
+    logged_retry_cycle = False
+
+    def _logged_func(*inner_args, **inner_kwargs):
+        nonlocal attempt_count, saw_request_failure, logged_retry_cycle
+
+        attempt_count += 1
+        logger.debug(
+            "CAVE query '%s' attempt %d/%d",
+            operation_name,
+            attempt_count,
+            15,
+        )
+        try:
+            return func(*inner_args, **inner_kwargs)
+        except requests.RequestException as exc:
+            saw_request_failure = True
+            if not logged_retry_cycle:
+                logger.info(
+                    "CAVE query '%s' failed on attempt %d; retrying with up to %d attempts and %.0fs linear backoff",
+                    operation_name,
+                    attempt_count,
+                    15,
+                    10.0,
+                )
+                logged_retry_cycle = True
+            logger.debug(
+                "CAVE query '%s' attempt %d/%d failed with %s: %s",
+                operation_name,
+                attempt_count,
+                15,
+                type(exc).__name__,
+                exc,
+            )
+            raise
+
+    try:
+        result = retry(_logged_func, retries=15, cooldown=10)(*args, **kwargs)
+        if saw_request_failure:
+            logger.info(
+                "CAVE query '%s' succeeded after %d attempts (%d retries)",
+                operation_name,
+                attempt_count,
+                attempt_count - 1,
+            )
+        _cave_breaker.record_success()
+        return result
+    except requests.RequestException as exc:
+        logger.error(
+            "CAVE query '%s' failed after %d attempts with %s: %s",
+            operation_name,
+            attempt_count,
+            type(exc).__name__,
+            exc,
+        )
+        _cave_breaker.record_failure()
+        raise
+
+
+def _query_synapses_in_bbox(
+    client, bbox, materialization, materialization_version=None, depth=0
+):
+    """
+    Query synapses within a bounding box, auto-subdividing if CAVE truncates.
+
+    CAVE silently truncates results at ~200,000 rows. This function detects
+    truncation (result count >= CAVE_ROW_LIMIT) and recursively bisects the
+    bounding box along its longest axis, querying each half separately.
+
+    Uses a circuit breaker to avoid hammering the CAVE server when it is
+    persistently unavailable. After 5 consecutive failures the breaker trips
+    OPEN, blocking requests for 120 s before sending a single probe.
+
+    Parameters
+    ----------
+    client : CAVEclient
+        An initialized CAVE client.
+    bbox : list
+        Bounding box as [[min_x, min_y, min_z], [max_x, max_y, max_z]].
+    materialization : str
+        Either 'live' or 'latest'.
+    materialization_version : int, optional
+        Resolved materialization version (used for 'latest' mode).
+        If None and materialization is 'latest', it will be resolved.
+    depth : int
+        Current recursion depth (safety guard).
+
+    Returns
+    -------
+    tuple of (pd.DataFrame, int)
+        The synapse DataFrame and the resolved materialization_version.
+    """
+    # Resolve materialization version once at the top level
+    if materialization == "latest" and materialization_version is None:
+        materialization_version = _query_with_breaker(
+            client.materialize.most_recent_version,
+            operation="most_recent_version",
+        )
+
+    filter_spatial_dict = {"ctr_pt_position": bbox}
+
+    if materialization == "live":
+        syn = _query_with_breaker(
+            client.materialize.live_query,
+            operation="live_query",
+            table="synapses_v2",
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
+            filter_spatial_dict=filter_spatial_dict,
+        )
+    else:
+        syn = _query_with_breaker(
+            client.materialize.query_table,
+            operation="query_table",
+            table="synapses_v2",
+            materialization_version=materialization_version,
+            filter_spatial_dict=filter_spatial_dict,
+        )
+
+    # Check for truncation
+    if len(syn) >= CAVE_ROW_LIMIT and depth < _MAX_SUBDIVISION_DEPTH:
+        min_coords = np.array(bbox[0], dtype=float)
+        max_coords = np.array(bbox[1], dtype=float)
+        extents = max_coords - min_coords
+        axis = int(np.argmax(extents))
+        midpoint = (min_coords[axis] + max_coords[axis]) / 2.0
+
+        logger.info(
+            f"CAVE returned {len(syn)} rows (>= {CAVE_ROW_LIMIT}), "
+            f"subdividing along axis {axis} at depth {depth}"
+        )
+
+        # First half: min..mid along the split axis
+        max_a = max_coords.copy()
+        max_a[axis] = midpoint
+        bbox_a = [min_coords.tolist(), max_a.tolist()]
+
+        # Second half: mid..max along the split axis
+        min_b = min_coords.copy()
+        min_b[axis] = midpoint
+        bbox_b = [min_b.tolist(), max_coords.tolist()]
+
+        syn_a, materialization_version = _query_synapses_in_bbox(
+            client, bbox_a, materialization, materialization_version, depth + 1
+        )
+        syn_b, materialization_version = _query_synapses_in_bbox(
+            client, bbox_b, materialization, materialization_version, depth + 1
+        )
+
+        syn = pd.concat([syn_a, syn_b], ignore_index=True)
+        # Deduplicate by id column (synapses on the boundary may appear in both)
+        if "id" in syn.columns:
+            syn = syn.drop_duplicates(subset="id")
+        logger.info(f"After merging subdivisions at depth {depth}: {len(syn)} synapses")
+
+    return syn, materialization_version
 
 
 @parse_neuroncriteria()
@@ -33,6 +475,7 @@ def count_synapses_in_mesh(
     materialization: Optional[str] = "latest",
     update_ids: bool = True,
     dataset: Optional[str] = None,
+    loc: str = "pre",
 ) -> pd.DataFrame:
     """
     Count the number of presynaptic outputs from specified neurons within neuropil meshes.
@@ -62,6 +505,10 @@ def count_synapses_in_mesh(
         before querying. This is passed to get_synapses().
     dataset : str, optional
         Dataset to use for the query. If None, uses the default dataset.
+    loc : {"pre", "ctr"}, default "pre"
+        Which synapse position column to use for point-in-mesh testing.
+        ``"pre"`` uses the presynaptic terminal position (``pre_pt_position``).
+        ``"ctr"`` uses the synapse center point (``ctr_pt_position``).
 
     Returns
     -------
@@ -100,7 +547,8 @@ def count_synapses_in_mesh(
     Notes
     -----
     - This function only considers synapses where the query neurons are **presynaptic**.
-    - Synapse positions are extracted from the 'pre_pt_position' column.
+    - By default, synapse positions are extracted from the ``pre_pt_position`` column.
+      Set ``loc="ctr"`` to use the synapse center point instead.
     - Coordinates are automatically converted to nanometers for comparison with meshes.
     - Point-in-mesh testing uses ray casting, so meshes should be closed/watertight.
     - The function may take some time for large numbers of synapses or complex meshes.
@@ -112,16 +560,17 @@ def count_synapses_in_mesh(
     """
     # Parse neuron IDs - keep as List[Union[int, str]] for compatibility with get_synapses
     query_ids_parsed = [int(x) for x in parse_root_ids(neuron_ids)]
-    
+
     # Normalize neuropil mesh names to list
     if isinstance(neuropil_mesh_names, str):
         neuropil_mesh_names = [neuropil_mesh_names]
 
     # Verify neuropil mesh names
-    for neuropil_name in neuropil_mesh_names:
-        if neuropil_name not in NEUROPIL_MESH_DICT.values():
-            raise ValueError(f"Invalid neuropil mesh name: {neuropil_name}")
-    
+    _validate_neuropil_names(neuropil_mesh_names)
+
+    if loc not in {"pre", "ctr"}:
+        raise ValueError("loc must be either 'pre' or 'ctr'")
+
     # Get synapses where query neurons are presynaptic
     logger.info(f"Fetching synapses for {len(query_ids_parsed)} neuron(s)...")
     synapses = get_synapses(
@@ -134,48 +583,33 @@ def count_synapses_in_mesh(
         update_ids=update_ids,
         dataset=dataset,
     )
-    
+
     # Initialize result DataFrame
     result_df = pd.DataFrame(
         0,
-        index=pd.Index(query_ids_parsed, name='neuron_id'),
+        index=pd.Index(query_ids_parsed, name="neuron_id"),
         columns=neuropil_mesh_names,
-        dtype=int
+        dtype=int,
     )
-    
+
     # If no synapses found, return empty result
     if synapses.empty:
         logger.warning("No synapses found for the specified neurons")
         return result_df
-    
+
     # Apply neuron-level filtering if specified
     if min_synapses_per_neuron > 1:
-        # Count synapses for each neuron (both as pre and post)
-        pre_counts = synapses["pre_pt_root_id"].value_counts()
-        post_counts = synapses["post_pt_root_id"].value_counts()
-        # Combine counts: for each neuron, total synapses it participates in
-        all_neuron_counts = pre_counts.add(post_counts, fill_value=0)
-        valid_neurons = all_neuron_counts[all_neuron_counts >= min_synapses_per_neuron].index
-        # Filter to keep only synapses where either pre or post neuron meets the threshold
-        synapses = synapses[(synapses["pre_pt_root_id"].isin(valid_neurons)) | (synapses["post_pt_root_id"].isin(valid_neurons))]
-        logger.info(f"After neuron filtering: {len(synapses)} synapses from {len(valid_neurons)} neurons with >= {min_synapses_per_neuron} synapses")
+        synapses = _filter_by_neuron_count(synapses, min_synapses_per_neuron)
 
     # Apply pair-level filtering if specified
     if min_synapses_per_pair > 1:
-        # Count synapses for each pre-post pair
-        pair_counts = synapses.groupby(["pre_pt_root_id", "post_pt_root_id"]).size()
-        valid_pairs = pair_counts[pair_counts >= min_synapses_per_pair].index
-        # Filter to keep only pairs that meet the threshold
-        synapses = synapses.set_index(["pre_pt_root_id", "post_pt_root_id"])
-        synapses = synapses.loc[synapses.index.isin(valid_pairs)]
-        synapses = synapses.reset_index()  # This preserves the columns instead of dropping them
-        logger.info(f"After pair filtering: {len(synapses)} synapses with >= {min_synapses_per_pair} synapses per pair")
-    
+        synapses = _filter_by_pair_count(synapses, min_synapses_per_pair)
+
     # If no synapses remaining after filtering, return empty result
     if synapses.empty:
         logger.warning("No synapses remaining after filtering")
         return result_df
-    
+
     # Load neuropil meshes
     logger.info(f"Loading {len(neuropil_mesh_names)} neuropil mesh(es)...")
     meshes = {}
@@ -186,45 +620,46 @@ def count_synapses_in_mesh(
         except Exception as e:
             logger.error(f"Failed to load mesh for {neuropil_name}: {e}")
             raise
-    
+
     # Extract synapse positions and convert to nanometers if needed
-    # The pre_pt_position column contains [x, y, z] coordinates
-    logger.info(f"Processing {len(synapses)} synapses...")
-    
+    position_column = "ctr_pt_position" if loc == "ctr" else "pre_pt_position"
+    logger.info(f"Processing {len(synapses)} synapses using {position_column}...")
+
     # Convert synapse coordinates to numpy array
-    synapse_coords = np.array([
-        [pos[0], pos[1], pos[2]]
-        for pos in synapses['pre_pt_position'].values
-    ])
-    
+    synapse_coords = np.vstack(synapses[position_column].values)
+
     # Add coordinates and neuron IDs to a working dataframe
-    synapse_df = pd.DataFrame({
-        'neuron_id': synapses['pre_pt_root_id'].values,
-        'x': synapse_coords[:, 0],
-        'y': synapse_coords[:, 1],
-        'z': synapse_coords[:, 2],
-    })
-    
+    synapse_df = pd.DataFrame(
+        {
+            "neuron_id": synapses["pre_pt_root_id"].values,
+            "x": synapse_coords[:, 0],
+            "y": synapse_coords[:, 1],
+            "z": synapse_coords[:, 2],
+        }
+    )
+
     # For each neuropil mesh, check which synapses are inside
     for neuropil_name, mesh in meshes.items():
         logger.info(f"Checking synapses against {neuropil_name} mesh...")
-        
+
         # Check each synapse position against the mesh
-        points = synapse_df[['x', 'y', 'z']].values
+        points = synapse_df[["x", "y", "z"]].values
         inside_mask = mesh.contains(points)
-        
+
         # Count synapses per neuron that are inside this mesh
-        synapse_df['inside'] = inside_mask
-        counts_per_neuron = synapse_df[synapse_df['inside']].groupby('neuron_id').size()
-        
+        synapse_df["inside"] = inside_mask
+        counts_per_neuron = synapse_df[synapse_df["inside"]].groupby("neuron_id").size()
+
         # Update result DataFrame for this neuropil
         for neuron_id in query_ids_parsed:
             if neuron_id in counts_per_neuron.index:
                 count_value = counts_per_neuron[neuron_id]
-                result_df.loc[result_df.index == neuron_id, neuropil_name] = int(count_value)
-        
+                result_df.loc[result_df.index == neuron_id, neuropil_name] = int(
+                    count_value
+                )
+
         logger.debug(f"Found {inside_mask.sum()} synapses in {neuropil_name}")
-    
+
     logger.info("Synapse counting complete")
     return result_df.reset_index()
 
@@ -235,6 +670,7 @@ def get_synapses_in_mesh(
     min_synapses_per_neuron: int = 1,
     min_synapses_per_pair: int = 1,
     min_size: Optional[int] = None,
+    loc: str = "ctr",
     materialization: Optional[str] = "latest",
     return_pixels: bool = True,
     clean: bool = True,
@@ -263,6 +699,11 @@ def get_synapses_in_mesh(
     min_size : int, optional
         Minimum size for filtering synapses. If specified, only synapses with size
         greater than or equal to this value will be included.
+    loc : {"ctr", "all"}, default "ctr"
+        Which synapse location(s) must fall inside the mesh.
+        ``"ctr"`` keeps synapses whose center point is inside the mesh.
+        ``"all"`` requires center, presynaptic, and postsynaptic points all to be
+        inside the mesh.
     materialization : str, default 'latest'
         Materialization version to use. 'latest' (default) or 'live' for live table.
     return_pixels : bool, default True
@@ -308,6 +749,9 @@ def get_synapses_in_mesh(
     >>> # Get synapses with minimum size threshold
     >>> synapses = cp.get_synapses_in_mesh(mesh, min_size=50)
     >>>
+    >>> # Require center, pre, and post points all to be inside the mesh
+    >>> synapses = cp.get_synapses_in_mesh(mesh, loc='all')
+    >>>
     >>> # Get live data without cleaning
     >>> synapses = cp.get_synapses_in_mesh(mesh, materialization='live', clean=False)
     >>>
@@ -319,8 +763,9 @@ def get_synapses_in_mesh(
     - This function first filters synapses using the mesh's bounding box, then performs
       precise point-in-mesh testing only on synapses within the bounding box. This is
       much more efficient than querying all synapses in the dataset.
-    - Synapse positions are extracted from the 'ctr_pt_position' column (center point),
-      which stores coordinates in nanometer space by default in the CAVE database.
+    - The loc parameter controls whether mesh membership is defined by
+      'ctr_pt_position' only or by all of 'ctr_pt_position', 'pre_pt_position',
+      and 'post_pt_position'.
     - The mesh_coordinates parameter controls coordinate conversion: meshes from
       load_neuropil_mesh() are typically in nanometers, while custom meshes may be
       in voxel space.
@@ -334,6 +779,8 @@ def get_synapses_in_mesh(
     - The mesh.contains() method uses ray casting, so meshes should be closed/watertight
       for accurate results.
     - The return_pixels parameter only affects the output coordinates, not the query.
+    - Returned root IDs are normalized to latest roots so they remain aligned with
+      current proofreading/annotation tables.
 
     See Also
     --------
@@ -342,79 +789,43 @@ def get_synapses_in_mesh(
     load_neuropil_mesh : Load neuropil mesh by name
     """
     from crantpy.utils.cave.load import get_cave_client
-    from crantpy.utils.config import SCALE_X, SCALE_Y, SCALE_Z
-    from crantpy.utils.helpers import retry
 
-    # Get CAVE client
-    client = get_cave_client(dataset=dataset)
+    # Always bypass the cached client here so materialization-backed queries
+    # do not reuse stale client state across calls.
+    client = get_cave_client(dataset=dataset, clear_cache=True)
 
     # Validate mesh_coordinates parameter
     if mesh_coordinates not in ["nm", "voxels"]:
         raise ValueError("mesh_coordinates must be either 'nm' or 'voxels'")
+    if loc not in {"ctr", "all"}:
+        raise ValueError("loc must be either 'ctr' or 'all'")
 
     # Get mesh bounding box for efficient spatial filtering
     min_coords, max_coords = mesh.bounds
-    logger.info(f"Mesh bounding box ({mesh_coordinates}): min={min_coords}, max={max_coords}")
-    
-    # Convert mesh bounds to nanometers if needed (CAVE database uses nanometer coordinates)
-    if mesh_coordinates == "voxels":
-        # Convert from voxels to nanometers for the database query
-        min_coords_nm = np.array([
-            min_coords[0] * SCALE_X,
-            min_coords[1] * SCALE_Y,
-            min_coords[2] * SCALE_Z
-        ])
-        max_coords_nm = np.array([
-            max_coords[0] * SCALE_X,
-            max_coords[1] * SCALE_Y,
-            max_coords[2] * SCALE_Z
-        ])
-        logger.info(f"Converted to nanometers for query: min={min_coords_nm}, max={max_coords_nm}")
-    else:
-        # Mesh is already in nanometers
-        min_coords_nm = min_coords
-        max_coords_nm = max_coords
-    
-    # Build spatial filter using bounding box in nanometer coordinates
-    bbox = [min_coords_nm.tolist(), max_coords_nm.tolist()]
-    filter_spatial_dict = {
-        "ctr_pt_position": bbox
-    }
+    logger.info(
+        f"Mesh bounding box ({mesh_coordinates}): min={min_coords}, max={max_coords}"
+    )
 
-    # Query synapses from the database with bounding box filter
+    _SCALE = np.array([SCALE_X, SCALE_Y, SCALE_Z], dtype=float)
+
+    # Convert mesh bounds to nanometers if needed
+    if mesh_coordinates == "voxels":
+        min_coords_nm = np.asarray(min_coords, dtype=float) * _SCALE
+        max_coords_nm = np.asarray(max_coords, dtype=float) * _SCALE
+    else:
+        min_coords_nm = np.asarray(min_coords, dtype=float)
+        max_coords_nm = np.asarray(max_coords, dtype=float)
+
+    bbox = [min_coords_nm.tolist(), max_coords_nm.tolist()]
+    logger.info(f"CAVE query bbox: min={min_coords_nm}, max={max_coords_nm}")
+
+    # Validate materialization parameter
+    if materialization not in ("live", "latest"):
+        raise ValueError("materialization must be either 'live' or 'latest'")
+
+    # Query synapses with auto-subdivision for large bounding boxes
     logger.info("Querying synapses within mesh bounding box...")
-    try:
-        if materialization == "live":
-            syn = retry(client.materialize.live_query)(
-                table="synapses_v2",
-                timestamp=datetime.datetime.now(datetime.timezone.utc),
-                filter_spatial_dict=filter_spatial_dict,
-            )
-        elif materialization == "latest":
-            materialization_version = retry(client.materialize.most_recent_version)()
-            syn = retry(client.materialize.query_table)(
-                table="synapses_v2",
-                materialization_version=materialization_version,
-                filter_spatial_dict=filter_spatial_dict,
-            )
-        else:
-            raise ValueError("materialization must be either 'live' or 'latest'")
-    except Exception as e:
-        # If spatial filtering not supported, fall back to querying all synapses
-        logger.warning(f"Spatial filtering failed ({e}), falling back to full query")
-        if materialization == "live":
-            syn = retry(client.materialize.live_query)(
-                table="synapses_v2",
-                timestamp=datetime.datetime.now(datetime.timezone.utc),
-            )
-        elif materialization == "latest":
-            materialization_version = retry(client.materialize.most_recent_version)()
-            syn = retry(client.materialize.query_table)(
-                table="synapses_v2",
-                materialization_version=materialization_version,
-            )
-        else:
-            raise ValueError("materialization must be either 'live' or 'latest'")
+    syn, _ = _query_synapses_in_bbox(client, bbox, materialization)
 
     if syn.empty:
         logger.warning("No synapses found in bounding box")
@@ -422,40 +833,37 @@ def get_synapses_in_mesh(
 
     logger.info(f"Retrieved {len(syn)} synapses within bounding box")
 
-    for col in ['ctr_pt_position', 'pre_pt_position', 'post_pt_position']:
+    point_columns = (
+        ["ctr_pt_position"]
+        if loc == "ctr"
+        else [
+            "ctr_pt_position",
+            "pre_pt_position",
+            "post_pt_position",
+        ]
+    )
+    for col in point_columns:
         if col not in syn.columns:
             raise ValueError(f"Expected column '{col}' not found in synapse data")
 
-        # Extract x, y, z coordinates from the specified column
-        logger.info(f"Extracting coordinates from {col}...")
-        
-        # The specified column contains [x, y, z] coordinates in nanometers
-        synapse_coords = np.array([
-            [pos[0], pos[1], pos[2]]
-            for pos in syn[col].values
-        ])
-        
-        # Convert coordinates if needed for mesh.contains() check
-        if mesh_coordinates == "voxels":
-            # Convert synapse coordinates from nanometers to voxels to match mesh
-            synapse_coords_for_mesh = synapse_coords.copy()
-            synapse_coords_for_mesh[:, 0] = synapse_coords[:, 0] / SCALE_X
-            synapse_coords_for_mesh[:, 1] = synapse_coords[:, 1] / SCALE_Y
-            synapse_coords_for_mesh[:, 2] = synapse_coords[:, 2] / SCALE_Z
-            logger.debug("Converted synapse coordinates from nanometers to voxels for mesh check")
-        else:
-            # Mesh is in nanometers, use coordinates as-is
-            synapse_coords_for_mesh = synapse_coords
-        
-        # Check which synapses are inside the mesh (MAIN FILTERING STEP)
-        logger.info(f"Checking {len(synapse_coords_for_mesh)} synapses against mesh using {col} column...")
-        inside_mask = mesh.contains(synapse_coords_for_mesh)
-        
-        logger.info(f"Found {inside_mask.sum()} synapses using {col} column inside mesh")
-        
-        # Filter to only synapses inside the mesh
+        logger.info(
+            "Checking %d synapses against mesh using %s...",
+            len(syn),
+            col,
+        )
+        inside_mask = _compute_synapse_mesh_inside_mask(
+            syn,
+            mesh,
+            point_column=col,
+            mesh_coordinates=mesh_coordinates,
+            scale=_SCALE,
+        )
+
         syn = syn[inside_mask].copy()
-        
+
+        if syn.empty:
+            break
+
     if syn.empty:
         logger.warning("No synapses found within mesh")
         return syn
@@ -464,6 +872,8 @@ def get_synapses_in_mesh(
     if min_size is not None and "size" in syn.columns:
         syn = syn[syn["size"] >= min_size]
         logger.info(f"After size filtering: {len(syn)} synapses")
+
+    syn = _normalize_synapse_root_ids(syn, dataset=dataset)
 
     # Clean up synapses if requested
     if clean:
@@ -479,38 +889,263 @@ def get_synapses_in_mesh(
 
     # Apply neuron-level filtering if specified
     if min_synapses_per_neuron > 1:
-        # Count synapses for each neuron (both as pre and post)
-        pre_counts = syn["pre_pt_root_id"].value_counts()
-        post_counts = syn["post_pt_root_id"].value_counts()
-        # Combine counts: for each neuron, total synapses it participates in
-        all_neuron_counts = pre_counts.add(post_counts, fill_value=0)
-        valid_neurons = all_neuron_counts[all_neuron_counts >= min_synapses_per_neuron].index
-        # Filter to keep only synapses where either pre or post neuron meets the threshold
-        syn = syn[(syn["pre_pt_root_id"].isin(valid_neurons)) | (syn["post_pt_root_id"].isin(valid_neurons))]
-        logger.info(f"After neuron filtering: {len(syn)} synapses from {len(valid_neurons)} neurons with >= {min_synapses_per_neuron} synapses")
+        syn = _filter_by_neuron_count(syn, min_synapses_per_neuron)
 
     # Apply pair-level filtering if specified
     if min_synapses_per_pair > 1:
-        # Count synapses for each pre-post pair
-        pair_counts = syn.groupby(["pre_pt_root_id", "post_pt_root_id"]).size()
-        valid_pairs = pair_counts[pair_counts >= min_synapses_per_pair].index
-        # Filter to keep only pairs that meet the threshold
-        syn = syn.set_index(["pre_pt_root_id", "post_pt_root_id"])
-        syn = syn.loc[syn.index.isin(valid_pairs)]
-        syn = syn.reset_index()  # This preserves the columns instead of dropping them
-        logger.info(f"After pair filtering: {len(syn)} synapses with >= {min_synapses_per_pair} synapses per pair")
+        syn = _filter_by_pair_count(syn, min_synapses_per_pair)
 
     if syn.empty:
         logger.warning("No synapses remaining after filtering")
         return syn
 
     # Convert coordinates to pixels if requested
-    if return_pixels and not syn.empty:
+    if return_pixels:
         from crantpy.queries.connections import _convert_coordinates_to_pixels
+
         syn = _convert_coordinates_to_pixels(syn)
-    
+
     logger.info(f"Returning {len(syn)} synapses within mesh")
     return syn
 
 
+@inject_dataset(allowed=CRANT_VALID_DATASETS)
+def get_synapses_in_neuropils(
+    neuropil_names: List[str],
+    min_synapses_per_neuron: int = 1,
+    min_synapses_per_pair: int = 1,
+    min_size: Optional[int] = None,
+    materialization: Optional[str] = "latest",
+    return_pixels: bool = True,
+    clean: bool = True,
+    cache_path: Optional[str] = None,
+    dataset: Optional[str] = None,
+) -> Dict[str, pd.DataFrame]:
+    """
+    Query synapses across multiple neuropil regions with a single CAVE request.
 
+    Instead of querying each neuropil separately (N CAVE requests), this function
+    computes the union bounding box of all requested neuropils and makes one query
+    (with auto-subdivision if needed). It then assigns synapses to each neuropil
+    locally using ``mesh.contains()``, and applies filtering independently per region.
+
+    Parameters
+    ----------
+    neuropil_names : list of str
+        Names of neuropil meshes to query. Must be valid labels from NEUROPIL_MESH_DICT.
+    min_synapses_per_neuron : int, default 1
+        Minimum number of synapses required from a neuron within each neuropil.
+        Applied independently per neuropil.
+    min_synapses_per_pair : int, default 1
+        Minimum number of synapses required between a neuron pair within each neuropil.
+        Applied independently per neuropil.
+    min_size : int, optional
+        Minimum synapse size threshold.
+    materialization : str, default 'latest'
+        Materialization version: 'latest' or 'live'.
+    return_pixels : bool, default True
+        Whether to convert coordinates from nanometers to pixels.
+    clean : bool, default True
+        Whether to remove autapses and background connections.
+    cache_path : str, optional
+        Path to a parquet file for caching the raw CAVE query result. If the file
+        exists, synapse data is loaded from disk (skipping the CAVE query). If it
+        does not exist, data is queried from CAVE and saved to this path. Filtering
+        and mesh.contains() are always re-applied on top of the cached data, so you
+        can change filtering parameters without re-downloading.
+    dataset : str, optional
+        Dataset to use. If None, uses the default dataset.
+
+    Returns
+    -------
+    dict of str -> pd.DataFrame
+        Mapping from neuropil name to a DataFrame of synapses within that neuropil.
+
+    Examples
+    --------
+    >>> import crantpy as cp
+    >>> result = cp.get_synapses_in_neuropils(
+    ...     neuropil_names=['ellipsoid_body', 'protocerebral_bridge', 'fan_shaped_body'],
+    ...     min_synapses_per_neuron=15,
+    ...     min_synapses_per_pair=5,
+    ...     cache_path='synapse_cache.parquet',
+    ... )
+    >>> result['ellipsoid_body'].head()
+
+    See Also
+    --------
+    get_synapses_in_mesh : Query synapses within a single mesh
+    load_neuropil_mesh : Load neuropil mesh by name
+
+    Notes
+    -----
+    - Returned root IDs are normalized to latest roots so they remain aligned with
+      current proofreading/annotation tables.
+    """
+    import os
+    from crantpy.utils.cave.load import get_cave_client
+
+    if materialization not in ("live", "latest"):
+        raise ValueError("materialization must be either 'live' or 'latest'")
+
+    _validate_neuropil_names(neuropil_names)
+    combined_key = ", ".join(neuropil_names)
+
+    # Load all meshes
+    logger.info(f"Loading {len(neuropil_names)} neuropil meshes...")
+    meshes: Dict[str, tm.Trimesh] = {}
+    for name in neuropil_names:
+        meshes[name] = load_neuropil_mesh(name)
+
+    # Compute union bounding box across all meshes
+    all_mins = np.array([m.bounds[0] for m in meshes.values()])
+    all_maxs = np.array([m.bounds[1] for m in meshes.values()])
+    union_min = all_mins.min(axis=0)
+    union_max = all_maxs.max(axis=0)
+    logger.info(f"Union bounding box (mesh nm): min={union_min}, max={union_max}")
+
+    bbox = [union_min.tolist(), union_max.tolist()]
+    logger.info(f"CAVE query bbox: min={union_min}, max={union_max}")
+
+    # Load from cache or query CAVE
+    # The cache stores the raw synapse query for a specific union bounding box.
+    # We validate that the cached bbox covers the current request to avoid
+    # silently returning incomplete data when neuropils change.
+    meta_path = f"{cache_path}.meta.json" if cache_path else None
+    cache_valid = False
+    if cache_path and os.path.exists(cache_path):
+        if meta_path and os.path.exists(meta_path):
+            import json
+
+            with open(meta_path) as f:
+                meta = json.load(f)
+            cached_min = np.array(meta.get("bbox_min", []))
+            cached_max = np.array(meta.get("bbox_max", []))
+            if (
+                cached_min.shape == (3,)
+                and cached_max.shape == (3,)
+                and np.all(cached_min <= union_min)
+                and np.all(cached_max >= union_max)
+            ):
+                cache_valid = True
+            else:
+                logger.warning(
+                    "Cached bbox does not cover the current neuropil set; "
+                    "re-querying CAVE (delete %s to silence this warning)",
+                    cache_path,
+                )
+        else:
+            # Legacy cache without metadata — trust it but warn
+            logger.warning(
+                "Cache file %s has no metadata sidecar; cannot verify bbox coverage. "
+                "Delete the cache file to force a fresh query.",
+                cache_path,
+            )
+            cache_valid = True
+
+    if cache_valid:
+        logger.info("Cache hit for raw union-bbox synapse data at %s", cache_path)
+        syn = pd.read_parquet(cache_path)
+        logger.info(
+            "Loaded %d raw synapses from cache; downstream filtering and mesh.contains() will still be applied",
+            len(syn),
+        )
+    else:
+        if cache_path:
+            logger.info("Cache miss for raw union-bbox synapse data at %s", cache_path)
+        client = get_cave_client(dataset=dataset, clear_cache=True)
+        logger.info("Querying synapses within union bounding box...")
+        syn, _ = _query_synapses_in_bbox(client, bbox, materialization)
+        if cache_path:
+            logger.info(
+                "Retrieved raw union-bbox synapse data from CAVE; downstream filtering and mesh.contains() will still be applied",
+            )
+
+        if cache_path and not syn.empty:
+            import json
+
+            os.makedirs(os.path.dirname(cache_path) or ".", exist_ok=True)
+            syn.to_parquet(cache_path, index=False)
+            with open(meta_path, "w") as f:
+                json.dump(
+                    {"bbox_min": union_min.tolist(), "bbox_max": union_max.tolist()}, f
+                )
+            logger.info("Cached %d raw synapses to %s", len(syn), cache_path)
+
+    if syn.empty:
+        logger.warning("No synapses found in union bounding box")
+        empty_results = {name: syn.copy() for name in neuropil_names}
+        empty_results[combined_key] = syn.copy()
+        return empty_results
+
+    logger.info(f"Retrieved {len(syn)} synapses within union bounding box")
+
+    # Apply size filter globally (before per-neuropil work)
+    if min_size is not None and "size" in syn.columns:
+        syn = syn[syn["size"] >= min_size]
+        logger.info(f"After size filtering: {len(syn)} synapses")
+
+    syn = _normalize_synapse_root_ids(syn, dataset=dataset)
+
+    # Clean globally
+    if clean:
+        syn = syn[syn["pre_pt_root_id"] != syn["post_pt_root_id"]]
+        syn = syn[(syn["pre_pt_root_id"] != 0) & (syn["post_pt_root_id"] != 0)]
+        logger.info(f"After cleaning: {len(syn)} synapses")
+
+    if syn.empty:
+        logger.warning("No synapses remaining after global filtering")
+        empty_results = {name: syn.copy() for name in neuropil_names}
+        empty_results[combined_key] = syn.copy()
+        return empty_results
+
+    _SCALE = np.array([SCALE_X, SCALE_Y, SCALE_Z], dtype=float)
+
+    # Assign synapses to each neuropil and apply per-neuropil filtering
+    results: Dict[str, pd.DataFrame] = {}
+    for name, mesh in meshes.items():
+        logger.info(f"Checking synapses against {name} mesh...")
+        inside_mask = _compute_synapse_mesh_inside_mask(
+            syn,
+            mesh,
+            point_column="ctr_pt_position",
+            mesh_coordinates="nm",
+            scale=_SCALE,
+        )
+        neuropil_syn = syn[inside_mask].copy()
+        logger.info(f"Found {len(neuropil_syn)} synapses inside {name}")
+
+        if neuropil_syn.empty:
+            results[name] = neuropil_syn
+            continue
+
+        # Per-neuropil neuron filtering
+        if min_synapses_per_neuron > 1:
+            neuropil_syn = _filter_by_neuron_count(
+                neuropil_syn, min_synapses_per_neuron, label=name
+            )
+
+        # Per-neuropil pair filtering
+        if min_synapses_per_pair > 1 and not neuropil_syn.empty:
+            neuropil_syn = _filter_by_pair_count(
+                neuropil_syn, min_synapses_per_pair, label=name
+            )
+
+        # Convert coordinates to pixels if requested
+        if return_pixels and not neuropil_syn.empty:
+            from crantpy.queries.connections import _convert_coordinates_to_pixels
+
+            neuropil_syn = _convert_coordinates_to_pixels(neuropil_syn)
+
+        results[name] = neuropil_syn
+
+    total = sum(len(df) for df in results.values())
+    if combined_key:
+        combined_df = pd.concat(results.values(), ignore_index=True)
+        if "id" in combined_df.columns:
+            combined_df = combined_df.drop_duplicates(subset="id")
+        results[combined_key] = combined_df
+    logger.info(
+        f"Returning {total} total synapses across {len(neuropil_names)} neuropils"
+    )
+    return results

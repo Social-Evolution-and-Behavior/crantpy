@@ -192,3 +192,17 @@ Desktop.ini
 
 # node_modules
 node_modules/
+
+# Local data and exploratory work
+*.csv
+*.stl
+*.parquet
+cblast_*
+er_*
+eb_*
+/*.ipynb
+synapse_query_notebooks/
+mesh_creation/
+proofreading_completeness/
+synapse_completion/
+v3_unannotated_csvs/

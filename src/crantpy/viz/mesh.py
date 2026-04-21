@@ -4,26 +4,17 @@
 import functools
 import logging
 from typing import (
-    Any,
-    Callable,
     Dict,
-    Iterable,
-    Iterator,
     List,
     Optional,
-    Type,
-    TypeVar,
     Union,
-    cast,
 )
 
 import numpy as np
-import pandas as pd
 import navis
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
-import networkx as nx
 import skeletor as sk
 from crantpy.utils.cave import get_cave_client, get_cloudvolume
 import trimesh as tm
@@ -36,8 +27,9 @@ from crantpy.utils.config import (
     SCALE_Y,
     SCALE_Z,
     WHOLE_BRAIN_TISSUE_MESH_URL,
-    NEUROPIL_MESH_URL, 
-    NEUROPIL_MESH_DICT
+    NEUROPIL_MESH_URL,
+    NEUROPIL_MESH_DICT,
+    NEUROPIL_MESH_ALIASES,
 )
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.queries.neurons import NeuronCriteria
@@ -48,6 +40,10 @@ import requests
 import io
 import pyvista as pv
 import seaborn as sns
+from cloudvolume.cacheservice import CacheService
+from cloudvolume.datasource.precomputed import SharedConfiguration
+from cloudvolume.datasource.precomputed.metadata import PrecomputedMetadata
+from cloudvolume.datasource.precomputed.mesh import PrecomputedMeshSource
 
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
@@ -287,10 +283,183 @@ def load_whole_brain_mesh() -> tm.Trimesh:
     return brain_trimesh
 
 
-@retry
-def load_neuropil_mesh(
-        neuropil_label: str
+def get_supported_neuropil_mesh_labels() -> List[str]:
+    """Return all supported neuropil mesh labels, including compatibility aliases."""
+    return sorted([*NEUROPIL_MESH_DICT.values(), *NEUROPIL_MESH_ALIASES.keys()])
+
+
+def _resolve_neuropil_mesh_label_ids(
+    neuropil_label: str,
+    label_map: Dict[int, str],
+    alias_map: Optional[Dict[str, List[str]]] = None,
+) -> List[int]:
+    """Resolve a neuropil label or alias to one or more source mesh IDs."""
+    alias_map = alias_map or {}
+    label_to_id = {name: label_id for label_id, name in label_map.items()}
+
+    if neuropil_label in label_to_id:
+        return [label_to_id[neuropil_label]]
+
+    if neuropil_label in alias_map:
+        alias_labels = alias_map[neuropil_label]
+        missing_labels = [label for label in alias_labels if label not in label_to_id]
+        if missing_labels:
+            raise ValueError(
+                f"Invalid neuropil alias configuration for {neuropil_label}: "
+                f"missing source labels {missing_labels}"
+            )
+        return [label_to_id[label] for label in alias_labels]
+
+    raise ValueError(
+        f"Invalid neuropil label: {neuropil_label}. "
+        f"Available labels are: {sorted([*label_to_id.keys(), *alias_map.keys()])}"
+    )
+
+
+def resolve_neuropil_mesh_label_ids(neuropil_label: str) -> List[int]:
+    """Resolve a neuropil label or alias to one or more source mesh IDs."""
+    return _resolve_neuropil_mesh_label_ids(
+        neuropil_label,
+        NEUROPIL_MESH_DICT,
+        NEUROPIL_MESH_ALIASES,
+    )
+
+
+def _normalize_precomputed_mesh_url(mesh_url: str) -> str:
+    """Normalize a precomputed mesh URL so cache keys and fetches are stable."""
+    return mesh_url.rstrip("/")
+
+
+def _is_http_mesh_source(mesh_url: str) -> bool:
+    """Return True for mesh-only HTTP(S) sources that need direct mesh metadata loading."""
+    stripped = _normalize_precomputed_mesh_url(mesh_url).removeprefix("precomputed://")
+    return stripped.startswith(("http://", "https://"))
+
+
+@functools.lru_cache(maxsize=None)
+def _get_cloudvolume_mesh_volume(mesh_url: str):
+    """Create a CloudVolume handle for standard precomputed sources."""
+    mesh_cloudpath = _normalize_precomputed_mesh_url(mesh_url)
+    return CloudVolume(
+        mesh_cloudpath,
+        mip=0,
+        fill_missing=False,
+        use_https=True,
+        progress=False,
+    )
+
+
+@functools.lru_cache(maxsize=None)
+def _get_precomputed_mesh_source(mesh_url: str):
+    """Create a mesh-layer source for a mesh-only neuropil dataset."""
+    mesh_cloudpath = _normalize_precomputed_mesh_url(mesh_url)
+    mesh_info_url = mesh_cloudpath.removeprefix("precomputed://") + "/info"
+    mesh_info = requests.get(mesh_info_url)
+    mesh_info.raise_for_status()
+    mesh_info = mesh_info.json()
+
+    config = SharedConfiguration(
+        cdn_cache=False,
+        compress=True,
+        compress_level=None,
+        green=False,
+        mip=0,
+        parallel=1,
+        progress=False,
+        secrets=None,
+        spatial_index_db=None,
+        cache_locking=False,
+        codec_threads=1,
+    )
+    cache = CacheService(
+        cloudpath=mesh_cloudpath,
+        enabled=False,
+        config=config,
+        compress=True,
+    )
+    meta = PrecomputedMetadata(
+        mesh_cloudpath,
+        config,
+        cache,
+        info={"mesh": ""},
+        provenance={
+            "sources": [],
+            "owners": [],
+            "processing": [],
+            "description": "",
+        },
+    )
+    return PrecomputedMeshSource(meta, cache, config, info=mesh_info)
+
+
+def _cv_mesh_to_trimesh(mesh) -> tm.Trimesh:
+    """Convert a CloudVolume mesh object to a trimesh.Trimesh."""
+    return tm.Trimesh(
+        vertices=np.asarray(mesh.vertices),
+        faces=np.asarray(mesh.faces),
+        process=False,
+    )
+
+
+def _trimesh_to_polydata(mesh: tm.Trimesh) -> "pv.PolyData":
+    """Convert a trimesh.Trimesh to a PyVista PolyData object."""
+    return pv.PolyData(
+        mesh.vertices,
+        np.hstack((np.full((len(mesh.faces), 1), 3), mesh.faces)),
+    )
+
+
+def _load_neuropil_mesh_from_source(
+    neuropil_label: str,
+    mesh_url: str,
+    label_map: Dict[int, str],
+    alias_map: Optional[Dict[str, List[str]]] = None,
 ) -> tm.Trimesh:
+    """Load a neuropil mesh from an arbitrary source URL plus label mapping.
+
+    This is a private utility for internal comparisons and notebook audits.
+    Production code should call ``load_neuropil_mesh()`` so the current configured
+    source stays isolated in one place.
+    """
+    label_ids = _resolve_neuropil_mesh_label_ids(neuropil_label, label_map, alias_map)
+    meshes = []
+
+    if _is_http_mesh_source(mesh_url):
+        mesh_source = _get_precomputed_mesh_source(mesh_url)
+        for label_id in label_ids:
+            # CloudVolume multi-LOD meshes use lod=0 for the highest-detail surface.
+            mesh_data = mesh_source.get(label_id, lod=0)
+            if isinstance(mesh_data, dict):
+                mesh = mesh_data.get(label_id)
+                if mesh is None:
+                    mesh = next(iter(mesh_data.values()))
+            else:
+                mesh = mesh_data
+            meshes.append(_cv_mesh_to_trimesh(mesh))
+    else:
+        vol = _get_cloudvolume_mesh_volume(mesh_url)
+        for label_id in label_ids:
+            mesh_dict = vol.mesh.get(label_id)
+            mesh = mesh_dict[label_id]
+            meshes.append(_cv_mesh_to_trimesh(mesh))
+
+    tri = meshes[0] if len(meshes) == 1 else tm.util.concatenate(meshes)
+    tri.fix_normals()
+    return tri
+
+
+def _load_current_neuropil_mesh(neuropil_label: str) -> tm.Trimesh:
+    """Load a neuropil mesh from the current configured production source."""
+    return _load_neuropil_mesh_from_source(
+        neuropil_label,
+        NEUROPIL_MESH_URL,
+        NEUROPIL_MESH_DICT,
+        NEUROPIL_MESH_ALIASES,
+    )
+
+
+@retry
+def load_neuropil_mesh(neuropil_label: str) -> tm.Trimesh:
     """
     Download and decode a neuropil mesh.
     Parameters
@@ -304,23 +473,7 @@ def load_neuropil_mesh(
         The neuropil mesh.
 
     """
-
-    # Check if the label exists in the dictionary
-    label_id = None
-    for key, value in NEUROPIL_MESH_DICT.items():
-        if value == neuropil_label:
-            label_id = key
-            break
-
-    if label_id is None:
-        raise ValueError(f"Invalid neuropil label: {neuropil_label}. Available labels are: {list(NEUROPIL_MESH_DICT.values())}")
-
-    vol = CloudVolume(NEUROPIL_MESH_URL, mip=0, fill_missing=False, use_https=True, progress=True)
-    mesh_dict = vol.mesh.get(label_id)
-    mesh = mesh_dict[label_id]
-    tri = tm.Trimesh(vertices=mesh.vertices, faces=mesh.faces)
-    return tri
-
+    return _load_current_neuropil_mesh(neuropil_label)
 
 
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
@@ -344,14 +497,11 @@ def get_brain_mesh_scene(
     brain_mesh_alpha: float = 0.1,
     neuron_mesh_alpha: float = 1,
     neuron_mesh_colors: Union[List[Union[str, tuple, list]], None] = None,
-    neuropil_meshes: Union[
-        str,
-        tm.Trimesh,
-        List[Union[str, tm.Trimesh]],
-        None
-    ] = None,
+    neuropil_meshes: Union[str, tm.Trimesh, List[Union[str, tm.Trimesh]], None] = None,
     neuropil_mesh_alphas: Union[float, List[float], None] = None,
-    neuropil_mesh_colors: Union[str, tuple, list, List[Union[str, tuple, list]], None] = None,
+    neuropil_mesh_colors: Union[
+        str, tuple, list, List[Union[str, tuple, list]], None
+    ] = None,
     backend: str = "static",
 ) -> pv.Plotter:
     """
@@ -370,14 +520,14 @@ def get_brain_mesh_scene(
     progress : bool, optional
         Whether to show a progress bar, by default True
     brain_mesh_color : Union[str, tuple, list], optional
-        The color of the brain mesh. Can be a color name string (e.g., "grey") or an RGB/RGBA 
+        The color of the brain mesh. Can be a color name string (e.g., "grey") or an RGB/RGBA
         tuple/list (e.g., (0.5, 0.5, 0.5) or [128, 128, 128, 255]), by default "grey"
     brain_mesh_alpha : Optional[float], optional
         The transparency of the brain mesh, by default 0.1
     neuron_mesh_alpha : Optional[float], optional
         The transparency of the neuron meshes, by default 1
     neuron_mesh_colors : Union[List[Union[str, tuple, list]], None], optional
-        List of colors for neuron meshes. Each color can be a string or RGB/RGBA tuple/list. 
+        List of colors for neuron meshes. Each color can be a string or RGB/RGBA tuple/list.
         If None, random colors are generated, by default None
     neuropil_meshes : Union[str, tm.Trimesh, List[Union[str, tm.Trimesh]], None], optional
         Neuropil meshes to add to the scene. Can be a single neuropil label string, a trimesh object,
@@ -387,8 +537,8 @@ def get_brain_mesh_scene(
         Transparency value(s) for neuropil meshes. Can be a single float applied to all neuropil
         meshes or a list of floats (one per neuropil mesh). If None, defaults to 0.3, by default None
     neuropil_mesh_colors : Union[str, tuple, list, List[Union[str, tuple, list]], None], optional
-        Color(s) for neuropil meshes. Can be a single color (string or RGB/RGBA tuple/list) applied 
-        to all neuropil meshes or a list of colors (one per neuropil mesh). If None, random colors 
+        Color(s) for neuropil meshes. Can be a single color (string or RGB/RGBA tuple/list) applied
+        to all neuropil meshes or a list of colors (one per neuropil mesh). If None, random colors
         are generated, by default None
     backend : Optional[str], optional
         The pyvista backend to use ('static', 'trame', 'client'), by default 'static'
@@ -399,70 +549,54 @@ def get_brain_mesh_scene(
         The 3D scene containing the brain mesh and highlighted neurons.
     """
     logging.info("Loading whole brain mesh...")
-    # Load the whole brain mesh
     brain_trimesh = load_whole_brain_mesh()
-    logging.info(f"Whole brain mesh loaded: {len(brain_trimesh.vertices)} vertices, {len(brain_trimesh.faces)} faces")
+    logging.info(
+        f"Whole brain mesh loaded: {len(brain_trimesh.vertices)} vertices, {len(brain_trimesh.faces)} faces"
+    )
 
     # Load neuron meshes if provided
     neuron_meshes = []
     if neurons is not None:
         logging.info("Loading neuron meshes...")
-        # Load neuron meshes
-        neuron_meshes_result = get_mesh_neuron(
+        result = get_mesh_neuron(
             neurons,
             dataset=dataset,
             omit_failures=omit_failures,
             threads=threads,
             progress=progress,
         )
-        logging.info(f"Loaded {len(neuron_meshes_result) if isinstance(neuron_meshes_result, navis.NeuronList) else 1} neuron mesh(es)")
-
-        # Convert to Trimesh objects
-        if isinstance(neuron_meshes_result, navis.MeshNeuron):
-            neuron_meshes = [
-                tm.Trimesh(
-                    vertices=neuron_meshes_result.vertices,
-                    faces=neuron_meshes_result.faces,
-                    process=False,
-                )
-            ]
-        elif isinstance(neuron_meshes_result, navis.NeuronList):
-            neuron_meshes = [
-                tm.Trimesh(vertices=n.vertices, faces=n.faces, process=False)
-                for n in neuron_meshes_result
-            ]
-        else:
-            # Throw error if unexpected type
-            raise ValueError("Unexpected type for neuron_meshes")
-    else:
-        logging.info("No neurons provided, skipping neuron mesh loading")
+        # Normalize single MeshNeuron to list for uniform handling
+        neuron_list = (
+            result
+            if isinstance(result, navis.NeuronList)
+            else navis.NeuronList([result])
+        )
+        neuron_meshes = [
+            tm.Trimesh(vertices=n.vertices, faces=n.faces, process=False)
+            for n in neuron_list
+        ]
+        logging.info(f"Loaded {len(neuron_meshes)} neuron mesh(es)")
 
     # Process neuropil meshes if provided
     neuropil_trimeshes = []
+    neuropil_colors = []
+    neuropil_alphas = []
     if neuropil_meshes is not None:
-        logging.info("Processing neuropil meshes...")
-        # Normalize to list
         if not isinstance(neuropil_meshes, list):
             neuropil_meshes = [neuropil_meshes]
-        
+
         logging.info(f"Loading {len(neuropil_meshes)} neuropil mesh(es)...")
-        # Load neuropil meshes
         for neuropil in neuropil_meshes:
             if isinstance(neuropil, str):
-                logging.info(f"Loading neuropil mesh from label: {neuropil}")
-                # Load from string label
                 neuropil_trimeshes.append(load_neuropil_mesh(neuropil))
             elif isinstance(neuropil, tm.Trimesh):
-                logging.info(f"Using provided trimesh object with {len(neuropil.vertices)} vertices")
-                # Already a trimesh object
                 neuropil_trimeshes.append(neuropil)
             else:
                 raise ValueError(
                     f"Neuropil mesh must be a string label or trimesh.Trimesh object, got {type(neuropil)}"
                 )
-        
-        logging.info(f"Successfully loaded {len(neuropil_trimeshes)} neuropil mesh(es)")
-        
+        logging.info(f"Loaded {len(neuropil_trimeshes)} neuropil mesh(es)")
+
         # Process neuropil mesh alphas
         if neuropil_mesh_alphas is None:
             neuropil_alphas = [0.3] * len(neuropil_trimeshes)
@@ -477,7 +611,7 @@ def get_brain_mesh_scene(
             neuropil_alphas = neuropil_mesh_alphas
         else:
             raise ValueError("neuropil_mesh_alphas must be a float or list of floats")
-        
+
         # Process neuropil mesh colors
         if neuropil_mesh_colors is None:
             neuropil_colors = sns.color_palette("husl", len(neuropil_trimeshes))
@@ -486,7 +620,9 @@ def get_brain_mesh_scene(
             neuropil_colors = [neuropil_mesh_colors] * len(neuropil_trimeshes)
         elif isinstance(neuropil_mesh_colors, list):
             # Check if it's a single RGB color (list of 3 or 4 numbers) or a list of colors
-            if len(neuropil_mesh_colors) > 0 and isinstance(neuropil_mesh_colors[0], (int, float)):
+            if len(neuropil_mesh_colors) > 0 and isinstance(
+                neuropil_mesh_colors[0], (int, float)
+            ):
                 # It's a single RGB/RGBA color as a list
                 neuropil_colors = [neuropil_mesh_colors] * len(neuropil_trimeshes)
             else:
@@ -498,35 +634,14 @@ def get_brain_mesh_scene(
                     )
                 neuropil_colors = neuropil_mesh_colors
         else:
-            raise ValueError("neuropil_mesh_colors must be a string, tuple, list, or list of colors")
+            raise ValueError(
+                "neuropil_mesh_colors must be a string, tuple, list, or list of colors"
+            )
 
     logging.info("Converting meshes to PyVista PolyData format...")
-    # Convert to pv.PolyData
-    brain_pv = pv.PolyData(
-        brain_trimesh.vertices,
-        np.hstack((np.full((len(brain_trimesh.faces), 1), 3), brain_trimesh.faces)),
-    )
-    
-    neuron_meshes_pv = []
-    if neuron_meshes:
-        neuron_meshes_pv = [
-            pv.PolyData(
-                neuron.vertices,
-                np.hstack((np.full((len(neuron.faces), 1), 3), neuron.faces)),
-            )
-            for neuron in neuron_meshes
-        ]
-    
-    # Convert neuropil meshes to pv.PolyData
-    neuropil_meshes_pv = []
-    if neuropil_trimeshes:
-        neuropil_meshes_pv = [
-            pv.PolyData(
-                neuropil.vertices,
-                np.hstack((np.full((len(neuropil.faces), 1), 3), neuropil.faces)),
-            )
-            for neuropil in neuropil_trimeshes
-        ]
+    brain_pv = _trimesh_to_polydata(brain_trimesh)
+    neuron_meshes_pv = [_trimesh_to_polydata(n) for n in neuron_meshes]
+    neuropil_meshes_pv = [_trimesh_to_polydata(n) for n in neuropil_trimeshes]
 
     # Set backend for pyvista (local or trame)
     pv.set_jupyter_backend(backend)
@@ -537,25 +652,33 @@ def get_brain_mesh_scene(
     plotter = pv.Plotter()
 
     # Add the brain mesh
-    logging.info(f"Adding brain mesh (color={brain_mesh_color}, alpha={brain_mesh_alpha})")
+    logging.info(
+        f"Adding brain mesh (color={brain_mesh_color}, alpha={brain_mesh_alpha})"
+    )
     plotter.add_mesh(brain_pv, color=brain_mesh_color, opacity=brain_mesh_alpha)
 
     # Add the neuron meshes if present
     if neuron_meshes_pv:
         # Generate random colors for neurons if not provided
-        if neuron_mesh_colors is None or len(neuron_mesh_colors) != len(neuron_meshes_pv):
+        if neuron_mesh_colors is None or len(neuron_mesh_colors) != len(
+            neuron_meshes_pv
+        ):
             neuron_colors = sns.color_palette("bright", len(neuron_meshes_pv))
         else:
             neuron_colors = neuron_mesh_colors
 
-        logging.info(f"Adding {len(neuron_meshes_pv)} neuron mesh(es) (alpha={neuron_mesh_alpha})")
+        logging.info(
+            f"Adding {len(neuron_meshes_pv)} neuron mesh(es) (alpha={neuron_mesh_alpha})"
+        )
         for neuron_pv, color in zip(neuron_meshes_pv, neuron_colors):
             plotter.add_mesh(neuron_pv, color=color, opacity=neuron_mesh_alpha)
 
     # Add the neuropil meshes
     if neuropil_meshes_pv:
         logging.info(f"Adding {len(neuropil_meshes_pv)} neuropil mesh(es)")
-        for neuropil_pv, color, alpha in zip(neuropil_meshes_pv, neuropil_colors, neuropil_alphas):
+        for neuropil_pv, color, alpha in zip(
+            neuropil_meshes_pv, neuropil_colors, neuropil_alphas
+        ):
             plotter.add_mesh(neuropil_pv, color=color, opacity=alpha)
 
     # Set camera position
