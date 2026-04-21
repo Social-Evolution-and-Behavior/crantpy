@@ -100,9 +100,9 @@
             "url": "https://raw.githubusercontent.com/yigityargili991/haberkernlab_mesh_repo/579e39a5b9a0be836ff857f08c0db866579b75e0/|neuroglancer-precomputed:",
             "transform": {
                 "matrix": [
-                    [1, 0, 0, -5400],
-                    [0, 1, 0, -5400],
-                    [0, 0, 1, -60]
+                    [1, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 1, 0]
                 ],
                 "outputDimensions": {
                     "x": [8e-9, "m"],
