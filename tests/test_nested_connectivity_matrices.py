@@ -14,6 +14,7 @@ import pytest
 from matplotlib.collections import LineCollection
 from matplotlib.colors import to_rgba
 
+from crantpy.queries import nested_connectivity_matrices as ncm
 from crantpy.queries.nested_connectivity_matrices import (
     NestedMatrix,
     NeuropilCollection,
@@ -462,6 +463,98 @@ def test_from_connectivity_orders_epg_by_cell_subtype_when_available() -> None:
 
     assert list(matrix.matrix.index) == ["3", "4", "1", "2"]
     assert list(matrix.matrix.columns) == ["3", "4", "1", "2"]
+
+
+def test_from_connectivity_epg_cell_instance_precedes_cell_subtype() -> None:
+    adjacency = pd.DataFrame(
+        np.zeros((4, 4)),
+        index=["1", "2", "3", "4"],
+        columns=["1", "2", "3", "4"],
+    )
+    annotations = pd.DataFrame(
+        {
+            "root_id": ["1", "2", "3", "4"],
+            "cell_type": ["EPG/PEG", "EPG/PEG", "EPG/PEG", "EPG/PEG"],
+            "cell_instance": [
+                "EPG/PEG_L8",
+                None,
+                "EPG/PEG_R1",
+                "EPG/PEG_R3",
+            ],
+            "cell_subtype": [
+                "EPG/PEG_R1",
+                "EPG/PEG_L5",
+                "EPG/PEG_L8",
+                "EPG/PEG_L7",
+            ],
+        }
+    )
+
+    matrix = NestedMatrix.from_connectivity(adjacency, annotations)
+
+    assert list(matrix.matrix.index) == ["3", "1", "4", "2"]
+    assert list(matrix.matrix.columns) == ["3", "1", "4", "2"]
+
+
+def test_from_connectivity_columnar_rule_can_order_non_epg_type(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setitem(
+        ncm._WITHIN_TYPE_ORDER_RULES,
+        "columnar_test",
+        ncm._WithinTypeOrderRule(
+            label_columns=("cell_instance",),
+            rank=ncm._COLUMN_ORDER_RANK,
+        ),
+    )
+    adjacency = pd.DataFrame(
+        np.zeros((4, 4)),
+        index=["1", "2", "3", "4"],
+        columns=["1", "2", "3", "4"],
+    )
+    annotations = pd.DataFrame(
+        {
+            "root_id": ["1", "2", "3", "4"],
+            "cell_type": [
+                "columnar_test",
+                "columnar_test",
+                "columnar_test",
+                "columnar_test",
+            ],
+            "cell_instance": ["type_L5", "type_R1", "type_L8", "type_R3"],
+        }
+    )
+
+    matrix = NestedMatrix.from_connectivity(adjacency, annotations)
+
+    assert list(matrix.matrix.index) == ["2", "3", "4", "1"]
+    assert list(matrix.matrix.columns) == ["2", "3", "4", "1"]
+
+
+def test_from_connectivity_unranked_columnar_rows_keep_annotation_order(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    adjacency = pd.DataFrame(
+        np.zeros((4, 4)),
+        index=["1", "2", "3", "4"],
+        columns=["1", "2", "3", "4"],
+    )
+    annotations = pd.DataFrame(
+        {
+            "root_id": ["1", "2", "3", "4"],
+            "cell_type": ["EPG/PEG", "EPG/PEG", "EPG/PEG", "EPG/PEG"],
+            "cell_instance": ["no_column", "EPG/PEG_R1", None, "EPG/PEG_L8"],
+            "cell_subtype": [None, None, "still_no_column", None],
+        }
+    )
+
+    caplog.set_level("WARNING", logger="crantpy.queries.nested_connectivity_matrices")
+    matrix = NestedMatrix.from_connectivity(adjacency, annotations)
+
+    assert list(matrix.matrix.index) == ["2", "4", "1", "3"]
+    assert list(matrix.matrix.columns) == ["2", "4", "1", "3"]
+    assert "Could not resolve a ranked column label for neuron 1" in caplog.text
+    assert "Could not resolve a ranked column label for neuron 3" in caplog.text
 
 
 def test_init_rejects_matrix_axis_mismatch() -> None:

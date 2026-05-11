@@ -54,8 +54,9 @@ from __future__ import annotations
 import os
 import logging
 import re
+from dataclasses import dataclass
 from functools import cached_property
-from typing import Any, Literal, NamedTuple
+from typing import Any, Literal, Mapping, NamedTuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -100,6 +101,26 @@ _COLUMN_ORDER = [
     "L1",
 ]
 _COLUMN_ORDER_RANK = {label: rank for rank, label in enumerate(_COLUMN_ORDER)}
+_COLUMN_LABEL_PATTERN = re.compile(r"([LR]\d+)\s*$")
+
+
+@dataclass(frozen=True)
+class _WithinTypeOrderRule:
+    """Declarative ordering rule for columnar neuron types."""
+
+    label_columns: tuple[str, ...]
+    rank: Mapping[str, int]
+    pattern: re.Pattern[str] = _COLUMN_LABEL_PATTERN
+
+
+_WITHIN_TYPE_ORDER_RULES: dict[str, _WithinTypeOrderRule] = {
+    "EPG/PEG": _WithinTypeOrderRule(
+        # cell_instance is a forward-compatible placeholder if explicit
+        # instance annotations are added; current annotations fall back to cell_subtype.
+        label_columns=("cell_instance", "cell_subtype"),
+        rank=_COLUMN_ORDER_RANK,
+    )
+}
 
 
 class _AllSelector:
@@ -382,7 +403,8 @@ class NestedMatrix:
         blocks follow ``type_order`` when provided, otherwise a generic
         label-aware sort is used. Within each type block, neurons preserve the
         resolved annotation row order, except ``"EPG/PEG"`` rows which use the
-        EB column order encoded in ``cell_subtype`` when available.
+        EB column order encoded in ``cell_instance`` or ``cell_subtype`` when
+        available.
 
         Parameters
         ----------
@@ -517,8 +539,8 @@ class NestedMatrix:
         one matrix per neuropil ROI. Ordering semantics match
         ``from_connectivity()``: ``type_order`` controls type blocks, and
         neurons within each type preserve resolved annotation row order except
-        for ``"EPG/PEG"`` rows, which use ``cell_subtype`` EB columns when
-        available.
+        for ``"EPG/PEG"`` rows, which use EB columns from ``cell_instance`` or
+        ``cell_subtype`` when available.
 
         Parameters
         ----------
@@ -1558,17 +1580,6 @@ class NestedMatrix:
         )
 
     @staticmethod
-    def _extract_eb_column_label(value: Any) -> str | None:
-        if pd.isna(value):
-            return None
-
-        match = re.search(r"([LR]\d+)\s*$", str(value).strip())
-        if not match:
-            return None
-
-        return match.group(1)
-
-    @staticmethod
     def _default_within_type_order(
         type_rows: pd.DataFrame,
         neuron_id_column: str,
@@ -1576,24 +1587,65 @@ class NestedMatrix:
         return type_rows[neuron_id_column].tolist()
 
     @staticmethod
-    def _order_epg_neurons(
+    def _is_missing_label(value: Any) -> bool:
+        missing = pd.isna(value)
+        if isinstance(missing, (bool, np.bool_)):
+            return bool(missing)
+        return False
+
+    @staticmethod
+    def _extract_ranked_label(
+        row: pd.Series,
+        rule: _WithinTypeOrderRule,
+        neuron_id_column: str,
+    ) -> str | None:
+        for column in rule.label_columns:
+            if column not in row.index:
+                continue
+
+            value = row[column]
+            if NestedMatrix._is_missing_label(value):
+                continue
+
+            match = rule.pattern.search(str(value).strip())
+            if not match:
+                continue
+
+            label = match.group(1)
+            if label in rule.rank:
+                return label
+
+        logging.getLogger(__name__).warning(
+            "Could not resolve a ranked column label for neuron %s from columns %s; "
+            "it will be ordered after ranked neurons",
+            row.get(neuron_id_column, "<unknown>"),
+            rule.label_columns,
+        )
+        return None
+
+    @staticmethod
+    def _order_neurons_by_rule(
         type_rows: pd.DataFrame,
         neuron_id_column: str,
+        rule: _WithinTypeOrderRule,
     ) -> list[str]:
-        # TODO: Extend explicit column-based ordering to other columnar types
-        # when reliable subtype metadata is available.
         sorted_rows = type_rows.copy()
         sorted_rows["__group_order__"] = np.arange(len(sorted_rows))
-        sorted_rows["__eb_column__"] = sorted_rows["cell_subtype"].map(
-            NestedMatrix._extract_eb_column_label
+        sorted_rows["__column_label__"] = sorted_rows.apply(
+            NestedMatrix._extract_ranked_label,
+            axis=1,
+            rule=rule,
+            neuron_id_column=neuron_id_column,
         )
-        sorted_rows["__eb_rank__"] = sorted_rows["__eb_column__"].map(
-            _COLUMN_ORDER_RANK
+        sorted_rows["__column_rank__"] = sorted_rows["__column_label__"].map(
+            rule.rank
         )
-        sorted_rows["__has_eb_rank__"] = sorted_rows["__eb_rank__"].notna()
-        sorted_rows["__eb_rank__"] = sorted_rows["__eb_rank__"].fillna(np.inf)
+        sorted_rows["__has_column_rank__"] = sorted_rows["__column_rank__"].notna()
+        sorted_rows["__column_rank__"] = sorted_rows["__column_rank__"].fillna(
+            np.inf
+        )
         sorted_rows = sorted_rows.sort_values(
-            by=["__has_eb_rank__", "__eb_rank__", "__group_order__"],
+            by=["__has_column_rank__", "__column_rank__", "__group_order__"],
             ascending=[False, True, True],
         )
 
@@ -1605,16 +1657,11 @@ class NestedMatrix:
         type_rows: pd.DataFrame,
         neuron_id_column: str,
     ) -> list[str]:
-        row_orderers = {"EPG/PEG": NestedMatrix._order_epg_neurons}
-        orderer = row_orderers.get(type_name, NestedMatrix._default_within_type_order)
+        rule = _WITHIN_TYPE_ORDER_RULES.get(type_name)
+        if rule is None:
+            return NestedMatrix._default_within_type_order(type_rows, neuron_id_column)
 
-        if (
-            orderer is NestedMatrix._order_epg_neurons
-            and "cell_subtype" not in type_rows.columns
-        ):
-            orderer = NestedMatrix._default_within_type_order
-
-        return orderer(type_rows, neuron_id_column)
+        return NestedMatrix._order_neurons_by_rule(type_rows, neuron_id_column, rule)
 
     @staticmethod
     def _build_ordered_neurons(
