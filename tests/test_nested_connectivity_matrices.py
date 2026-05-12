@@ -646,6 +646,104 @@ def test_mean_type_matrix_uses_block_mean_not_sum() -> None:
     assert matrix.mean_type_matrix.loc["B", "A"] == 0.0
 
 
+def test_public_matrix_view_is_read_only_and_cached_types_stay_valid() -> None:
+    connectivity = pd.DataFrame(
+        {
+            "pre": [1, 2, 3],
+            "post": [3, 2, 4],
+            "weight": [4, 0, 2],
+        }
+    )
+    annotations = pd.DataFrame(
+        {"root_id": [1, 2, 3, 4], "cell_type": ["A", "A", "B", "B"]}
+    )
+
+    matrix = NestedMatrix.from_connectivity(connectivity, annotations)
+    original_sum = matrix.sum_type_matrix.copy()
+    original_mean = matrix.mean_type_matrix.copy()
+
+    with pytest.raises(ValueError, match="immutable"):
+        matrix.matrix.loc["1", "3"] = 99
+
+    assert matrix.matrix.loc["1", "3"] == 4.0
+    pd.testing.assert_frame_equal(
+        matrix.sum_type_matrix, original_sum, check_frame_type=False
+    )
+    pd.testing.assert_frame_equal(
+        matrix.mean_type_matrix, original_mean, check_frame_type=False
+    )
+
+
+def test_cached_type_matrix_views_are_read_only() -> None:
+    connectivity = pd.DataFrame({"pre": [1], "post": [2], "weight": [4]})
+    annotations = pd.DataFrame({"root_id": [1, 2], "cell_type": ["A", "B"]})
+    matrix = NestedMatrix.from_connectivity(connectivity, annotations)
+
+    with pytest.raises(ValueError, match="immutable"):
+        matrix.sum_type_matrix.loc["A", "B"] = 99
+
+    with pytest.raises(ValueError, match="immutable"):
+        matrix.mean_type_matrix.loc["A", "B"] = 99
+
+    assert matrix.sum_type_matrix.loc["A", "B"] == 4.0
+    assert matrix.mean_type_matrix.loc["A", "B"] == 4.0
+
+
+def test_public_metadata_views_are_read_only() -> None:
+    adjacency = pd.DataFrame([[0, 4], [2, 0]], index=[1, 2], columns=[1, 2])
+    annotations = pd.DataFrame({"root_id": [1, 2], "cell_type": ["A", "B"]})
+    matrix = NestedMatrix.from_connectivity(adjacency, annotations)
+
+    with pytest.raises(TypeError):
+        matrix.type_boundaries["A"] = (0, 2)  # type: ignore[index]
+
+    with pytest.raises(TypeError):
+        matrix.neuron_to_type["1"] = "B"  # type: ignore[index]
+
+    with pytest.raises(AttributeError):
+        matrix.ordered_neurons.append("3")  # type: ignore[attr-defined]
+
+
+def test_constructor_inputs_are_copied_before_freezing() -> None:
+    source_matrix = pd.DataFrame(
+        [[0, 4], [2, 0]],
+        index=["1", "2"],
+        columns=["1", "2"],
+    )
+    type_boundaries = {"A": (0, 1), "B": (1, 2)}
+    ordered_neurons = ["1", "2"]
+    neuron_to_type = {"1": "A", "2": "B"}
+
+    matrix = NestedMatrix(
+        matrix=source_matrix,
+        type_boundaries=type_boundaries,
+        ordered_neurons=ordered_neurons,
+        neuron_to_type=neuron_to_type,
+    )
+
+    source_matrix.loc["1", "2"] = 99
+    type_boundaries["A"] = (0, 2)
+    ordered_neurons.append("3")
+    neuron_to_type["1"] = "B"
+
+    assert matrix.matrix.loc["1", "2"] == 4.0
+    assert matrix.type_boundaries["A"] == (0, 1)
+    assert matrix.ordered_neurons == ("1", "2")
+    assert matrix.neuron_to_type["1"] == "A"
+
+
+def test_public_matrix_copy_can_be_mutated_without_affecting_nested_matrix() -> None:
+    adjacency = pd.DataFrame([[0, 4], [2, 0]], index=["1", "2"], columns=["1", "2"])
+    annotations = pd.DataFrame({"root_id": [1, 2], "cell_type": ["A", "B"]})
+    matrix = NestedMatrix.from_connectivity(adjacency, annotations)
+
+    mutable_copy = matrix.matrix.copy()
+    mutable_copy.loc["1", "2"] = 99
+
+    assert mutable_copy.loc["1", "2"] == 99
+    assert matrix.matrix.loc["1", "2"] == 4.0
+
+
 def test_from_synapses_derives_relative_outgoing_weight_from_counts() -> None:
     synapses = pd.DataFrame(
         {

@@ -206,3 +206,5 @@ mesh_creation/
 proofreading_completeness/
 synapse_completion/
 v3_unannotated_csvs/
+v4_unannotated_csvs/create_google_sheet.py
+v4_unannotated_csvs/remove_dup_segments.py

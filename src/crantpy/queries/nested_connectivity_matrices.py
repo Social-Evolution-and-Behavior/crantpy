@@ -56,6 +56,7 @@ import logging
 import re
 from dataclasses import dataclass
 from functools import cached_property
+from types import MappingProxyType
 from typing import Any, Literal, Mapping, NamedTuple
 
 import matplotlib.pyplot as plt
@@ -102,6 +103,89 @@ _COLUMN_ORDER = [
 ]
 _COLUMN_ORDER_RANK = {label: rank for rank, label in enumerate(_COLUMN_ORDER)}
 _COLUMN_LABEL_PATTERN = re.compile(r"([LR]\d+)\s*$")
+_READ_ONLY_MESSAGE = "NestedMatrix data is immutable; call .copy() before editing"
+
+
+class _ReadOnlyIndexer:
+    """Read-only wrapper for pandas indexers used by public matrix views."""
+
+    def __init__(self, indexer: Any):
+        self._indexer = indexer
+
+    def __getitem__(self, key: Any) -> Any:
+        return self._indexer[key]
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        raise ValueError(_READ_ONLY_MESSAGE)
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._indexer, name)
+
+
+class _ReadOnlyDataFrame(pd.DataFrame):
+    """DataFrame view that rejects common in-place mutation paths."""
+
+    @property
+    def _constructor(self):
+        return _ReadOnlyDataFrame
+
+    @property
+    def loc(self) -> _ReadOnlyIndexer:
+        return _ReadOnlyIndexer(super().loc)
+
+    @property
+    def iloc(self) -> _ReadOnlyIndexer:
+        return _ReadOnlyIndexer(super().iloc)
+
+    @property
+    def at(self) -> _ReadOnlyIndexer:
+        return _ReadOnlyIndexer(super().at)
+
+    @property
+    def iat(self) -> _ReadOnlyIndexer:
+        return _ReadOnlyIndexer(super().iat)
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        raise ValueError(_READ_ONLY_MESSAGE)
+
+    def __delitem__(self, key: Any) -> None:
+        raise ValueError(_READ_ONLY_MESSAGE)
+
+    def insert(self, *args: Any, **kwargs: Any) -> None:
+        raise ValueError(_READ_ONLY_MESSAGE)
+
+    def pop(self, item: Any) -> Any:
+        raise ValueError(_READ_ONLY_MESSAGE)
+
+    def update(self, *args: Any, **kwargs: Any) -> None:
+        raise ValueError(_READ_ONLY_MESSAGE)
+
+    def copy(self, deep: bool = True) -> pd.DataFrame:
+        result = pd.DataFrame(self).copy(deep=deep)
+        if deep:
+            _set_dataframe_writeable(result, writeable=True)
+        return result
+
+
+def _set_dataframe_writeable(df: pd.DataFrame, writeable: bool) -> None:
+    """Set NumPy-backed pandas blocks to writeable or read-only when possible."""
+
+    for array in df._mgr.arrays:
+        if hasattr(array, "setflags"):
+            try:
+                array.setflags(write=writeable)
+            except ValueError:
+                if not writeable:
+                    raise
+
+
+def _readonly_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """Return a read-only DataFrame view over an immutable private DataFrame."""
+
+    _set_dataframe_writeable(df, writeable=False)
+    view = _ReadOnlyDataFrame(df.copy(deep=False))
+    _set_dataframe_writeable(view, writeable=False)
+    return view
 
 
 @dataclass(frozen=True)
@@ -231,22 +315,21 @@ class NestedMatrix:
 
     .. note::
 
-       Instances are treated as immutable after construction. Do not mutate
-       ``matrix``, ``type_boundaries``, ``ordered_neurons``, or
-       ``neuron_to_type`` — derived properties like ``sum_type_matrix`` and
-       ``mean_type_matrix`` are cached on first access and will not reflect
-       later changes.
+       Instances are immutable after construction. Public attributes expose
+       read-only views; use ``.copy()``, ``dict(...)``, or ``list(...)`` when
+       mutable data is needed. Derived type matrices are cached against the
+       immutable private state.
 
     Attributes
     ----------
     matrix : pd.DataFrame
         Full neuron-to-neuron connectivity matrix with neurons ordered by type.
-    type_boundaries : dict[str, tuple[int, int]]
+    type_boundaries : Mapping[str, tuple[int, int]]
         Dictionary mapping cell type names to (start, end) index tuples
         indicating where each type appears in the matrix.
-    ordered_neurons : list[str]
-        List of neuron IDs in the order they appear in the matrix.
-    neuron_to_type : dict[str, Any]
+    ordered_neurons : tuple[str, ...]
+        Tuple of neuron IDs in the order they appear in the matrix.
+    neuron_to_type : Mapping[str, Any]
         Dictionary mapping neuron IDs to their cell type annotations.
 
     Examples
@@ -285,15 +368,36 @@ class NestedMatrix:
             neuron_to_type=neuron_to_type,
         )
 
-        self.matrix = matrix
-        self.type_boundaries = type_boundaries
-        self.ordered_neurons = ordered_neurons
-        self.neuron_to_type = neuron_to_type
+        _set_dataframe_writeable(matrix, writeable=False)
+        self._matrix = matrix
+        self._type_boundaries = type_boundaries
+        self._ordered_neurons = tuple(ordered_neurons)
+        self._neuron_to_type = neuron_to_type
+
+    @property
+    def matrix(self) -> pd.DataFrame:
+        """Read-only neuron-to-neuron connectivity matrix."""
+        return _readonly_dataframe(self._matrix)
+
+    @property
+    def type_boundaries(self) -> Mapping[str, tuple[int, int]]:
+        """Read-only mapping from cell type to its matrix slice."""
+        return MappingProxyType(self._type_boundaries)
+
+    @property
+    def ordered_neurons(self) -> tuple[str, ...]:
+        """Read-only neuron order used by both matrix axes."""
+        return self._ordered_neurons
+
+    @property
+    def neuron_to_type(self) -> Mapping[str, Any]:
+        """Read-only mapping from neuron ID to cell type."""
+        return MappingProxyType(self._neuron_to_type)
 
     def __repr__(self) -> str:
-        n_neurons = len(self.ordered_neurons)
-        n_types = len(self.type_boundaries)
-        types = list(self.type_boundaries.keys())
+        n_neurons = len(self._ordered_neurons)
+        n_types = len(self._type_boundaries)
+        types = list(self._type_boundaries.keys())
         if len(types) > 5:
             types_str = ", ".join(types[:5]) + f", ... ({n_types} total)"
         else:
@@ -655,7 +759,7 @@ class NestedMatrix:
         )
         logger.info(
             "Constructed NestedMatrix from synapses with matrix_shape=%s",
-            matrix.matrix.shape,
+            matrix._matrix.shape,
         )
         return matrix
 
@@ -886,7 +990,7 @@ class NestedMatrix:
             logger.info(
                 "Constructed NestedMatrix for neuropil %s with matrix_shape=%s",
                 name,
-                result[name].matrix.shape,
+                result[name]._matrix.shape,
             )
 
         return result
@@ -1079,12 +1183,13 @@ class NestedMatrix:
             neuron_id_column=neuron_id_column,
         )
 
-    @cached_property
+    @property
     def sum_type_matrix(self) -> pd.DataFrame:
         """Calculate the cell type-level connectivity matrix (sum).
 
         Aggregates the neuron-level matrix into a type-level matrix by summing
-        all connections between neurons of each type pair.
+        all connections between neurons of each type pair. The returned
+        DataFrame is a read-only view; call ``.copy()`` before editing.
 
         Returns
         -------
@@ -1099,9 +1204,13 @@ class NestedMatrix:
         >>> type_connectivity = matrix.sum_type_matrix
         >>> print(type_connectivity.loc['KC', 'MB'])  # KC -> MB connections
         """
-        return self._aggregate_type_matrix("sum")
+        return _readonly_dataframe(self._sum_type_matrix)
 
     @cached_property
+    def _sum_type_matrix(self) -> pd.DataFrame:
+        return self._aggregate_type_matrix("sum")
+
+    @property
     def mean_type_matrix(self) -> pd.DataFrame:
         """Calculate the mean cell type-level connectivity matrix.
 
@@ -1109,7 +1218,8 @@ class NestedMatrix:
         the arithmetic mean of all neuron-to-neuron weights within each type
         pair block. This includes zero-valued entries in the block, so larger
         cell types do not automatically dominate the visualization by virtue of
-        having more neurons.
+        having more neurons. The returned DataFrame is a read-only view; call
+        ``.copy()`` before editing.
 
         Returns
         -------
@@ -1118,15 +1228,19 @@ class NestedMatrix:
             where each value represents the mean connectivity weight across
             all neuron pairs in the corresponding type block.
         """
+        return _readonly_dataframe(self._mean_type_matrix)
+
+    @cached_property
+    def _mean_type_matrix(self) -> pd.DataFrame:
         return self._aggregate_type_matrix("mean")
 
     def _aggregate_type_matrix(self, aggregate: str) -> pd.DataFrame:
-        if not self.type_boundaries:
+        if not self._type_boundaries:
             return pd.DataFrame()
 
-        type_names = list(self.type_boundaries.keys())
-        bounds = list(self.type_boundaries.values())
-        data = self.matrix.to_numpy()
+        type_names = list(self._type_boundaries.keys())
+        bounds = list(self._type_boundaries.values())
+        data = self._matrix.to_numpy()
         n = len(type_names)
         result = np.empty((n, n), dtype=float)
 
@@ -1168,7 +1282,7 @@ class NestedMatrix:
         >>> relative = matrix.get_relative_weights(by_type=True)
         >>> # Shows what proportion of each type's output goes to each target type
         """
-        df = self.sum_type_matrix if by_type else self.matrix
+        df = self._sum_type_matrix if by_type else self._matrix
         row_sums = df.sum(axis=1).replace(0, 1)
         return df.div(row_sums, axis=0)
 
@@ -1240,13 +1354,13 @@ class NestedMatrix:
             )
 
         if level == "type_mean":
-            data = self.mean_type_matrix
+            data = self._mean_type_matrix
             boundaries = {name: (i, i + 1) for i, name in enumerate(data.index)}
             labels = list(data.index)
             label_boundaries = None
             colorbar_label = "Mean Weight"
         elif level == "type_sum":
-            data = self.sum_type_matrix
+            data = self._sum_type_matrix
             boundaries = {name: (i, i + 1) for i, name in enumerate(data.index)}
             labels = list(data.index)
             label_boundaries = None
@@ -1451,13 +1565,15 @@ class NestedMatrix:
 
     def _filter_for_plot(self, min_neurons: int) -> _PlotData:
         if min_neurons <= 1:
-            return _PlotData(self.matrix, self.type_boundaries, self.ordered_neurons)
+            return _PlotData(
+                self._matrix, self._type_boundaries, list(self._ordered_neurons)
+            )
 
         kept_indices = []
         new_boundaries = {}
         current_idx = 0
 
-        for name, (start, end) in self.type_boundaries.items():
+        for name, (start, end) in self._type_boundaries.items():
             count = end - start
             if count >= min_neurons:
                 indices = list(range(start, end))
@@ -1465,8 +1581,8 @@ class NestedMatrix:
                 new_boundaries[name] = (current_idx, current_idx + count)
                 current_idx += count
 
-        filtered_matrix = self.matrix.iloc[kept_indices, kept_indices]
-        filtered_labels = [self.ordered_neurons[i] for i in kept_indices]
+        filtered_matrix = self._matrix.iloc[kept_indices, kept_indices]
+        filtered_labels = [self._ordered_neurons[i] for i in kept_indices]
 
         return _PlotData(filtered_matrix, new_boundaries, filtered_labels)
 
