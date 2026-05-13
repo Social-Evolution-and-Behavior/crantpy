@@ -16,6 +16,7 @@ from matplotlib.colors import to_rgba
 
 from crantpy.queries import nested_connectivity_matrices as ncm
 from crantpy.queries.nested_connectivity_matrices import (
+    DirectedNestedMatrix,
     NestedMatrix,
     NeuropilCollection,
 )
@@ -44,6 +45,15 @@ def _make_annotations() -> pd.DataFrame:
         {
             "root_id": [1, 2, 3, 4, 5],
             "cell_type": ["KC", "KC", "KC", "MB", "MB"],
+        }
+    )
+
+
+def _make_directed_annotations() -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "root_id": [1, 2, 3, 4, 5],
+            "cell_type": ["ER_input", "ER_input", "ER", "ER", "Other"],
         }
     )
 
@@ -327,6 +337,557 @@ def test_collection_attribute_error() -> None:
         _ = collection.nonexistent
 
 
+def test_directed_from_synapses_filters_source_and_target_types() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, 1, 2, 3],
+            "post_pt_root_id": [3, 4, 3, 4],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_synapses(
+        synapses,
+        _make_directed_annotations(),
+        source_types=["ER_input"],
+        target_types=["ER"],
+        weight_mode="count",
+    )
+
+    assert list(matrix.matrix.index) == ["1", "2"]
+    assert list(matrix.matrix.columns) == ["3", "4"]
+    assert "3" not in matrix.source_neurons
+    assert matrix.matrix.loc["1", "3"] == 1.0
+    assert matrix.matrix.loc["1", "4"] == 1.0
+    assert matrix.matrix.loc["2", "3"] == 1.0
+    assert matrix.sum_type_matrix.loc["ER_input", "ER"] == 3.0
+
+
+def test_directed_selectors_accept_scalar_strings() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, 1, 2, 3],
+            "post_pt_root_id": [3, 4, 3, 4],
+        }
+    )
+
+    by_type = DirectedNestedMatrix.from_synapses(
+        synapses,
+        _make_directed_annotations(),
+        source_types="ER_input",
+        target_types="ER",
+        weight_mode="count",
+    )
+    by_id = DirectedNestedMatrix.from_synapses(
+        synapses,
+        _make_directed_annotations(),
+        source_neurons="1",
+        target_neurons="3",
+        weight_mode="count",
+    )
+
+    assert list(by_type.matrix.index) == ["1", "2"]
+    assert list(by_type.matrix.columns) == ["3", "4"]
+    assert list(by_id.matrix.index) == ["1"]
+    assert list(by_id.matrix.columns) == ["3"]
+
+
+def test_directed_from_connectivity_sums_duplicate_edges() -> None:
+    connections = pd.DataFrame(
+        {
+            "pre": [1, 1, 2],
+            "post": [3, 3, 4],
+            "weight": [2, 5, 7],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_connectivity(
+        connections,
+        _make_directed_annotations(),
+        source_types="ER_input",
+        target_types="ER",
+    )
+
+    assert matrix.matrix.loc["1", "3"] == 7.0
+    assert matrix.matrix.loc["2", "4"] == 7.0
+
+
+def test_directed_from_connectivity_sums_string_weights_numerically() -> None:
+    connections = pd.DataFrame(
+        {
+            "pre": [1, 1],
+            "post": [3, 3],
+            "weight": ["2", "5"],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_connectivity(
+        connections,
+        _make_directed_annotations(),
+        source_types="ER_input",
+        target_types="ER",
+    )
+
+    assert matrix.matrix.loc["1", "3"] == 7.0
+
+
+def test_directed_from_synapses_annotation_scope_all_drops_null_ids() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, np.nan, 2],
+            "post_pt_root_id": [3, 4, np.nan],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_synapses(
+        synapses,
+        _make_directed_annotations(),
+        weight_mode="count",
+        annotation_scope="all",
+    )
+
+    assert list(matrix.matrix.index) == ["1"]
+    assert list(matrix.matrix.columns) == ["3"]
+    assert "nan" not in matrix.source_neurons
+    assert "nan" not in matrix.target_neurons
+
+
+def test_directed_from_synapses_matches_int_like_float_ids() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1.0, 1.0, 2.0],
+            "post_pt_root_id": [3.0, 4.0, 3.0],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_synapses(
+        synapses,
+        _make_directed_annotations(),
+        source_types=["ER_input"],
+        target_types=["ER"],
+        weight_mode="count",
+    )
+
+    assert list(matrix.matrix.index) == ["1", "2"]
+    assert list(matrix.matrix.columns) == ["3", "4"]
+    assert matrix.matrix.loc["1", "3"] == 1.0
+    assert matrix.matrix.loc["1", "4"] == 1.0
+    assert matrix.matrix.loc["2", "3"] == 1.0
+
+
+def test_directed_from_connectivity_normalizes_float_axes_and_drops_null_axes() -> None:
+    adjacency = pd.DataFrame(
+        [[5, 0, 9], [7, 11, 13], [17, 19, 23]],
+        index=[1.0, 2.0, np.nan],
+        columns=[3.0, 4.0, np.nan],
+    )
+    annotations = pd.DataFrame(
+        {
+            "root_id": [1, 2, 3, 4, np.nan],
+            "cell_type": ["ER_input", "ER_input", "ER", "ER", "Bogus"],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_connectivity(
+        adjacency,
+        annotations,
+        source_types=["ER_input"],
+        target_types=["ER"],
+        annotation_scope="all",
+    )
+
+    assert list(matrix.matrix.index) == ["1", "2"]
+    assert list(matrix.matrix.columns) == ["3", "4"]
+    assert "nan" not in matrix.source_neurons
+    assert "nan" not in matrix.target_neurons
+    assert matrix.matrix.loc["1", "3"] == 5.0
+    assert matrix.matrix.loc["2", "4"] == 11.0
+
+
+def test_directed_accepts_numeric_type_labels() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1.0, 2.0],
+            "post_pt_root_id": [3.0, 4.0],
+        }
+    )
+    annotations = pd.DataFrame(
+        {
+            "root_id": [1, 2, 3, 4],
+            "cell_type": [1.0, 1.0, 2.0, 2.0],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_synapses(
+        synapses,
+        annotations,
+        source_types=1,
+        target_types=2,
+        weight_mode="count",
+    )
+
+    assert list(matrix.matrix.index) == ["1", "2"]
+    assert list(matrix.matrix.columns) == ["3", "4"]
+    assert list(matrix.source_type_boundaries) == ["1"]
+    assert list(matrix.target_type_boundaries) == ["2"]
+
+
+def test_directed_constructor_accepts_public_axis_metadata() -> None:
+    matrix = DirectedNestedMatrix(
+        matrix=pd.DataFrame([[1, 2]], index=[1.0], columns=[3.0, 4.0]),
+        source_neurons=[1],
+        target_neurons=[3, 4],
+        source_type_boundaries={1.0: (0, 1)},
+        target_type_boundaries={2.0: (0, 2)},
+        source_neuron_to_type={1: 1.0},
+        target_neuron_to_type={3: 2.0, 4: 2.0},
+    )
+
+    assert list(matrix.matrix.index) == ["1"]
+    assert list(matrix.matrix.columns) == ["3", "4"]
+    assert matrix.source_type_boundaries["1"] == (0, 1)
+    assert matrix.target_type_boundaries["2"] == (0, 2)
+
+
+def test_directed_accepts_independent_type_orders() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, 2],
+            "post_pt_root_id": [3, 4],
+        }
+    )
+    annotations = pd.DataFrame(
+        {
+            "root_id": [1, 2, 3, 4],
+            "cell_type": ["A", "B", "X", "Y"],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_synapses(
+        synapses,
+        annotations,
+        source_type_order=["B", "A"],
+        target_type_order=["Y", "X"],
+        weight_mode="count",
+    )
+
+    assert list(matrix.matrix.index) == ["2", "1"]
+    assert list(matrix.matrix.columns) == ["4", "3"]
+
+
+def test_directed_from_synapses_unions_type_and_explicit_id_selectors() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, 2, 9],
+            "post_pt_root_id": [3, 4, 3],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_synapses(
+        synapses,
+        _make_directed_annotations(),
+        source_types=["ER_input"],
+        source_neurons=[9],
+        target_types=["ER"],
+        weight_mode="count",
+        annotation_scope="all",
+    )
+
+    assert list(matrix.matrix.index) == ["1", "2", "9"]
+    assert list(matrix.matrix.columns) == ["3", "4"]
+    assert matrix.source_type_boundaries["ER_input"] == (0, 2)
+    assert "9" not in matrix.source_neuron_to_type
+    assert matrix.matrix.loc["9", "3"] == 1.0
+
+
+def test_directed_source_only_selector_keeps_all_target_axis_ids() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, 5],
+            "post_pt_root_id": [3, 4],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_synapses(
+        synapses,
+        _make_directed_annotations(),
+        source_types=["ER_input"],
+        weight_mode="count",
+    )
+
+    assert list(matrix.matrix.index) == ["1"]
+    assert list(matrix.matrix.columns) == ["3", "4"]
+    assert matrix.matrix.loc["1", "3"] == 1.0
+    assert matrix.matrix.loc["1", "4"] == 0.0
+
+
+def test_directed_target_only_selector_keeps_all_source_axis_ids() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, 2],
+            "post_pt_root_id": [3, 5],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_synapses(
+        synapses,
+        _make_directed_annotations(),
+        target_types=["ER"],
+        weight_mode="count",
+    )
+
+    assert list(matrix.matrix.index) == ["1", "2"]
+    assert list(matrix.matrix.columns) == ["3"]
+    assert matrix.matrix.loc["1", "3"] == 1.0
+    assert matrix.matrix.loc["2", "3"] == 0.0
+
+
+def test_directed_type_selectors_use_resolved_duplicate_annotations() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, 1, 2],
+            "post_pt_root_id": [3, 4, 4],
+        }
+    )
+    annotations = pd.DataFrame(
+        {
+            "root_id": [1, 1, 2, 3, 4, 4],
+            "cell_type": ["A", "B", "B", "X", "Y", "Z"],
+        }
+    )
+
+    selected_later_duplicate = DirectedNestedMatrix.from_synapses(
+        synapses,
+        annotations,
+        source_types=["B"],
+        target_types=["Z"],
+        weight_mode="count",
+    )
+    selected_resolved_type = DirectedNestedMatrix.from_synapses(
+        synapses,
+        annotations,
+        source_types=["A"],
+        target_types=["Y"],
+        weight_mode="count",
+    )
+
+    assert list(selected_later_duplicate.matrix.index) == ["2"]
+    assert list(selected_later_duplicate.matrix.columns) == []
+    assert "1" not in selected_later_duplicate.source_neurons
+    assert "4" not in selected_later_duplicate.target_neurons
+
+    assert list(selected_resolved_type.matrix.index) == ["1"]
+    assert list(selected_resolved_type.matrix.columns) == ["4"]
+    assert selected_resolved_type.source_neuron_to_type["1"] == "A"
+    assert selected_resolved_type.target_neuron_to_type["4"] == "Y"
+
+
+def test_directed_type_matrices_are_rectangular() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, 1, 2, 5],
+            "post_pt_root_id": [3, 4, 3, 3],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_synapses(
+        synapses,
+        _make_directed_annotations(),
+        source_types=["ER_input", "Other"],
+        target_types=["ER"],
+        weight_mode="count",
+    )
+
+    assert list(matrix.sum_type_matrix.index) == ["ER_input", "Other"]
+    assert list(matrix.sum_type_matrix.columns) == ["ER"]
+    assert matrix.sum_type_matrix.shape == (2, 1)
+    assert matrix.mean_type_matrix.loc["ER_input", "ER"] == pytest.approx(0.75)
+    assert matrix.mean_type_matrix.loc["Other", "ER"] == pytest.approx(0.5)
+
+
+def test_directed_relative_outgoing_selected_scope_normalizes_selected_targets() -> (
+    None
+):
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, 1, 1],
+            "post_pt_root_id": [3, 4, 5],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_synapses(
+        synapses,
+        _make_directed_annotations(),
+        source_types=["ER_input"],
+        target_types=["ER"],
+        weight_mode="relative_outgoing",
+        normalization_scope="selected",
+    )
+
+    assert matrix.matrix.loc["1", "3"] == pytest.approx(0.5)
+    assert matrix.matrix.loc["1", "4"] == pytest.approx(0.5)
+    assert matrix.matrix.loc["1"].sum() == pytest.approx(1.0)
+
+
+def test_directed_relative_outgoing_all_scope_uses_all_targets_denominator() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, 1, 1],
+            "post_pt_root_id": [3, 4, 5],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_synapses(
+        synapses,
+        _make_directed_annotations(),
+        source_types=["ER_input"],
+        target_types=["ER"],
+        weight_mode="relative_outgoing",
+        normalization_scope="all",
+    )
+
+    assert matrix.matrix.loc["1", "3"] == pytest.approx(1 / 3)
+    assert matrix.matrix.loc["1", "4"] == pytest.approx(1 / 3)
+    assert matrix.matrix.loc["1"].sum() == pytest.approx(2 / 3)
+
+
+def test_directed_relative_incoming_all_scope_uses_all_sources_denominator() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, 5],
+            "post_pt_root_id": [3, 3],
+        }
+    )
+
+    matrix = DirectedNestedMatrix.from_synapses(
+        synapses,
+        _make_directed_annotations(),
+        source_types=["ER_input"],
+        target_types=["ER"],
+        weight_mode="relative_incoming",
+        normalization_scope="all",
+    )
+
+    assert matrix.matrix.loc["1", "3"] == pytest.approx(0.5)
+    assert matrix.matrix["3"].sum() == pytest.approx(0.5)
+
+
+@patch("crantpy.viz.mesh.load_neuropil_mesh")
+def test_directed_from_synapses_by_neuropil_returns_directed_matrices(
+    mock_load: MagicMock,
+) -> None:
+    mock_load.return_value = _mock_mesh([True, True, False])
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, 2, 5],
+            "post_pt_root_id": [3, 4, 3],
+            "ctr_pt_position": [[100, 200, 300], [110, 210, 310], [120, 220, 320]],
+        }
+    )
+
+    result = DirectedNestedMatrix.from_synapses_by_neuropil(
+        synapses,
+        _make_directed_annotations(),
+        neuropil_names=["antennal_lobe_left"],
+        source_types=["ER_input"],
+        target_types=["ER"],
+        coordinates="nm",
+        weight_mode="count",
+    )
+
+    assert isinstance(result["antennal_lobe_left"], DirectedNestedMatrix)
+    assert list(result["antennal_lobe_left"].matrix.index) == ["1", "2"]
+    assert list(result["antennal_lobe_left"].matrix.columns) == ["3", "4"]
+
+
+@patch("crantpy.viz.mesh.load_neuropil_mesh")
+def test_directed_from_synapses_by_neuropil_skips_selector_empty_matrices(
+    mock_load: MagicMock,
+) -> None:
+    mock_load.return_value = _mock_mesh([True])
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [5],
+            "post_pt_root_id": [3],
+            "ctr_pt_position": [[100, 200, 300]],
+        }
+    )
+
+    result = DirectedNestedMatrix.from_synapses_by_neuropil(
+        synapses,
+        _make_directed_annotations(),
+        neuropil_names=["antennal_lobe_left"],
+        source_types=["ER_input"],
+        target_types=["ER"],
+        coordinates="nm",
+        weight_mode="count",
+    )
+
+    assert list(result) == []
+
+
+@patch("crantpy.viz.mesh.load_neuropil_mesh")
+def test_directed_from_synapses_by_neuropil_skips_null_only_matrices(
+    mock_load: MagicMock,
+) -> None:
+    mock_load.return_value = _mock_mesh([True])
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [np.nan],
+            "post_pt_root_id": [3],
+            "ctr_pt_position": [[100, 200, 300]],
+        }
+    )
+
+    result = DirectedNestedMatrix.from_synapses_by_neuropil(
+        synapses,
+        _make_directed_annotations(),
+        neuropil_names=["antennal_lobe_left"],
+        coordinates="nm",
+        weight_mode="count",
+        annotation_scope="all",
+    )
+
+    assert list(result) == []
+
+
+def test_directed_plot_handles_rectangular_neuron_and_type_matrices() -> None:
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, 1, 2, 5],
+            "post_pt_root_id": [3, 4, 3, 3],
+        }
+    )
+    matrix = DirectedNestedMatrix.from_synapses(
+        synapses,
+        _make_directed_annotations(),
+        source_types=["ER_input", "Other"],
+        target_types=["ER"],
+        weight_mode="count",
+    )
+
+    fig_neuron, ax_neuron = matrix.plot(level="neuron")
+    fig_type, ax_type = matrix.plot(level="type_sum")
+
+    assert np.asarray(ax_neuron.images[0].get_array()).shape == (3, 2)
+    assert np.asarray(ax_type.images[0].get_array()).shape == (2, 1)
+
+    plt.close(fig_neuron)
+    plt.close(fig_type)
+
+
+def test_directed_plot_rejects_zero_width_matrix() -> None:
+    matrix = DirectedNestedMatrix(
+        matrix=pd.DataFrame(index=["1"], columns=[]),
+        source_neurons=["1"],
+        target_neurons=[],
+        source_type_boundaries={"A": (0, 1)},
+        source_neuron_to_type={"1": "A"},
+    )
+
+    with pytest.raises(ValueError, match="zero rows or columns"):
+        matrix.plot()
+
+
 def test_from_connectivity_accepts_pre_post_weight_edges() -> None:
     connectivity = pd.DataFrame(
         {
@@ -569,6 +1130,29 @@ def test_init_rejects_matrix_axis_mismatch() -> None:
         )
 
 
+def test_init_rejects_duplicate_normalized_neuron_ids() -> None:
+    matrix = pd.DataFrame([[0, 1], [2, 0]], index=[1, 1.0], columns=[1, 1.0])
+
+    with pytest.raises(ValueError, match="duplicate neuron IDs"):
+        NestedMatrix(
+            matrix=matrix,
+            type_boundaries={},
+            ordered_neurons=[1, 1.0],
+            neuron_to_type={},
+        )
+
+
+def test_directed_init_rejects_duplicate_normalized_neuron_ids() -> None:
+    matrix = pd.DataFrame([[1], [2]], index=[1, 1.0], columns=[3])
+
+    with pytest.raises(ValueError, match="duplicate neuron IDs"):
+        DirectedNestedMatrix(
+            matrix=matrix,
+            source_neurons=[1, 1.0],
+            target_neurons=[3],
+        )
+
+
 def test_init_rejects_noncontiguous_boundaries() -> None:
     matrix = pd.DataFrame(
         [[0, 1, 0], [0, 0, 2], [3, 0, 0]],
@@ -730,6 +1314,18 @@ def test_constructor_inputs_are_copied_before_freezing() -> None:
     assert matrix.type_boundaries["A"] == (0, 1)
     assert matrix.ordered_neurons == ("1", "2")
     assert matrix.neuron_to_type["1"] == "A"
+
+
+def test_constructor_normalizes_numeric_type_metadata() -> None:
+    matrix = NestedMatrix(
+        matrix=pd.DataFrame([[0]], index=[1.0], columns=[1.0]),
+        type_boundaries={1.0: (0, 1)},
+        ordered_neurons=[1],
+        neuron_to_type={1: 1.0},
+    )
+
+    assert matrix.type_boundaries["1"] == (0, 1)
+    assert matrix.neuron_to_type["1"] == "1"
 
 
 def test_public_matrix_copy_can_be_mutated_without_affecting_nested_matrix() -> None:
@@ -937,6 +1533,31 @@ def test_from_synapses_annotation_scope_all_keeps_unannotated_neurons() -> None:
     assert matrix.matrix.loc["1", "99"] == pytest.approx(0.5)
 
 
+def test_from_synapses_annotation_scope_all_normalizes_before_relative_weights() -> (
+    None
+):
+    synapses = pd.DataFrame(
+        {
+            "pre_pt_root_id": [1, "1"],
+            "post_pt_root_id": [3, 4],
+        }
+    )
+    annotations = pd.DataFrame(
+        {"root_id": [1, 3, 4], "cell_type": ["ER", "PBt", "PBt"]}
+    )
+
+    matrix = NestedMatrix.from_synapses(
+        synapses,
+        annotations,
+        weight_mode="relative_outgoing",
+        annotation_scope="all",
+    )
+
+    assert matrix.matrix.loc["1", "3"] == pytest.approx(0.5)
+    assert matrix.matrix.loc["1", "4"] == pytest.approx(0.5)
+    assert matrix.matrix.loc["1"].sum() == pytest.approx(1.0)
+
+
 def test_from_synapses_column_mode_requires_weight_column() -> None:
     synapses = pd.DataFrame(
         {"pre_pt_root_id": [1], "post_pt_root_id": [2], "size": [3]}
@@ -1041,6 +1662,7 @@ def test_top_level_import_star_exposes_nested_connectivity_module() -> None:
     exec("from crantpy import *", namespace)
 
     assert namespace["nested_connectivity_matrices"].NestedMatrix is NestedMatrix
+    assert namespace["DirectedNestedMatrix"] is DirectedNestedMatrix
 
 
 def test_plot_accepts_bare_output_filename(tmp_path: Path) -> None:

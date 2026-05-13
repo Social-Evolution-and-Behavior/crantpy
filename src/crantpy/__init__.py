@@ -12,6 +12,7 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
         "queries": [
             "All",
             "CAVE_ROW_LIMIT",
+            "DirectedNestedMatrix",
             "NestedMatrix",
             "NeuronCriteria",
             "NeuropilCollection",
@@ -189,6 +190,7 @@ __all__ = [
     "F",
     "FilteringError",
     "IDs",
+    "DirectedNestedMatrix",
     "MAXIMUM_CACHE_DURATION",
     "NEUROPIL_MESH_ALIASES",
     "NEUROPIL_MESH_DICT",

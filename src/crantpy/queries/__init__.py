@@ -20,6 +20,7 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
         ],
         "nested_connectivity_matrices": [
             "All",
+            "DirectedNestedMatrix",
             "NestedMatrix",
             "NeuropilCollection",
         ],
@@ -42,6 +43,7 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
 __all__ = [
     "All",
     "CAVE_ROW_LIMIT",
+    "DirectedNestedMatrix",
     "NestedMatrix",
     "NeuronCriteria",
     "NeuropilCollection",
