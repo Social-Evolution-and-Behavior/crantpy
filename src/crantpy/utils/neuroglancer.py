@@ -34,9 +34,10 @@ import json
 import uuid
 import webbrowser
 from functools import lru_cache
+from importlib.util import find_spec
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple, Union
-from urllib.parse import parse_qs, quote, unquote, urlparse
+from urllib.parse import quote, unquote, urlparse
 
 import matplotlib.colors as mcl
 import navis
@@ -53,7 +54,6 @@ except ImportError:
 
 from .config import (
     CRANT_NGL_DATASTACKS,
-    CRANT_DEFAULT_DATASET,
     SCALE_X,
     SCALE_Y,
     SCALE_Z,
@@ -62,12 +62,7 @@ from .decorators import inject_dataset
 from .helpers import make_iterable
 from .cave.load import get_cave_client
 
-try:
-    import requests
-
-    HAS_REQUESTS = True
-except ImportError:
-    HAS_REQUESTS = False
+HAS_REQUESTS = find_spec("requests") is not None
 
 __all__ = [
     "encode_url",
@@ -137,6 +132,8 @@ def construct_scene(
     image: bool = True,
     segmentation: bool = True,
     brain_mesh: bool = True,
+    neuropil_mesh: bool = True,
+    al_glomeruli: bool = False,
     merge_biased_seg: bool = False,
     nuclei: bool = False,
     base_neuroglancer: bool = False,
@@ -153,6 +150,10 @@ def construct_scene(
         Whether to add the proofreadable segmentation layer.
     brain_mesh : bool, default True
         Whether to add the brain mesh layer.
+    neuropil_mesh : bool, default True
+        Whether to add the neuropil mesh layer.
+    al_glomeruli : bool, default False
+        Whether to add the antennal lobe glomeruli mesh layer.
     merge_biased_seg : bool, default False
         Whether to add the merge-biased segmentation layer (for proofreading).
     nuclei : bool, default False
@@ -223,6 +224,14 @@ def construct_scene(
     # Add nuclei (optional, for proofreading)
     if nuclei:
         scene["layers"].append(NGL_SCENES["CRANT_NUCLEI_LAYER"])
+
+    # Add neuropil mesh
+    if neuropil_mesh:
+        scene["layers"].append(NGL_SCENES["CRANT_NEUROPIL_MESH_LAYER"])
+
+    # Add antennal lobe glomeruli mesh
+    if al_glomeruli:
+        scene["layers"].append(NGL_SCENES["CRANT_AL_GLOMERULI_LAYER"])
 
     return scene
 
@@ -441,7 +450,10 @@ def encode_url(
                 pal = sns.color_palette("tab10", len(uni))
 
             color_map = dict(zip(uni, pal))
-            seg_colors = {s: color_map[l] for s, l in zip(all_segs, seg_colors)}
+            seg_colors = {
+                segment: color_map[label]
+                for segment, label in zip(all_segs, seg_colors)
+            }
         elif not isinstance(seg_colors, dict):
             # List of colors
             if not hasattr(seg_colors, "__iter__"):
@@ -640,7 +652,11 @@ def _shorten_url(scene: Dict[str, Any], state_url: str) -> str:
         try:
             json_url = _try_endpoint(endpoint)
             if json_url:
-                return f"{spelunker_url}/?json_url={json_url.strip()}"
+                json_url = json_url.strip()
+                if json_url.startswith("http"):
+                    return f"{spelunker_url}/#!middleauth+{json_url}"
+                else:
+                    return f"{spelunker_url}/#!middleauth+{state_url}/api/v1/{json_url}"
         except requests.HTTPError as exc:
             if exc.response is not None and exc.response.status_code in (401, 403):
                 continue
@@ -653,8 +669,7 @@ def _shorten_url(scene: Dict[str, Any], state_url: str) -> str:
     )
 
     state_id = client.state.upload_state_json(scene)
-    url = client.state.build_neuroglancer_url(state_id, target_site="cave-explorer")
-    return _format_url(url)
+    return f"{spelunker_url}/#!middleauth+{state_url}/api/v1/{state_id}"
 
 
 def decode_url(
@@ -693,15 +708,11 @@ def decode_url(
     if not isinstance(url, str):
         raise TypeError(f'`url` must be string, got "{type(url)}"')
 
-    # Parse URL to extract scene
-    if isinstance(url, str):
-        query = unquote(urlparse(url).fragment)[1:]
-        try:
-            scene = json.loads(query)
-        except json.JSONDecodeError:
-            raise ValueError(f"Could not decode URL: {url}")
-    else:
-        scene = url
+    query = unquote(urlparse(url).fragment)[1:]
+    try:
+        scene = json.loads(query)
+    except json.JSONDecodeError:
+        raise ValueError(f"Could not decode URL: {url}")
 
     # Return in requested format
     if format == "json":
@@ -855,7 +866,9 @@ def add_annotation_layer(
 
     # Generate layer name
     if not name:
-        existing_an_layers = [l for l in scene["layers"] if l["type"] == "annotation"]
+        existing_an_layers = [
+            layer for layer in scene["layers"] if layer["type"] == "annotation"
+        ]
         name = f"annotation{len(existing_an_layers)}"
 
     # Create annotation layer
@@ -863,7 +876,6 @@ def add_annotation_layer(
         "type": "annotation",
         "annotations": records,
         "annotationTags": [],
-        "voxelSize": [SCALE_X, SCALE_Y, SCALE_Z],
         "name": name,
     }
 
