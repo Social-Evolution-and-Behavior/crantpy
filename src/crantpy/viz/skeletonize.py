@@ -20,8 +20,9 @@ import pcg_skel
 import skeletor as sk
 import trimesh
 import multiprocessing as mp
-from concurrent.futures import ThreadPoolExecutor
-from functools import partial
+import time
+import collections
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from numpy.typing import NDArray
 from tqdm import tqdm
@@ -30,7 +31,6 @@ from scipy.spatial import cKDTree
 from caveclient import CAVEclient
 from ..utils.decorators import parse_neuroncriteria, inject_dataset
 from ..utils.cave import get_cave_client as create_client
-import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 
 # Configure matplotlib for proper PDF export
@@ -127,7 +127,7 @@ __all__ = [
 
 
 @parse_neuroncriteria()
-@inject_dataset()  # navis logic import
+@inject_dataset()
 def skeletonize_neuron(
     client: CAVEclient,
     root_id: Union[int, List[int], NDArray],
@@ -138,6 +138,7 @@ def skeletonize_neuron(
     save_to: Optional[str] = None,
     progress: bool = True,
     use_pcg_skel: bool = False,
+    dataset: Optional[str] = None,
     **kwargs: Any,
 ) -> Union[navis.TreeNeuron, navis.NeuronList]:
     """Skeletonize a neuron the main function.
@@ -148,6 +149,10 @@ def skeletonize_neuron(
         CAVE client for data access.
     root_id : int
         Root ID of the neuron to skeletonize.
+    dataset : str, optional
+        Dataset to fetch meshes from in the skeletor fallback. If not given,
+        the ``@inject_dataset`` decorator fills in the default dataset. Should
+        match the dataset ``client`` was built for.
     shave_skeleton : bool, default True
         Remove small protrusions and bristles from skeleton (from my understanding).
     remove_soma_hairball : bool, default False
@@ -181,12 +186,17 @@ def skeletonize_neuron(
     # - Merge disconnected skeletons
     # - Custom node/edge attributes
     """
-    if save_to is not None:
-        save_to = os.path.abspath(save_to)
-        os.makedirs(os.path.dirname(save_to), exist_ok=True)
-
     if navis.utils.is_iterable(root_id):
         root_id_array = np.asarray(root_id).astype(np.int64)
+
+        # For multiple neurons, ``save_to`` is treated as an output directory and
+        # each neuron is written to "<root_id>.swc" so they don't overwrite one
+        # another (the single-neuron branch below treats it as a file path).
+        if save_to is not None:
+            save_dir = os.path.abspath(save_to)
+            os.makedirs(save_dir, exist_ok=True)
+        else:
+            save_dir = None
 
         return navis.NeuronList(
             [
@@ -198,8 +208,11 @@ def skeletonize_neuron(
                     remove_soma_hairball=remove_soma_hairball,
                     assert_id_match=assert_id_match,
                     threads=threads,
-                    save_to=save_to,
+                    save_to=(
+                        os.path.join(save_dir, f"{int(rid)}.swc") if save_dir else None
+                    ),
                     use_pcg_skel=use_pcg_skel,
+                    dataset=dataset,
                     **kwargs,
                 )
                 for rid in tqdm(
@@ -210,6 +223,10 @@ def skeletonize_neuron(
                 )
             ]
         )
+
+    if save_to is not None:
+        save_to = os.path.abspath(save_to)
+        os.makedirs(os.path.dirname(save_to), exist_ok=True)
 
     assert isinstance(
         root_id, (int, np.integer)
@@ -272,7 +289,10 @@ def skeletonize_neuron(
     try:
         from ..utils.cave import get_cloudvolume
 
-        vol = get_cloudvolume()
+        # Use the same dataset the client was built for so the mesh is fetched
+        # from the matching segmentation source (dataset is injected by the
+        # @inject_dataset decorator when not supplied).
+        vol = get_cloudvolume(dataset=dataset)
         mesh_dict = vol.mesh.get(root_id_int) if hasattr(vol, "mesh") else vol.get_mesh(root_id_int)  # type: ignore
 
         if isinstance(mesh_dict, dict) and root_id_int in mesh_dict:
@@ -348,6 +368,7 @@ def skeletonize_neurons_parallel(
     n_cores: Optional[int] = None,
     progress: bool = True,
     color_map: Optional[str] = None,
+    dataset: Optional[str] = None,
     **kwargs: Any,
 ) -> Union[navis.NeuronList, Tuple[navis.NeuronList, List[str]]]:
     """Skeletonize multiple neurons in parallel.
@@ -390,17 +411,13 @@ def skeletonize_neurons_parallel(
 
     sig = inspect.signature(skeletonize_neuron)
     for k in kwargs:
-        if k not in sig.parameters and k not in ("lod", "dataset"):
+        if k not in sig.parameters and k not in ("lod",):
             raise ValueError(f"unexpected keyword argument for skeletonize_neuron: {k}")
 
     kwargs["progress"] = False
     kwargs["threads"] = 1
-
-    try:
-        kwargs["_soma_prefetched"] = False
-    except Exception as e:
-        warnings.warn(f"Failed to pre-fetch soma data: {e}")
-        kwargs["_soma_prefetched"] = False
+    kwargs["dataset"] = dataset
+    kwargs["_soma_prefetched"] = False
 
     funcs = [skeletonize_neuron] * len(root_ids)
     args_list = [[client, root_id] for root_id in root_ids]
@@ -443,8 +460,11 @@ def skeletonize_neurons_parallel(
 
     if color_map is not None:
         try:
-            cmap = cm.get_cmap(color_map, len(root_ids))
-            colors = [mcolors.to_hex(cmap(i)) for i in range(len(root_ids))]
+            # Generate one color per surviving neuron (failures are dropped from
+            # `neurons`) so colors and neurons stay aligned by position.
+            n = len(neurons)
+            cmap = plt.get_cmap(color_map, max(n, 1))
+            colors = [mcolors.to_hex(cmap(i)) for i in range(n)]
             return neurons, colors
         except Exception as e:
             warnings.warn(f"Failed to generate colors: {e}")
@@ -464,18 +484,10 @@ def _assert_id_match(tn: navis.TreeNeuron, root_id: int, client: CAVEclient) -> 
     if root_id == 0:
         raise ValueError("Segmentation ID must not be 0")
 
-    coords = tn.nodes[["x", "y", "z"]].values
-
-    try:
-        warnings.warn(
-            "TODO: assert_id_match is not implemented yet and currently has no effect.",
-            category=UserWarning,
-        )
-        return
-
-    except Exception as e:
-        logger.exception("Unexpected error during ID match assertion for %s", root_id)
-        raise
+    warnings.warn(
+        "assert_id_match is not implemented yet and currently has no effect.",
+        category=UserWarning,
+    )
 
 
 def _worker_wrapper(
@@ -511,6 +523,10 @@ def _worker_wrapper(
         raise
     except (requests.HTTPError, requests.ConnectionError, requests.Timeout) as e:
         try:
+            # Brief backoff before the single retry: these errors are usually
+            # transient (rate limiting / overloaded server), so an immediate
+            # retry tends to just fail the same way.
+            time.sleep(2)
             result = f(*args, **kwargs)
             if result is None:
                 return {
@@ -520,7 +536,9 @@ def _worker_wrapper(
                     "message": "Function returned None after retry",
                 }
             return result
-        except BaseException as retry_error:
+        except KeyboardInterrupt:
+            raise
+        except Exception as retry_error:
             logger.warning(
                 "Network error for neuron %s: %s, retry failed: %s",
                 root_id,
@@ -556,14 +574,26 @@ def _worker_wrapper(
 def _create_node_info_dict(
     vertices: NDArray, edges: NDArray
 ) -> Dict[int, Dict[str, Any]]:
-    """Create node info dictionary for SWC format."""
-    node_info = {}
-    parent_map = {}
+    """Create node info dictionary for SWC format.
+
+    Edge orientation from the various skeleton sources is not guaranteed to be
+    ``[parent, child]`` -- meshparty (the pcg_skel path) emits ``[child, parent]``
+    and precomputed CAVE skeleton edges may be unordered. Parent pointers are
+    therefore derived from a breadth-first traversal of the *undirected*
+    connectivity rather than trusting the edge direction. This guarantees
+    exactly one parent per node and one root per connected component, and avoids
+    silently inverting roots or dropping the children of branch points.
+
+    Absent any soma information the root of each component is the lowest vertex
+    index (deterministic but arbitrary); callers that need a somatic root should
+    reroot afterwards (see ``_apply_soma_processing``).
+    """
+    node_info: Dict[int, Dict[str, Any]] = {}
 
     for i, coord in enumerate(vertices):
         node_info[i] = {
             "PointNo": i + 1,
-            "Type": 0,
+            "Type": 3,
             "X": float(coord[0]),
             "Y": float(coord[1]),
             "Z": float(coord[2]),
@@ -571,31 +601,44 @@ def _create_node_info_dict(
             "Parent": -1,
         }
 
-    child_nodes = set()
-    parent_nodes_in_edges = set()
+    # Build undirected adjacency from the edge list.
+    adjacency: Dict[int, set] = collections.defaultdict(set)
     for edge in edges:
-        parent, child = edge
-        parent_map[child] = parent
-        child_nodes.add(child)
-        parent_nodes_in_edges.add(parent)
+        a, b = int(edge[0]), int(edge[1])
+        adjacency[a].add(b)
+        adjacency[b].add(a)
 
-        if node_info[parent]["Type"] == 0:
-            node_info[parent]["Type"] = 3
-        if node_info[child]["Type"] == 0:
-            node_info[child]["Type"] = 3
+    # Derive a rooted forest via BFS: every node gets a single parent and each
+    # connected component gets exactly one root (lowest index, deterministic).
+    parent_map: Dict[int, int] = {}
+    seen: set = set()
+    for start in node_info:
+        if start in seen:
+            continue
+        seen.add(start)
+        queue = collections.deque([start])
+        while queue:
+            cur = queue.popleft()
+            for neighbor in sorted(adjacency[cur]):
+                if neighbor not in seen:
+                    seen.add(neighbor)
+                    parent_map[neighbor] = cur
+                    queue.append(neighbor)
 
     for child, parent in parent_map.items():
-        node_info[child]["Parent"] = parent + 1
+        node_info[child]["Parent"] = parent + 1  # SWC node ids are 1-indexed
 
-    all_nodes = set(node_info.keys())
-    root_nodes = all_nodes - child_nodes
-    for root in root_nodes:
-        node_info[root]["Type"] = 1
-        node_info[root]["Parent"] = -1
-
+    # Classify node types from undirected degree: roots (1), leaves/endpoints (6),
+    # everything else intermediate/branch (3).
+    root_nodes = set(node_info.keys()) - set(parent_map.keys())
     for node_idx, info in node_info.items():
-        if node_idx in child_nodes and node_idx not in parent_nodes_in_edges:
-            node_info[node_idx]["Type"] = 6
+        if node_idx in root_nodes:
+            info["Type"] = 1
+            info["Parent"] = -1
+        elif len(adjacency[node_idx]) <= 1:
+            info["Type"] = 6
+        else:
+            info["Type"] = 3
 
     return node_info
 
@@ -664,7 +707,10 @@ def detect_soma_skeleton(
         rad = np.array([radii[node_id] for node_id in seg])
         is_big = np.where(rad > min_rad)[0]
 
-        if not any(is_big):
+        # `is_big` holds the positions of large-radius nodes; an empty array
+        # means none qualify. (Using ``any(is_big)`` here would wrongly skip a
+        # segment whose only large node sits at position 0.)
+        if is_big.size == 0:
             continue
 
         for stretch in np.split(is_big, np.where(np.diff(is_big) != 1)[0] + 1):
@@ -713,23 +759,17 @@ def detect_soma_mesh(mesh: trimesh.Trimesh) -> NDArray:
         )
         return np.array([])
 
-    from scipy.spatial import cKDTree
-
     try:
         tree = cKDTree(mesh.vertices)
     except Exception as e:
         warnings.warn(f"Failed to build KDTree for soma detection: {e}")
         return np.array([])
 
-    # cKDTree.query_ball_point returns lists of indices; compute lengths explicitly
-    n = mesh.vertices.shape[0]
-    n_neighbors = np.zeros(n, dtype=int)
-    for i, v in enumerate(mesh.vertices):
-        dist, _ix = tree.query(v, k=n, distance_upper_bound=4000)
-        if np.isscalar(dist):
-            n_neighbors[i] = int(np.isfinite(dist))
-        else:
-            n_neighbors[i] = int(np.isfinite(dist).sum())
+    # Count neighbours within 4 µm of each vertex in a single vectorized call;
+    # dense clusters mark the soma. A per-vertex ``tree.query(v, k=n)`` here
+    # would be O(n^2) and pathological on real meshes (tens of thousands of
+    # vertices).
+    n_neighbors = tree.query_ball_point(mesh.vertices, r=4000, return_length=True)
 
     seed = np.argmax(n_neighbors)
 
@@ -784,8 +824,9 @@ def get_skeletons(
 ) -> navis.NeuronList:
     """Fetch skeletons for multiple neurons.
 
-    Tries to get precomputed skeletons first, then falls back to
-    on-demand skeletonization if needed. if id more than one root_id, it will use the parallel skeletonization function.
+    Tries to get precomputed skeletons first, then falls back to on-demand
+    skeletonization if needed. Multiple root IDs are fetched concurrently using
+    a thread pool (see ``max_threads``).
 
     Parameters
     ----------
@@ -823,14 +864,13 @@ def get_skeletons(
     else:
         root_ids_list = [int(x) for x in root_ids]
 
-    root_ids = np.asarray(root_ids_list, dtype=np.int64)
-
-    root_ids = np.asarray(root_ids, dtype=np.int64)
+    # Drop duplicates (preserving first-seen order) so we don't fetch the same
+    # neuron twice and so the final id-based reindexing stays unambiguous.
+    root_ids = pd.unique(np.asarray(root_ids_list, dtype=np.int64))
 
     client = create_client(dataset=dataset)
 
     skeletons = []
-    failed_ids = []
 
     def fetch_single_skeleton(root_id: int) -> Optional[navis.TreeNeuron]:
         """Fetch single skeleton with fallback strategies."""
@@ -846,10 +886,18 @@ def get_skeletons(
 
                     tn = navis.TreeNeuron(df, id=root_id, units="1 nm")
                     return tn
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(
+                    "Precomputed skeleton fetch/parse failed for %s (%s: %s); "
+                    "falling back to on-demand skeletonization",
+                    root_id,
+                    type(e).__name__,
+                    e,
+                )
 
-            tn = skeletonize_neuron(client, root_id, progress=False, **kwargs)
+            tn = skeletonize_neuron(
+                client, root_id, progress=False, dataset=dataset, **kwargs
+            )
             return tn
 
         except Exception as e:
@@ -859,8 +907,6 @@ def get_skeletons(
                 return None
             else:
                 try:
-                    import pandas as pd
-
                     df = pd.DataFrame(
                         {
                             "node_id": [1],
@@ -876,19 +922,20 @@ def get_skeletons(
                     return None
 
     if max_threads > 1 and len(root_ids) > 1:
-        from concurrent.futures import ThreadPoolExecutor
-
         with ThreadPoolExecutor(max_workers=max_threads) as executor:
-            futures = [executor.submit(fetch_single_skeleton, rid) for rid in root_ids]
+            future_to_rid = {
+                executor.submit(fetch_single_skeleton, rid): rid for rid in root_ids
+            }
 
             results = []
             for future in tqdm(
-                futures,
+                as_completed(future_to_rid),
                 desc="Fetching skeletons",
                 total=len(root_ids),
                 disable=not progress or len(root_ids) == 1,
                 leave=False,
             ):
+                rid = future_to_rid[future]
                 try:
                     result = future.result()
                     if result is not None:
@@ -896,7 +943,7 @@ def get_skeletons(
                 except Exception as e:
                     if omit_failures is None:
                         raise
-                    warnings.warn(f"Failed to fetch skeleton: {e}")
+                    warnings.warn(f"Failed to fetch skeleton for {rid}: {e}")
 
             skeletons = results
     else:
@@ -1079,8 +1126,10 @@ def _shave_skeleton(tn: navis.TreeNeuron) -> None:
     parent_is_bp = tn.nodes.parent_id.isin(bp)
     twigs = tn.nodes.loc[is_end & parent_is_bp, "node_id"].values
 
-    tn._nodes = tn.nodes.loc[~tn.nodes.node_id.isin(twigs)].copy()
-    tn._clear_temp_attr()
+    # Drop the short terminal twigs via the public navis API rather than poking
+    # at tn._nodes / tn._clear_temp_attr() directly.
+    if len(twigs):
+        navis.subset_neuron(tn, ~tn.nodes.node_id.isin(twigs), inplace=True)
 
 
 def _apply_soma_processing(
