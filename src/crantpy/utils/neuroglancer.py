@@ -854,6 +854,7 @@ def add_annotation_layer(
                     "pointA": start,
                     "pointB": end,
                     "type": "line",
+                    "tagIds": [],
                     "id": str(uuid.uuid4()),
                 }
             )

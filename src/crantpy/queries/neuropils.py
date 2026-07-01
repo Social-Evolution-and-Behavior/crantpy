@@ -19,7 +19,8 @@ from crantpy.viz.mesh import (
     load_neuropil_mesh,
     resolve_neuropil_mesh_label_ids,
 )
-from crantpy.utils.config import SCALE_X, SCALE_Y, SCALE_Z
+
+from crantpy.utils.config import SCALE_X, SCALE_Y, SCALE_Z, SYN_V3_RES_X, SYN_V3_RES_Y, SYN_V3_RES_Z
 
 if TYPE_CHECKING:
     from crantpy.queries.neurons import NeuronCriteria
@@ -30,6 +31,10 @@ logger = logging.getLogger(__name__)
 CAVE_ROW_LIMIT = 200_000
 _MAX_SUBDIVISION_DEPTH = 8
 _MESH_CONTAINS_BATCH_SIZE = 50_000
+
+# synapses_v3 native coordinate resolution as a numpy array (nm per unit).
+# Multiply v3 position columns by this to obtain nanometer coordinates.
+_SYN_V3_RES = np.array([SYN_V3_RES_X, SYN_V3_RES_Y, SYN_V3_RES_Z], dtype=float)
 
 
 def _filter_by_neuron_count(
@@ -374,7 +379,7 @@ def _query_synapses_in_bbox(
         syn = _query_with_breaker(
             client.materialize.live_query,
             operation="live_query",
-            table="synapses_v2",
+            table="synapses_v3",
             timestamp=datetime.datetime.now(datetime.timezone.utc),
             filter_spatial_dict=filter_spatial_dict,
         )
@@ -382,7 +387,7 @@ def _query_synapses_in_bbox(
         syn = _query_with_breaker(
             client.materialize.query_table,
             operation="query_table",
-            table="synapses_v2",
+            table="synapses_v3",
             materialization_version=materialization_version,
             filter_spatial_dict=filter_spatial_dict,
         )
@@ -582,14 +587,14 @@ def count_synapses_in_mesh(
             logger.error(f"Failed to load mesh for {neuropil_name}: {e}")
             raise
 
-    # Extract synapse positions and convert to nanometers if needed
+    # Extract synapse positions. get_synapses(return_pixels=False) already returns nm.
     position_column = "ctr_pt_position" if loc == "ctr" else "pre_pt_position"
     logger.info(f"Processing {len(synapses)} synapses using {position_column}...")
 
-    # Convert synapse coordinates to numpy array
+    # Coordinates are already in nm (get_synapses converts v3 units → nm internally)
     synapse_coords = np.vstack(synapses[position_column].values)
 
-    # Add coordinates and neuron IDs to a working dataframe
+    # Add coordinates and neuron IDs to a working dataframe (in nm, matching mesh space)
     synapse_df = pd.DataFrame(
         {
             "neuron_id": synapses["pre_pt_root_id"].values,
@@ -777,8 +782,14 @@ def get_synapses_in_mesh(
         min_coords_nm = np.asarray(min_coords, dtype=float)
         max_coords_nm = np.asarray(max_coords, dtype=float)
 
-    bbox = [min_coords_nm.tolist(), max_coords_nm.tolist()]
-    logger.info(f"CAVE query bbox: min={min_coords_nm}, max={max_coords_nm}")
+    # Convert nm bounding box to synapses_v3 native units for the CAVE spatial filter
+    _v3_res = _SYN_V3_RES
+    bbox_v3 = [
+        (min_coords_nm / _v3_res).tolist(),
+        (max_coords_nm / _v3_res).tolist(),
+    ]
+    logger.info(f"CAVE query bbox (v3 units): min={bbox_v3[0]}, max={bbox_v3[1]}")
+
 
     # Validate materialization parameter
     if materialization not in ("live", "latest"):
@@ -786,7 +797,8 @@ def get_synapses_in_mesh(
 
     # Query synapses with auto-subdivision for large bounding boxes
     logger.info("Querying synapses within mesh bounding box...")
-    syn, _ = _query_synapses_in_bbox(client, bbox, materialization)
+    syn, _ = _query_synapses_in_bbox(client, bbox_v3, materialization)
+
 
     if syn.empty:
         logger.warning("No synapses found in bounding box")
@@ -807,12 +819,15 @@ def get_synapses_in_mesh(
         if col not in syn.columns:
             raise ValueError(f"Expected column '{col}' not found in synapse data")
 
+        # Convert synapse coords from v3 native units to the mesh coordinate space
         synapse_coords = np.vstack(syn[col].values).astype(float)
 
         if mesh_coordinates == "voxels":
-            synapse_coords_for_mesh = synapse_coords / _SCALE
+            # v3 units → nm → voxels
+            synapse_coords_for_mesh = synapse_coords * _SYN_V3_RES / _SCALE
         else:
-            synapse_coords_for_mesh = synapse_coords
+            # v3 units → nm
+            synapse_coords_for_mesh = synapse_coords * _SYN_V3_RES
 
         logger.info(
             "Checking %d synapses against mesh using %s...",
@@ -838,6 +853,10 @@ def get_synapses_in_mesh(
 
     syn = _normalize_synapse_root_ids(syn, dataset=dataset)
 
+    # Convert coordinates from v3 native units to nm before any downstream use
+    from crantpy.queries.connections import _convert_v3_coordinates_to_nm, _convert_coordinates_to_pixels
+    syn = _convert_v3_coordinates_to_nm(syn)
+
     # Clean up synapses if requested
     if clean:
         # Remove autapses (self-connections)
@@ -862,10 +881,8 @@ def get_synapses_in_mesh(
         logger.warning("No synapses remaining after filtering")
         return syn
 
-    # Convert coordinates to pixels if requested
+    # Convert nm coordinates to pixels if requested
     if return_pixels:
-        from crantpy.queries.connections import _convert_coordinates_to_pixels
-
         syn = _convert_coordinates_to_pixels(syn)
 
     logger.info(f"Returning {len(syn)} synapses within mesh")
@@ -966,8 +983,13 @@ def get_synapses_in_neuropils(
     union_max = all_maxs.max(axis=0)
     logger.info(f"Union bounding box (mesh nm): min={union_min}, max={union_max}")
 
-    bbox = [union_min.tolist(), union_max.tolist()]
-    logger.info(f"CAVE query bbox: min={union_min}, max={union_max}")
+    # Convert nm bounding box to synapses_v3 native units for the CAVE spatial filter
+    bbox = [
+        (union_min / _SYN_V3_RES).tolist(),
+        (union_max / _SYN_V3_RES).tolist(),
+    ]
+    logger.info(f"CAVE query bbox (v3 units): min={bbox[0]}, max={bbox[1]}")
+
 
     # Load from cache or query CAVE
     # The cache stores the raw synapse query for a specific union bounding box.
@@ -1057,7 +1079,11 @@ def get_synapses_in_neuropils(
         logger.warning("No synapses remaining after global filtering")
         return {name: syn.copy() for name in neuropil_names}
 
-    # Extract center-point coordinates in the shared mesh/query coordinate space
+    # Convert coordinates from v3 native units to nm before mesh comparison and pixel conversion
+    from crantpy.queries.connections import _convert_v3_coordinates_to_nm
+    syn = _convert_v3_coordinates_to_nm(syn)
+
+    # Extract center-point coordinates (now in nm, matching mesh space)
     ctr_coords = np.vstack(syn["ctr_pt_position"].values).astype(float)
 
     # Assign synapses to each neuropil and apply per-neuropil filtering
@@ -1084,10 +1110,9 @@ def get_synapses_in_neuropils(
                 neuropil_syn, min_synapses_per_pair, label=name
             )
 
-        # Convert coordinates to pixels if requested
+        # Convert nm coordinates to pixels if requested (syn is already in nm)
         if return_pixels and not neuropil_syn.empty:
             from crantpy.queries.connections import _convert_coordinates_to_pixels
-
             neuropil_syn = _convert_coordinates_to_pixels(neuropil_syn)
 
         results[name] = neuropil_syn

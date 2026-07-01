@@ -91,8 +91,13 @@ SEARCH_EXCLUDED_ANNOTATION_FIELDS = [
     "root_position",
 ]
 
-# Voxel resolution in nm
+# Voxel resolution in nm (used for converting pixel coordinates to/from nm)
 SCALE_X, SCALE_Y, SCALE_Z = 8, 8, 42
+
+# synapses_v3 native coordinate resolution in nm per unit (x=16nm, y=16nm, z=42nm)
+# Positions returned by the synapses_v3 CAVE table are in these units and must be
+# multiplied by this vector to obtain nanometer coordinates.
+SYN_V3_RES_X, SYN_V3_RES_Y, SYN_V3_RES_Z = 16, 16, 42
 
 # Voxel offset kept for backward compatibility. Neuropil meshes are already aligned.
 VOXEL_OFFSET = (0, 0, 0)

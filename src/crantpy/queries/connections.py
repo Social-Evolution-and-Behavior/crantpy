@@ -64,7 +64,7 @@ import pandas as pd
 import numpy as np
 import navis
 from crantpy.utils.cave.load import get_cave_client
-from crantpy.utils.config import CRANT_VALID_DATASETS, SCALE_X, SCALE_Y, SCALE_Z
+from crantpy.utils.config import CRANT_VALID_DATASETS, SCALE_X, SCALE_Y, SCALE_Z, SYN_V3_RES_X, SYN_V3_RES_Y, SYN_V3_RES_Z
 from crantpy.utils.decorators import inject_dataset, parse_neuroncriteria
 from crantpy.utils.helpers import parse_root_ids, retry
 
@@ -203,14 +203,14 @@ def get_synapses(
 
     if materialization == "live":
         syn = retry(client.materialize.live_query)(
-            table="synapses_v2",
+            table="synapses_v3",
             timestamp=datetime.datetime.now(datetime.timezone.utc),
             filter_in_dict=filter_in_dict,
         )
     elif materialization == "latest":
         materialization = retry(client.materialize.most_recent_version)()
         syn = retry(client.materialize.query_table)(
-            table="synapses_v2",
+            table="synapses_v3",
             materialization_version=materialization,
             filter_in_dict=filter_in_dict,
         )
@@ -239,7 +239,10 @@ def get_synapses(
         # Remove connections involving background (ID 0)
         syn = syn[(syn["pre_pt_root_id"] != 0) & (syn["post_pt_root_id"] != 0)]
 
-    # Convert coordinates to pixels if requested
+    # Convert coordinates from v3 native units to nm (always, so callers get nm when return_pixels=False)
+    syn = _convert_v3_coordinates_to_nm(syn)
+
+    # Optionally convert nm coordinates to pixels
     if return_pixels:
         syn = _convert_coordinates_to_pixels(syn)
 
@@ -693,55 +696,56 @@ def get_synapse_counts(
     return counts
 
 
-def _convert_coordinates_to_pixels(synapses_df: pd.DataFrame) -> pd.DataFrame:
+def _convert_v3_coordinates_to_nm(synapses_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Convert synapse coordinates from nanometers to pixels.
+    Convert synapse coordinates from synapses_v3 native units to nanometers.
 
-    This function converts the coordinate columns in a synapses DataFrame
-    from nanometer units to pixel units using the dataset-specific scale factors.
-
-    Parameters
-    ----------
-    synapses_df : pd.DataFrame
-        DataFrame containing synapse data with coordinate columns.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with coordinates converted to pixels.
-
-    Notes
-    -----
-    The conversion uses scale factors defined in the config:
-    - SCALE_X, SCALE_Y = 8 nm/pixel (x and y dimensions)
-    - SCALE_Z = 42 nm/pixel (z dimension)
-
-    Coordinate columns that are converted (if present):
-    - ctr_pt_position (center point coordinates)
-    - pre_pt_position (presynaptic site coordinates)
-    - post_pt_position (postsynaptic site coordinates)
+    synapses_v3 stores positions at [16, 16, 42] nm per unit (x, y, z).
+    Multiply each component by SYN_V3_RES_X/Y/Z to obtain nanometer coordinates.
     """
     df = synapses_df.copy()
-
-    # Define coordinate columns to convert
     coord_columns = ["ctr_pt_position", "pre_pt_position", "post_pt_position"]
-
     for col in coord_columns:
         if col in df.columns:
-            # Convert coordinates from nm to pixels
-            # Each coordinate is a 3-element array [x, y, z]
             df[col] = df[col].apply(
                 lambda pos: (
                     [
-                        int(pos[0] // SCALE_X),  # x coordinate
-                        int(pos[1] // SCALE_Y),  # y coordinate
-                        int(pos[2] // SCALE_Z),  # z coordinate
+                        pos[0] * SYN_V3_RES_X,
+                        pos[1] * SYN_V3_RES_Y,
+                        pos[2] * SYN_V3_RES_Z,
                     ]
                     if pos is not None and len(pos) >= 3
                     else pos
                 )
             )
+    return df
 
+
+def _convert_coordinates_to_pixels(synapses_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert synapse coordinates from nanometers to pixels.
+
+    Expects coordinates already in nanometers (e.g. after _convert_v3_coordinates_to_nm).
+    Divides by SCALE_X/Y/Z (8, 8, 42 nm/pixel) to obtain pixel coordinates.
+
+    Coordinate columns converted (if present):
+    - ctr_pt_position, pre_pt_position, post_pt_position
+    """
+    df = synapses_df.copy()
+    coord_columns = ["ctr_pt_position", "pre_pt_position", "post_pt_position"]
+    for col in coord_columns:
+        if col in df.columns:
+            df[col] = df[col].apply(
+                lambda pos: (
+                    [
+                        int(pos[0] // SCALE_X),
+                        int(pos[1] // SCALE_Y),
+                        int(pos[2] // SCALE_Z),
+                    ]
+                    if pos is not None and len(pos) >= 3
+                    else pos
+                )
+            )
     return df
 
 
