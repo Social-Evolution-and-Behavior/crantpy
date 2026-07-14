@@ -72,10 +72,13 @@ if TYPE_CHECKING:
     from crantpy.queries.neurons import NeuronCriteria
 
 logger = logging.getLogger(__name__)
-
+SYNAPSE_TABLE = "synapses_v3"
+SYNAPSE_VIEW = "synapses_v3_clean"
 
 @parse_neuroncriteria()
 @inject_dataset(allowed=CRANT_VALID_DATASETS)
+
+
 def get_synapses(
     pre_ids: Optional[Union[int, str, List[Union[int, str]], "NeuronCriteria"]] = None,
     post_ids: Optional[Union[int, str, List[Union[int, str]], "NeuronCriteria"]] = None,
@@ -86,6 +89,7 @@ def get_synapses(
     clean: bool = True,
     update_ids: bool = True,
     dataset: Optional[str] = None,
+    use_view: bool = True,
 ) -> pd.DataFrame:
     """
     Fetch synapses for a given set of pre- and/or post-synaptic neuron IDs in CRANTb.
@@ -105,6 +109,8 @@ def get_synapses(
         Minimum size for filtering synapses. Currently we don't know what a good size is.
     materialization : str, default 'latest'
         Materialization version to use. 'latest' (default) or 'live' for live table.
+        Note: 'live' always queries the raw synapse table, since CAVE views are
+        tied to a specific materialized snapshot and are not queryable live.
     return_pixels : bool, default True
         Whether to convert coordinate columns from nanometers to pixels.
         If True (default), coordinates in ctr_pt_position, pre_pt_position, and
@@ -121,6 +127,11 @@ def get_synapses(
         Set to False only if you're certain all IDs are current (faster but risky).
     dataset : str, optional
         Dataset to use for the query.
+    use_view : bool, default True
+        Whether to query the pre-filtered "synapses_v3_clean" view (default) or
+        the full "synapses_v3" table. The view has the same coordinate resolution
+        as the raw table, so downstream conversion logic is unaffected either way.
+        Only applies when materialization='latest'; 'live' always uses the raw table.
 
     Returns
     -------
@@ -153,7 +164,6 @@ def get_synapses(
         if pre_ids is not None:
             parsed_pre_ids = [int(x) for x in parse_root_ids(pre_ids)]
             update_result = _update_ids(parsed_pre_ids, dataset=dataset, progress=False)
-            # Check for failed updates
             failed = update_result[update_result["confidence"] == 0]
             if len(failed) > 0:
                 logger.warning(
@@ -169,7 +179,6 @@ def get_synapses(
             update_result = _update_ids(
                 parsed_post_ids, dataset=dataset, progress=False
             )
-            # Check for failed updates
             failed = update_result[update_result["confidence"] == 0]
             if len(failed) > 0:
                 logger.warning(
@@ -180,7 +189,6 @@ def get_synapses(
         else:
             parsed_post_ids = None
     else:
-        # Don't update IDs
         if pre_ids is not None:
             parsed_pre_ids = [int(x) for x in parse_root_ids(pre_ids)]
         else:
@@ -202,18 +210,28 @@ def get_synapses(
         filter_in_dict["post_pt_root_id"] = parsed_post_ids
 
     if materialization == "live":
+        # Views are precomputed against a specific materialized snapshot, so
+        # live_query (which resolves at an arbitrary live timestamp) can only
+        # target the raw table, never a view.
         syn = retry(client.materialize.live_query)(
-            table="synapses_v3",
+            table=SYNAPSE_TABLE,
             timestamp=datetime.datetime.now(datetime.timezone.utc),
             filter_in_dict=filter_in_dict,
         )
     elif materialization == "latest":
         materialization = retry(client.materialize.most_recent_version)()
-        syn = retry(client.materialize.query_table)(
-            table="synapses_v3",
-            materialization_version=materialization,
-            filter_in_dict=filter_in_dict,
-        )
+        if use_view:
+            syn = retry(client.materialize.query_view)(
+                SYNAPSE_VIEW,
+                filter_in_dict=filter_in_dict,
+                materialization_version=materialization,
+            )
+        else:
+            syn = retry(client.materialize.query_table)(
+                table=SYNAPSE_TABLE,
+                materialization_version=materialization,
+                filter_in_dict=filter_in_dict,
+            )
     else:
         raise ValueError("materialization must be either 'live' or 'latest'")
 
@@ -224,19 +242,15 @@ def get_synapses(
         syn = syn[syn["size"] >= min_size]
 
     # Thresholding by connection counts between pre-post pairs
-    # Count synapses for each pre-post pair
     pair_counts = syn.groupby(["pre_pt_root_id", "post_pt_root_id"]).size()
     valid_pairs = pair_counts[pair_counts >= threshold].index
-    # Filter to keep only pairs that meet the threshold
     syn = syn.set_index(["pre_pt_root_id", "post_pt_root_id"])
     syn = syn.loc[syn.index.isin(valid_pairs)]
-    syn = syn.reset_index()  # This preserves the columns instead of dropping them
+    syn = syn.reset_index()
 
     # Clean up synapses if requested
     if clean:
-        # Remove autapses (self-connections)
         syn = syn[syn["pre_pt_root_id"] != syn["post_pt_root_id"]]
-        # Remove connections involving background (ID 0)
         syn = syn[(syn["pre_pt_root_id"] != 0) & (syn["post_pt_root_id"] != 0)]
 
     # Convert coordinates from v3 native units to nm (always, so callers get nm when return_pixels=False)
