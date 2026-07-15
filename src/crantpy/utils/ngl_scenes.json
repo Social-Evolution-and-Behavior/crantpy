@@ -130,7 +130,7 @@
     },
     "CRANT_AL_GLOMERULI_LAYER": {
         "type": "segmentation",
-        "source": "https://raw.githubusercontent.com/GiacomoGlotzer/crantb_glomeruli_mesh_repo/c4ee8270152bd4fc5bcb0984ffc52c1aa27ecaa6/AL_glomeruli_combined_final_v3/AL_glomeruli_combined_final_v3/|neuroglancer-precomputed:",
+        "source": "https://raw.githubusercontent.com/GiacomoGlotzer/crantb_glomeruli_mesh_repo/da23482ccf264fa20ac88c661f16e82ff53bcaa1/|neuroglancer-precomputed:",
         "tab": "rendering",
         "objectAlpha": 0.06,
         "segments": [],

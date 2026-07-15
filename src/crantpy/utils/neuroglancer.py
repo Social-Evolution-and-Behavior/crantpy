@@ -133,7 +133,7 @@ def construct_scene(
     segmentation: bool = True,
     brain_mesh: bool = True,
     neuropil_mesh: bool = True,
-    al_glomeruli: bool = False,
+    al_glomeruli: Union[bool, int, List[int]] = False,
     merge_biased_seg: bool = False,
     nuclei: bool = False,
     base_neuroglancer: bool = False,
@@ -152,8 +152,11 @@ def construct_scene(
         Whether to add the brain mesh layer.
     neuropil_mesh : bool, default True
         Whether to add the neuropil mesh layer.
-    al_glomeruli : bool, default False
-        Whether to add the antennal lobe glomeruli mesh layer.
+    al_glomeruli : bool, int, or list of int, default False
+        Whether to add the antennal lobe glomeruli mesh layer. Pass ``True`` to
+        add the layer with no glomeruli pre-selected, or a glomerulus ID (or
+        list of IDs) to add the layer with only those glomeruli selected and
+        visible.
     merge_biased_seg : bool, default False
         Whether to add the merge-biased segmentation layer (for proofreading).
     nuclei : bool, default False
@@ -231,7 +234,13 @@ def construct_scene(
 
     # Add antennal lobe glomeruli mesh
     if al_glomeruli:
-        scene["layers"].append(NGL_SCENES["CRANT_AL_GLOMERULI_LAYER"])
+        al_layer = copy.deepcopy(NGL_SCENES["CRANT_AL_GLOMERULI_LAYER"])
+        if not isinstance(al_glomeruli, bool):
+            glom_ids = make_iterable(al_glomeruli, force_type=str)
+            al_layer["segments"] = list(glom_ids)
+            al_layer["visible"] = True
+
+        scene["layers"].append(al_layer)
 
     return scene
 
@@ -247,6 +256,8 @@ def encode_url(
     seg_groups: Optional[Union[List, Dict]] = None,
     invis_segs: Optional[Union[int, List[int]]] = None,
     scene: Optional[Union[Dict, str]] = None,
+    neuropil_mesh: bool = True,
+    al_glomeruli: Union[bool, int, List[int]] = False,
     base_neuroglancer: bool = False,
     layout: Literal["3d", "xy-3d", "xy", "4panel"] = "xy-3d",
     open: bool = False,
@@ -287,6 +298,13 @@ def encode_url(
         Segment IDs to select but keep invisible.
     scene : dict or str, optional
         Existing scene to modify (as dict or URL string).
+    neuropil_mesh : bool, default True
+        Whether to add the neuropil mesh layer. Only used when `scene` is None.
+    al_glomeruli : bool, int, or list of int, default False
+        Whether to add the antennal lobe glomeruli mesh layer. Only used when
+        `scene` is None. Pass ``True`` to add the layer with no glomeruli
+        pre-selected, or a glomerulus ID (or list of IDs) to add the layer with
+        only those glomeruli selected and visible.
     base_neuroglancer : bool, default False
         Whether to use base neuroglancer instead of CAVE Spelunker.
     layout : str, default "xy-3d"
@@ -324,6 +342,13 @@ def encode_url(
     ...     skeletons=skeleton,
     ...     coords=[24899, 14436, 3739]
     ... )
+    >>>
+    >>> # Scene without the neuropil atlas, showing specific AL glomeruli instead
+    >>> url = encode_url(
+    ...     segments=[720575940621039145],
+    ...     neuropil_mesh=False,
+    ...     al_glomeruli=[143, 895],
+    ... )
     """
     # Handle scene input
     if isinstance(scene, str):
@@ -338,6 +363,8 @@ def encode_url(
             segmentation=True,
             image=True,
             brain_mesh=True,
+            neuropil_mesh=neuropil_mesh,
+            al_glomeruli=al_glomeruli,
             layout=layout,
             base_neuroglancer=base_neuroglancer,
         )
