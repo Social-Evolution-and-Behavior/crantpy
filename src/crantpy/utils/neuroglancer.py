@@ -138,6 +138,7 @@ def construct_scene(
     nuclei: bool = False,
     base_neuroglancer: bool = False,
     layout: Literal["3d", "xy-3d", "xy", "4panel"] = "xy-3d",
+    background_color: Optional[Union[str, Tuple, List]] = None,
     dataset: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Construct a basic neuroglancer scene for CRANT data.
@@ -165,6 +166,9 @@ def construct_scene(
         Whether to use base neuroglancer (affects segmentation layer format).
     layout : str, default "xy-3d"
         Layout to show. Options: "3d", "xy-3d", "xy", "4panel".
+    background_color : str, tuple, or list, optional
+        Background color of the 3D projection view (e.g. "black", "#000000").
+        If None, uses the default near-white background.
     dataset : str, optional
         Which dataset to use ("latest" or "sandbox"). If None, uses default.
 
@@ -186,6 +190,9 @@ def construct_scene(
     ...     merge_biased_seg=True,
     ...     nuclei=True
     ... )
+    >>>
+    >>> # Create a scene with a black background
+    >>> scene = construct_scene(background_color="black")
     """
     # Load scene templates
     NGL_SCENES = copy.deepcopy(_load_ngl_scenes())
@@ -198,6 +205,10 @@ def construct_scene(
         scene["layout"] = {"type": layout, "orthographicProjection": True}
     else:
         scene["layout"] = layout
+
+    # Update background color
+    if background_color is not None:
+        scene["projectionBackgroundColor"] = mcl.to_hex(background_color)
 
     # Add image layer
     if image:
@@ -258,6 +269,7 @@ def encode_url(
     scene: Optional[Union[Dict, str]] = None,
     neuropil_mesh: bool = True,
     al_glomeruli: Union[bool, int, List[int]] = False,
+    background_color: Optional[Union[str, Tuple, List]] = None,
     base_neuroglancer: bool = False,
     layout: Literal["3d", "xy-3d", "xy", "4panel"] = "xy-3d",
     open: bool = False,
@@ -305,6 +317,10 @@ def encode_url(
         `scene` is None. Pass ``True`` to add the layer with no glomeruli
         pre-selected, or a glomerulus ID (or list of IDs) to add the layer with
         only those glomeruli selected and visible.
+    background_color : str, tuple, or list, optional
+        Background color of the 3D projection view (e.g. "black", "#000000").
+        Only used when `scene` is None. If None, uses the default near-white
+        background.
     base_neuroglancer : bool, default False
         Whether to use base neuroglancer instead of CAVE Spelunker.
     layout : str, default "xy-3d"
@@ -349,6 +365,9 @@ def encode_url(
     ...     neuropil_mesh=False,
     ...     al_glomeruli=[143, 895],
     ... )
+    >>>
+    >>> # Scene with a black 3D background instead of the default near-white
+    >>> url = encode_url(segments=[720575940621039145], background_color="black")
     """
     # Handle scene input
     if isinstance(scene, str):
@@ -365,6 +384,7 @@ def encode_url(
             brain_mesh=True,
             neuropil_mesh=neuropil_mesh,
             al_glomeruli=al_glomeruli,
+            background_color=background_color,
             layout=layout,
             base_neuroglancer=base_neuroglancer,
         )
