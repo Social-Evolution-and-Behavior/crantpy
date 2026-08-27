@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backward compatibility for `parse_neuroncriteria` import from `crantpy.queries.neurons`
 - Offline unit tests for `crantpy.viz.skeletonize` (`tests/test_skeletonize.py`) covering the SWC dict-to-`TreeNeuron` conversion, soma detection, and `get_skeletons` deduplication (no CAVE credentials required)
 - `dataset` parameter on `skeletonize_neuron` and `skeletonize_neurons_parallel` so the on-demand mesh fetch uses the same dataset as the rest of the call
+- `crantpy.utils.ordering`: a functional toolkit for ordering neurons along a matrix axis, with `NeuronOrder`, `ColumnOrderRule`, `EB_COLUMN_ORDER`, `DEFAULT_ORDER` and `DEFAULT_WITHIN_TYPE_ORDER` re-exported from the top level
+  - The order objects are frozen snapshots: rules are materialized at construction, so a one-shot iterable or a later edit to the caller's list cannot change an existing order, and each order copies the default within-type table rather than sharing it. They pickle and deep-copy -- and so cross process boundaries -- as far as any custom callable rules do: a named function pickles, a lambda does not
+  - Rules must be ordered iterables: `set`/`frozenset` are rejected because their iteration order is not stable, while key views such as `other_matrix.type_boundaries.keys()` are accepted; `bytes`/`bytearray`/`memoryview` are rejected -- as whole rules, as sequence entries, and as `within` mapping keys -- because they could only silently never match
+  - A types sequence entry names one type exactly and unnamed types keep their generic order, so `order=list(other.type_boundaries)` reproduces another matrix's block order; to pull a whole family forward, pass a callable
+  - One-shot iterables (generators, iterators) are materialized once per call and shared, so passing one to both axes, or reusing it across every ROI of `from_synapses_by_neuropil`, behaves the same as passing a list
+  - An `order.within` mapping naming the same cell type twice (e.g. `1` and `"1"`) is rejected rather than letting one shadow the other
+  - A custom `ColumnOrderRule.pattern` is validated at construction: a plain string is compiled, and a bytes pattern or one without a capture group is rejected instead of failing in the middle of a matrix build. Its `order` / `label_columns` entries must be strings, since anything else could never rank a label
+  - `resolve_type_order`, `build_ordered_neurons` and `_order_types_by_size` normalize cell type names identically, and `build_ordered_neurons` / `_order_by_id` normalize the neuron ID column the same way, so the pipeline works on annotation frames that are not already stringified -- including integer labels and the whole-number floats pandas produces when such a column contains a NaN. The frame handed to a custom within-type sorter carries both columns normalized
+- `EB_COLUMN_LABELS` and `EB_COLUMNAR_CELL_TYPES` in `crantpy.utils.config`, moving the ellipsoid-body column order out of the matrix module as plain data
+- `NestedMatrix.typed_neurons` / `.untyped_neurons` and the four `source_`/`target_` equivalents on `DirectedNestedMatrix`, making the untyped tail of an axis visible instead of silently appended
 
 ### Changed
 
@@ -22,6 +32,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Old import location will be removed in a future version
 - `get_skeletons` now deduplicates `root_ids` before fetching and iterates fetches as they complete (`as_completed`), reporting the failing root id on error
 - `skeletonize_neuron` treats `save_to` as an output directory when given multiple root IDs, writing one `<root_id>.swc` per neuron instead of overwriting a single file
+- **BREAKING**: `type_order` on every `NestedMatrix` / `DirectedNestedMatrix` constructor is replaced by a single `order` argument, which now controls both the cell type blocks and the neurons inside them
+  - `order` takes a `NeuronOrder`, a `{"types": ..., "within": ...}` mapping, or a bare sequence of cell type labels as types-only shorthand
+  - `order.types` accepts `"label"`, `"size"`, a preferred sequence, or a callable; `order.within` accepts `"annotation"`, `"id"`, a `ColumnOrderRule`, a label sequence, a callable, or a `{cell_type: rule}` mapping. Within-type ordering was previously not configurable at all
+  - On `DirectedNestedMatrix`, `source_type_order` / `target_type_order` become `source_order` / `target_order`
+  - Migration: `type_order=X` becomes `order=X`; `source_type_order=X` becomes `source_order=X` (likewise for `target_`)
+  - A custom sorter that drops or invents neurons now raises, naming the missing/unexpected IDs, instead of corrupting the axis
+- **BREAKING**: the `source_neurons` / `target_neurons` *selectors* on `DirectedNestedMatrix` constructors are renamed `source_ids` / `target_ids`
+  - The `.source_neurons` / `.target_neurons` properties are unchanged and still hold the resolved axis order; the old names collided with them
+  - The `DirectedNestedMatrix(...)` constructor arguments keep their names, since they always meant the resolved order
+- The "could not resolve a ranked column label", "missing `cell_type`" and "missing from annotations" warnings now come from the `crantpy.utils.ordering` logger instead of `crantpy.queries.nested_connectivity_matrices`, following the code that emits them. Per-module logging configuration targeting the matrix module needs updating
+- The ellipsoid-body ordering rule for `"EPG/PEG"` is no longer applied from a private module table. It is the default value of `order.within`, and a `{cell_type: rule}` mapping is overlaid on it, so adding one type's rule keeps the built-in ones
+- Direct `NestedMatrix` / `DirectedNestedMatrix` construction rejects a type block whose neurons carry a null cell type; previously a block literally named `"None"` was accepted via `str(None)`
+- DataFrames derived from the read-only `matrix` views (arithmetic, filters, `concat`, `groupby`) are now plain, editable DataFrames; they previously refused mutation with a misleading `NestedMatrix data is immutable` error despite owning their own buffers
 
 ### Deprecated
 
@@ -29,6 +52,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Neuron annotations with a non-unique index (from `pd.concat` or `set_index(drop=False)`) are accepted by the nested-matrix constructors; they previously failed with an opaque pandas `cannot reindex on an axis with duplicate labels`
+- `from_synapses_by_neuropil` with `coordinates="pixels"` no longer crashes with a numpy `UFuncTypeError` when `voxel_offset` has a fractional component and the synapse positions are integers
+- The read-only `matrix` view could be mutated in place through extension-dtype (nullable/Arrow) frames, silently desynchronizing the cached type matrices; such frames are now exposed as defensive copies
 - Import error in tests for `parse_neuroncriteria` function
 - **Skeleton topology**: `_create_node_info_dict` now rebuilds parent pointers from undirected connectivity, fixing inverted roots and dropped branch-point children (meshparty emits `[child, parent]` edges) that produced fragmented skeletons in both the `pcg_skel` and precomputed-fetch paths
 - **Wrong-dataset meshes**: the skeletor fallback in `skeletonize_neuron` now fetches the CloudVolume for the client's dataset instead of always the default dataset

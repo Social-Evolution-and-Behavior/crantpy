@@ -1,65 +1,80 @@
 # -*- coding: utf-8 -*-
 """
-Functionality for creating and visualizing nested connectivity matrices.
+Nested connectivity matrices, organized and plotted by cell type.
 
-The NestedMatrix class enables the construction of hierarchical connectivity matrices
-that organize neurons by cell type, allowing for both neuron-level and type-level
-connectivity analysis. It supports visualization with customizable boundaries,
-filtering, and relative weight calculations. ROI-resolved workflows are available
-through ``NestedMatrix.from_synapses_by_neuropil()``, which returns one nested
-matrix per neuropil ROI.
+``NestedMatrix`` builds a square neuron-by-neuron matrix whose neurons are
+grouped into contiguous cell type blocks, exposing both neuron-level and
+type-level views. ``DirectedNestedMatrix`` is the rectangular counterpart with
+independent source and target axes, for cases like ``ER_input -> ER`` without
+``ER -> ER``. ``from_synapses_by_neuropil()`` returns one matrix per ROI.
 
-``DirectedNestedMatrix`` provides the rectangular counterpart for workflows that
-need independent source and target axes, such as analyzing ``ER_input -> ER``
-without also including ``ER -> ER``.
+Selecting vs. reading an axis
+-----------------------------
+``source_types`` / ``source_ids`` (and the ``target_`` pair) choose *which*
+neurons land on an axis. The resolved order is read back from
+``.source_neurons`` / ``.target_neurons``.
 
+Neuron order
+------------
+One ``order`` argument covers both levels -- ``order.types`` for the blocks,
+``order.within`` for the neurons inside them. See
+:class:`~crantpy.utils.ordering.NeuronOrder`.
+
+Typed and untyped neurons
+-------------------------
+Each axis holds its typed neurons first, in the blocks described by
+``type_boundaries``, then any neurons without a cell type. On ``NestedMatrix``
+read them back as ``typed_neurons`` / ``untyped_neurons``; on
+``DirectedNestedMatrix`` every one of these accessors is per-axis and takes a
+``source_`` or ``target_`` prefix. ``type_boundaries`` covers the typed group
+only.
 
 Examples
 --------
 >>> import pandas as pd
->>> from crantpy.queries.nested_connectivity_matrices import NestedMatrix
+>>> from crantpy.queries.nested_connectivity_matrices import (
+...     NestedMatrix, DirectedNestedMatrix
+... )
+>>> from crantpy.utils.ordering import NeuronOrder, DEFAULT_WITHIN_TYPE_ORDER
 >>>
->>> # Create from synapse dataframe
 >>> synapses_df = pd.DataFrame({
 ...     'pre_pt_root_id': [1, 1, 2, 2],
 ...     'post_pt_root_id': [3, 4, 3, 4],
-...     'Weight': [10, 20, 15, 25]
+...     'Weight': [10, 20, 15, 25],
+...     'ctr_pt_position': [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 5, 9]],
 ... })
 >>> annotations_df = pd.DataFrame({
 ...     'root_id': [1, 2, 3, 4],
-...     'cell_type': ['KC', 'KC', 'MB', 'MB']
+...     'cell_type': ['KC', 'KC', 'MB', 'MB'],
 ... })
 >>> matrix = NestedMatrix.from_synapses(
-...     synapses_df,
-...     annotations_df,
-...     weight_mode="column",
-...     weight_column="Weight",
+...     synapses_df, annotations_df, weight_mode="column", weight_column="Weight"
 ... )
->>>
->>> # Plot the matrix
 >>> matrix.plot(level="neuron")
 >>>
->>> relative = NestedMatrix.from_synapses(
-...     synapses_df,
-...     annotations_df,
-...     weight_mode="relative_outgoing",
-... )
->>> # Build ROI-specific matrices using neuropil meshes
+>>> # ROI-specific matrices from neuropil meshes
 >>> matrices = NestedMatrix.from_synapses_by_neuropil(
-...     synapses_df,
-...     annotations_df,
-...     neuropil_names=["protocerebral_bridge", "ellipsoid_body"],
-...     coordinates="nm",
+...     synapses_df, annotations_df, neuropil_names=["ellipsoid_body"]
 ... )
+>>>
+>>> # Ordering: bare sequence is types-only shorthand
+>>> NestedMatrix.from_synapses(synapses_df, annotations_df, order=["KC", "MB"])
+>>> NestedMatrix.from_synapses(
+...     synapses_df, annotations_df, order=NeuronOrder(types="size", within="id")
+... )
+>>>
+>>> # Directed: select the axes, read the order back
+>>> directed = DirectedNestedMatrix.from_synapses(
+...     synapses_df, annotations_df, source_types="KC", target_ids=[3, 4]
+... )
+>>> directed.source_neurons, directed.target_neurons
 """
 
 from __future__ import annotations
 
 import os
 import logging
-import re
 from collections.abc import Iterable
-from dataclasses import dataclass
 from functools import cached_property
 from types import MappingProxyType
 from typing import Any, Literal, Mapping, NamedTuple
@@ -72,11 +87,45 @@ from matplotlib.collections import LineCollection
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
 
-__all__ = ["NestedMatrix", "DirectedNestedMatrix", "NeuropilCollection", "All"]
+from crantpy.utils.ordering import (
+    DEFAULT_ORDER,
+    DEFAULT_WITHIN_TYPE_ORDER,
+    EB_COLUMN_ORDER,
+    AxisOrdering,
+    ColumnOrderRule,
+    NeuronOrder,
+    NeuronOrderLike,
+    TypeRule,
+    as_neuron_order,
+    WithinTypeOrder,
+    WithinTypeRule,
+    build_axis_ordering,
+    _find_duplicates,
+    _is_missing_scalar,
+    _normalize_id_values,
+    resolve_relevant_annotations,
+    _stringify_id_axis,
+    _stringify_id_value,
+)
+
+__all__ = [
+    "NestedMatrix",
+    "DirectedNestedMatrix",
+    "NeuropilCollection",
+    "All",
+    "ColumnOrderRule",
+    "NeuronOrder",
+    "NeuronOrderLike",
+    "EB_COLUMN_ORDER",
+    "DEFAULT_ORDER",
+    "DEFAULT_WITHIN_TYPE_ORDER",
+    "TypeRule",
+    "WithinTypeOrder",
+    "WithinTypeRule",
+]
 
 _ScalarSelector = str | bytes | int | float | bool | np.integer | np.floating | np.bool_
 _Selector = _ScalarSelector | Iterable[Any] | None
-_TypeOrder = list[Any] | tuple[Any, ...] | None
 
 _PURPLE_CMAP = LinearSegmentedColormap.from_list(
     "purple",
@@ -92,26 +141,6 @@ _DEFAULT_BOUNDARY_LINEWIDTHS = {
     "grid_dark": 2.5,
 }
 
-_COLUMN_ORDER = [
-    "R1",
-    "L8",
-    "R2",
-    "L7",
-    "R3",
-    "L6",
-    "R4",
-    "L5",
-    "R5",
-    "L4",
-    "R6",
-    "L3",
-    "R7",
-    "L2",
-    "R8",
-    "L1",
-]
-_COLUMN_ORDER_RANK = {label: rank for rank, label in enumerate(_COLUMN_ORDER)}
-_COLUMN_LABEL_PATTERN = re.compile(r"([LR]\d+)\s*$")
 _READ_ONLY_MESSAGE = "NestedMatrix data is immutable; call .copy() before editing"
 
 
@@ -136,7 +165,10 @@ class _ReadOnlyDataFrame(pd.DataFrame):
 
     @property
     def _constructor(self):
-        return _ReadOnlyDataFrame
+        # Derived results are plain frames: editable when they own their
+        # buffers, still protected by the numpy read-only flag when they share
+        # these. Only the directly returned view carries the friendly guard.
+        return pd.DataFrame
 
     @property
     def loc(self) -> _ReadOnlyIndexer:
@@ -189,31 +221,19 @@ def _set_dataframe_writeable(df: pd.DataFrame, writeable: bool) -> None:
 
 
 def _readonly_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    """Return a read-only DataFrame view over an immutable private DataFrame."""
+    """Return a read-only DataFrame view over an immutable private DataFrame.
+
+    Extension-dtype blocks (nullable, Arrow) have no read-only flag, so frames
+    holding any are exposed as a deep copy instead of a shared view.
+    """
 
     _set_dataframe_writeable(df, writeable=False)
-    view = _ReadOnlyDataFrame(df.copy(deep=False))
+    if any(not hasattr(array, "setflags") for array in df._mgr.arrays):
+        view = _ReadOnlyDataFrame(df.copy(deep=True))
+    else:
+        view = _ReadOnlyDataFrame(df.copy(deep=False))
     _set_dataframe_writeable(view, writeable=False)
     return view
-
-
-@dataclass(frozen=True)
-class _WithinTypeOrderRule:
-    """Declarative ordering rule for columnar neuron types."""
-
-    label_columns: tuple[str, ...]
-    rank: Mapping[str, int]
-    pattern: re.Pattern[str] = _COLUMN_LABEL_PATTERN
-
-
-_WITHIN_TYPE_ORDER_RULES: dict[str, _WithinTypeOrderRule] = {
-    "EPG/PEG": _WithinTypeOrderRule(
-        # cell_instance is a forward-compatible placeholder if explicit
-        # instance annotations are added; current annotations fall back to cell_subtype.
-        label_columns=("cell_instance", "cell_subtype"),
-        rank=_COLUMN_ORDER_RANK,
-    )
-}
 
 
 class _AllSelector:
@@ -245,31 +265,12 @@ class _AllSelector:
 All = _AllSelector()
 
 
-class _ResolvedAnnotations(NamedTuple):
-    """Result of resolving neuron annotations against matrix IDs."""
-
-    relevant: pd.DataFrame
-    typed: pd.DataFrame
-    id_map: dict[str, Any]
-    untyped_ids: list[str]
-    missing_ids: list[str]
-
-
 class _PlotData(NamedTuple):
     """Data prepared for a single plot call."""
 
     matrix: pd.DataFrame
     boundaries: dict[str, tuple[int, int]]
     labels: list[str]
-
-
-@dataclass(frozen=True)
-class _AxisOrdering:
-    """Ordered neurons and type metadata for one matrix axis."""
-
-    ordered_neurons: tuple[str, ...]
-    type_boundaries: dict[str, tuple[int, int]]
-    neuron_to_type: dict[str, Any]
 
 
 class _DirectedPlotData(NamedTuple):
@@ -334,31 +335,27 @@ class NeuropilCollection(dict):
 
 
 class NestedMatrix:
-    """A nested connectivity matrix organized by cell type.
+    """A square connectivity matrix with neurons grouped into cell type blocks.
 
-    This class provides functionality to create, manipulate, and visualize
-    connectivity matrices where neurons are grouped by their cell type annotations.
-    The matrix maintains both neuron-level and type-level connectivity information,
-    allowing for hierarchical visualization of connectivity patterns.
+    Immutable after construction: public attributes are read-only views, so
+    copy before editing. Derived type matrices are cached.
 
-    .. note::
-
-       Instances are immutable after construction. Public attributes expose
-       read-only views; use ``.copy()``, ``dict(...)``, or ``list(...)`` when
-       mutable data is needed. Derived type matrices are cached against the
-       immutable private state.
+    ``ordered_neurons`` is ``typed_neurons + untyped_neurons``, and only the
+    typed prefix is covered by ``type_boundaries`` and ``neuron_to_type``.
 
     Attributes
     ----------
     matrix : pd.DataFrame
-        Full neuron-to-neuron connectivity matrix with neurons ordered by type.
+        Neuron-by-neuron connectivity, ordered by type.
     type_boundaries : Mapping[str, tuple[int, int]]
-        Dictionary mapping cell type names to (start, end) index tuples
-        indicating where each type appears in the matrix.
+        Cell type -> half-open ``(start, end)`` slice into ``ordered_neurons``.
+        Contiguous from 0, covering ``typed_neurons`` only.
     ordered_neurons : tuple[str, ...]
-        Tuple of neuron IDs in the order they appear in the matrix.
+        Neuron IDs in matrix order.
+    typed_neurons, untyped_neurons : tuple[str, ...]
+        The typed prefix and the untyped tail of ``ordered_neurons``.
     neuron_to_type : Mapping[str, Any]
-        Dictionary mapping neuron IDs to their cell type annotations.
+        Neuron ID -> cell type, for ``typed_neurons`` only.
 
     Examples
     --------
@@ -378,23 +375,21 @@ class NestedMatrix:
         neuron_to_type: Mapping[Any, Any],
     ):
         matrix = matrix.copy()
-        matrix.index = self._stringify_id_axis(matrix.index, "matrix index")
-        matrix.columns = self._stringify_id_axis(matrix.columns, "matrix columns")
-        ordered_neurons = list(
-            self._stringify_id_axis(ordered_neurons, "ordered_neurons")
-        )
+        matrix.index = _stringify_id_axis(matrix.index, "matrix index")
+        matrix.columns = _stringify_id_axis(matrix.columns, "matrix columns")
+        ordered_neurons = list(_stringify_id_axis(ordered_neurons, "ordered_neurons"))
         type_boundaries = {
-            self._stringify_id_value(name): (int(start), int(end))
+            _stringify_id_value(name): (int(start), int(end))
             for name, (start, end) in type_boundaries.items()
         }
         neuron_to_type = {
-            self._stringify_id_value(neuron): (
+            _stringify_id_value(neuron): (
                 cell_type
-                if self._is_missing_scalar(cell_type)
-                else self._stringify_id_value(cell_type)
+                if _is_missing_scalar(cell_type)
+                else _stringify_id_value(cell_type)
             )
             for neuron, cell_type in neuron_to_type.items()
-            if not self._is_missing_scalar(neuron)
+            if not _is_missing_scalar(neuron)
         }
 
         self._validate_invariants(
@@ -422,13 +417,33 @@ class NestedMatrix:
 
     @property
     def ordered_neurons(self) -> tuple[str, ...]:
-        """Read-only neuron order used by both matrix axes."""
+        """Neuron order for both axes: ``typed_neurons + untyped_neurons``."""
         return self._ordered_neurons
 
     @property
+    def typed_neurons(self) -> tuple[str, ...]:
+        """Neurons carrying a cell type -- exactly those inside ``type_boundaries``."""
+        return tuple(n for n in self._ordered_neurons if self._has_type(n))
+
+    @property
+    def untyped_neurons(self) -> tuple[str, ...]:
+        """Neurons with no cell type, appended after every block.
+
+        Present in ``matrix`` but excluded from type-level aggregation. Ordered
+        as neurons whose annotation row has a null cell type -- which survive
+        the default ``annotation_scope="annotated_only"`` -- then, under
+        ``annotation_scope="all"``, neurons with no annotation row at all, each
+        group sorted by neuron ID as a string (so ``"30"`` precedes ``"7"``).
+        """
+        return tuple(n for n in self._ordered_neurons if not self._has_type(n))
+
+    @property
     def neuron_to_type(self) -> Mapping[str, Any]:
-        """Read-only mapping from neuron ID to cell type."""
+        """Read-only neuron ID -> cell type, for ``typed_neurons`` only."""
         return MappingProxyType(self._neuron_to_type)
+
+    def _has_type(self, neuron: str) -> bool:
+        return not _is_missing_scalar(self._neuron_to_type.get(neuron))
 
     def __repr__(self) -> str:
         n_neurons = len(self._ordered_neurons)
@@ -453,7 +468,7 @@ class NestedMatrix:
 
         matrix_index = list(matrix.index)
         matrix_columns = list(matrix.columns)
-        duplicate_neurons = NestedMatrix._find_duplicates(ordered_neurons)
+        duplicate_neurons = _find_duplicates(ordered_neurons)
         if duplicate_neurons:
             raise ValueError(
                 "ordered_neurons contains duplicate neuron IDs after normalization: "
@@ -488,7 +503,8 @@ class NestedMatrix:
             mismatched = [
                 neuron
                 for neuron in boundary_neurons
-                if str(neuron_to_type.get(neuron)) != name
+                if _is_missing_scalar(neuron_to_type.get(neuron))
+                or str(neuron_to_type.get(neuron)) != name
             ]
             if mismatched:
                 raise ValueError(
@@ -540,18 +556,12 @@ class NestedMatrix:
         neuron_annotations: pd.DataFrame,
         cell_type_column: str = "cell_type",
         neuron_id_column: str = "root_id",
-        type_order: _TypeOrder = None,
+        order: NeuronOrderLike = None,
         annotation_scope: Literal["annotated_only", "all"] = "annotated_only",
     ) -> NestedMatrix:
-        """Create a NestedMatrix from a connectivity dataframe that you can get with cp.get_connectivity().
+        """Create a NestedMatrix from an adjacency matrix or edge list.
 
-        Constructs a nested connectivity matrix from an adjacency or edge-list
-        dataframe, organizing neurons by their cell type annotations. Type
-        blocks follow ``type_order`` when provided, otherwise a generic
-        label-aware sort is used. Within each type block, neurons preserve the
-        resolved annotation row order, except ``"EPG/PEG"`` rows which use the
-        EB column order encoded in ``cell_instance`` or ``cell_subtype`` when
-        available.
+        Accepts the output of ``cp.get_connectivity()``.
 
         Parameters
         ----------
@@ -564,26 +574,21 @@ class NestedMatrix:
               where each row is already aggregated to a unique source-target pair,
               such as the output of ``cp.get_connectivity()``
         neuron_annotations : pd.DataFrame
-            DataFrame containing neuron annotations with at least the neuron ID
-            and cell type columns.
-        cell_type_column : str, default "cell_type"
-            Name of the column in neuron_annotations containing cell type labels.
-        neuron_id_column : str, default "root_id"
-            Name of the column in neuron_annotations containing neuron IDs.
-        type_order : list or tuple, optional
-            Preferred order for cell types. Values are normalized like annotation
-            labels. Types will be sorted alphabetically if not provided, with
-            numeric suffixes handled intelligently.
+            Neuron annotations; needs at least the ID and cell type columns.
+        cell_type_column, neuron_id_column : str
+            Annotation column names.
+        order : NeuronOrder, mapping, sequence or None, optional
+            Neuron order for both levels; see
+            :class:`~crantpy.utils.ordering.NeuronOrder`. A bare sequence is
+            types-only shorthand. Defaults to
+            :data:`~crantpy.utils.ordering.DEFAULT_ORDER`.
         annotation_scope : {"annotated_only", "all"}, default "annotated_only"
-            Controls which neurons are retained. ``"annotated_only"`` keeps
-            only neurons present in ``neuron_annotations``. ``"all"`` keeps
-            all neurons from the connectivity input, appending neurons missing
-            annotations after the typed blocks.
+            ``"annotated_only"`` keeps only annotated neurons; ``"all"`` keeps
+            every neuron, appending the untyped ones after the typed blocks.
 
         Returns
         -------
         NestedMatrix
-            A new NestedMatrix instance with neurons organized by type.
 
         Examples
         --------
@@ -608,14 +613,8 @@ class NestedMatrix:
             neuron_id_column,
             annotation_scope,
         )
-        if type_order:
-            logger.info(
-                "Requested type order (%d entries): %s",
-                len(type_order),
-                type_order,
-            )
-        else:
-            logger.info("No explicit type order provided; inferring from annotations")
+        order = as_neuron_order(order)
+        logger.info("Requested neuron order: %s", order)
 
         adjacency = cls._coerce_to_adjacency(connections_df)
         adjacency = cls._apply_annotation_scope_to_adjacency(
@@ -635,7 +634,7 @@ class NestedMatrix:
             annotations=neuron_annotations,
             id_col=neuron_id_column,
             type_col=cell_type_column,
-            type_order=type_order,
+            order=order,
         )
 
         if not ordered_neurons:
@@ -675,64 +674,46 @@ class NestedMatrix:
         weight_column: str | None = None,
         cell_type_column: str = "cell_type",
         neuron_id_column: str = "root_id",
-        type_order: _TypeOrder = None,
+        order: NeuronOrderLike = None,
         annotation_scope: Literal["annotated_only", "all"] = "annotated_only",
     ) -> NestedMatrix:
         """Create a NestedMatrix from a synapse dataframe.
 
-        Aggregates synapse-level data into a connectivity matrix and organizes
-        neurons by cell type. This constructor returns a single matrix over the
-        supplied synapses. For ROI-specific outputs, pre-filter ``synapses_df``
-        to the ROI of interest or use ``from_synapses_by_neuropil()`` to build
-        one matrix per neuropil ROI. Ordering semantics match
-        ``from_connectivity()``: ``type_order`` controls type blocks, and
-        neurons within each type preserve resolved annotation row order except
-        for ``"EPG/PEG"`` rows, which use EB columns from ``cell_instance`` or
-        ``cell_subtype`` when available.
+        Returns one matrix over all supplied synapses. For ROI-specific
+        output, pre-filter ``synapses_df`` or use
+        ``from_synapses_by_neuropil()``.
 
         Parameters
         ----------
         synapses_df : pd.DataFrame
-            DataFrame containing synapse data with pre- and post-synaptic
-            neuron IDs. Must contain columns for presynaptic and postsynaptic IDs.
+            Synapse rows, with pre- and postsynaptic ID columns.
         neuron_annotations : pd.DataFrame
-            DataFrame containing neuron annotations with at least the neuron ID
-            and cell type columns.
-        pre_col : str, default "pre_pt_root_id"
-            Name of the column in synapses_df containing presynaptic neuron IDs.
-        post_col : str, default "post_pt_root_id"
-            Name of the column in synapses_df containing postsynaptic neuron IDs.
+            Neuron annotations; needs at least the ID and cell type columns.
+        pre_col, post_col : str
+            Pre- and postsynaptic ID columns in ``synapses_df``.
         weight_mode : {"relative_outgoing", "relative_incoming", "count", "column"}, default "relative_outgoing"
-            How to derive edge weights from synapse rows.
-            ``"relative_outgoing"`` counts synapses per pair and normalizes each
-            presynaptic neuron's outgoing row to sum to 1.
-            ``"relative_incoming"`` counts synapses per pair and normalizes each
-            postsynaptic neuron's incoming column to sum to 1.
-            ``"count"`` uses raw synapse counts per pair.
-            ``"column"`` sums the values from ``weight_column`` per pair.
+            Edge weights per pre/post pair: raw synapse ``"count"``, that count
+            normalized so each row (``"relative_outgoing"``) or column
+            (``"relative_incoming"``) sums to 1, or the sum of
+            ``weight_column`` (``"column"``).
         weight_column : str | None, optional
-            Column to sum when ``weight_mode="column"``. Must be provided for
-            column-based weighting and omitted otherwise.
-        cell_type_column : str, default "cell_type"
-            Name of the column in neuron_annotations containing cell type labels.
-        neuron_id_column : str, default "root_id"
-            Name of the column in neuron_annotations containing neuron IDs.
-        type_order : list or tuple, optional
-            Preferred order for cell types. Values are normalized like annotation
-            labels. Types will be sorted alphabetically if not provided, with
-            numeric suffixes handled intelligently.
+            Column to sum. Required for ``weight_mode="column"``, rejected
+            otherwise.
+        cell_type_column, neuron_id_column : str
+            Annotation column names.
+        order : NeuronOrder, mapping, sequence or None, optional
+            Neuron order for both levels; see
+            :class:`~crantpy.utils.ordering.NeuronOrder`. A bare sequence is
+            types-only shorthand. Defaults to
+            :data:`~crantpy.utils.ordering.DEFAULT_ORDER`.
         annotation_scope : {"annotated_only", "all"}, default "annotated_only"
-            Controls which synapse rows contribute to the matrix.
-            ``"annotated_only"`` keeps only rows whose pre/post neurons are both
-            present in ``neuron_annotations``.
-            ``"all"`` keeps all rows and appends missing/untyped neurons after
-            the typed blocks.
+            ``"annotated_only"`` keeps only rows whose pre and post neurons are
+            both annotated; ``"all"`` keeps every row and appends the untyped
+            neurons after the typed blocks.
 
         Returns
         -------
         NestedMatrix
-            A new NestedMatrix instance with neurons organized by type across
-            the supplied synapses.
 
         Examples
         --------
@@ -762,6 +743,7 @@ class NestedMatrix:
         logger = logging.getLogger(__name__)
         cls._validate_weighting(weight_mode, weight_column)
         cls._validate_annotation_scope(annotation_scope)
+        order = as_neuron_order(order)
         logger.info(
             "Building NestedMatrix from synapses: synapse_rows=%d, "
             "annotation_rows=%d, pre_col=%s, post_col=%s, weight_mode=%s, "
@@ -800,7 +782,7 @@ class NestedMatrix:
             neuron_annotations=neuron_annotations,
             cell_type_column=cell_type_column,
             neuron_id_column=neuron_id_column,
-            type_order=type_order,
+            order=order,
             annotation_scope=annotation_scope,
         )
         logger.info(
@@ -825,77 +807,60 @@ class NestedMatrix:
         weight_column: str | None = None,
         cell_type_column: str = "cell_type",
         neuron_id_column: str = "root_id",
-        type_order: _TypeOrder = None,
+        order: NeuronOrderLike = None,
         annotation_scope: Literal["annotated_only", "all"] = "annotated_only",
         include_other: bool = True,
         voxel_offset: tuple[float, float, float] | None = None,
     ) -> "NeuropilCollection":
         """Create NestedMatrix instances per neuropil using mesh containment.
 
-        Assigns each synapse to one or more neuropil ROIs by testing its
-        spatial coordinates against neuropil meshes, then builds a separate
-        NestedMatrix for each neuropil ROI that contains synapses. Weighting,
-        annotation scope, and ordering semantics match ``from_synapses()``
-        within each ROI-specific subset.
+        Assigns each synapse to ROIs by testing its coordinates against the
+        neuropil meshes, then builds one matrix per ROI that holds synapses.
+        All other arguments match ``from_synapses()`` and apply independently
+        inside each ROI.
 
         Parameters
         ----------
         synapses_df : pd.DataFrame
-            DataFrame containing synapse data. Must include the position column
-            and pre/post neuron ID columns.
+            Synapse rows, with the position and pre/post ID columns.
         neuron_annotations : pd.DataFrame
-            DataFrame with neuron ID and cell type columns.
+            Neuron annotations; needs at least the ID and cell type columns.
         neuropil_names : list[str] | None, optional
-            Neuropil mesh names to test against (values from NEUROPIL_MESH_DICT).
-            If None, all available neuropils are used.
-        coordinates : str, default "nm"
-            Coordinate system of the position column. ``"nm"`` for nanometers
-            (meshes are in nm space), ``"pixels"`` to auto-convert using scale
-            factors.
+            Mesh names from ``NEUROPIL_MESH_DICT``; ``None`` uses all of them.
+        coordinates : {"nm", "pixels"}, default "nm"
+            Units of ``position_column``. Meshes are in nm; ``"pixels"`` is
+            converted using the configured scale factors.
         position_column : str, default "ctr_pt_position"
-            Column containing [x, y, z] coordinates for containment testing.
-        pre_col : str, default "pre_pt_root_id"
-            Column with presynaptic neuron IDs.
-        post_col : str, default "post_pt_root_id"
-            Column with postsynaptic neuron IDs.
-        weight_mode : {"relative_outgoing", "relative_incoming", "count", "column"}, default "relative_outgoing"
-            How to derive edge weights from synapse rows within each neuropil
-            subset. Semantics match ``from_synapses()``.
-        weight_column : str | None, optional
-            Column to sum when ``weight_mode="column"``.
-        cell_type_column : str, default "cell_type"
-            Column in neuron_annotations with cell type labels.
-        neuron_id_column : str, default "root_id"
-            Column in neuron_annotations with neuron IDs.
-        type_order : list or tuple, optional
-            Preferred order for cell types in each matrix. Values are normalized
-            like annotation labels.
+            Column holding ``[x, y, z]`` coordinates.
+        pre_col, post_col : str
+            Pre- and postsynaptic ID columns in ``synapses_df``.
+        weight_mode, weight_column
+            As in ``from_synapses()``, applied within each ROI subset.
+        cell_type_column, neuron_id_column : str
+            Annotation column names.
+        order : NeuronOrder, mapping, sequence or None, optional
+            Neuron order for both levels; see
+            :class:`~crantpy.utils.ordering.NeuronOrder`. A bare sequence is
+            types-only shorthand. Defaults to
+            :data:`~crantpy.utils.ordering.DEFAULT_ORDER`.
         annotation_scope : {"annotated_only", "all"}, default "annotated_only"
-            Controls which synapse rows contribute to the ROI-specific matrices.
-            ``"annotated_only"`` keeps only rows whose pre/post neurons are both
-            present in ``neuron_annotations`` before ROI assignment.
-            ``"all"`` keeps all rows and appends missing/untyped neurons after
-            the typed blocks within each ROI matrix.
+            As in ``from_synapses()``, applied before ROI assignment.
         include_other : bool, default True
-            If True, synapses not inside any neuropil mesh are collected
-            under the ``"other"`` key.
+            Collect synapses outside every mesh under an ``"other"`` key.
         voxel_offset : tuple[float, float, float] | None, optional
-            Offset to add to pixel coordinates before converting to nm,
-            to align synapse positions with the neuropil mesh coordinate
-            space. Only applied when ``coordinates="pixels"``.
+            Added to pixel coordinates before nm conversion, to align them with
+            the meshes. Only used when ``coordinates="pixels"``.
 
         Returns
         -------
         NeuropilCollection
-            Dict-like collection mapping neuropil ROI name (and optionally
-            ``"other"``) to a NestedMatrix built from the synapses in that
-            region. Supports ``collection.plot(name, **kwargs)`` shortcut
-            and attribute access (e.g., ``collection.ellipsoid_body``).
+            Dict-like, mapping ROI name (plus ``"other"``) to a NestedMatrix.
+            Supports ``collection.plot(name, ...)`` and attribute access.
 
         Raises
         ------
         ValueError
-            If an invalid neuropil name or coordinates value is provided.
+            On an unknown neuropil name or ``coordinates`` value.
 
         Examples
         --------
@@ -924,6 +889,7 @@ class NestedMatrix:
         logger = logging.getLogger(__name__)
         cls._validate_weighting(weight_mode, weight_column)
         cls._validate_annotation_scope(annotation_scope)
+        order = as_neuron_order(order)
         logger.info(
             "Building NestedMatrix collection by neuropil: synapse_rows=%d, "
             "annotation_rows=%d, coordinates=%s, include_other=%s, "
@@ -975,6 +941,8 @@ class NestedMatrix:
         positions = np.vstack(synapses_df[position_column].values)
 
         if coordinates == "pixels":
+            # int positions would reject a float offset and truncate float scales
+            positions = positions.astype(float)
             if voxel_offset is not None:
                 positions += np.array(voxel_offset)
             positions[:, 0] = positions[:, 0] * SCALE_X
@@ -985,6 +953,8 @@ class NestedMatrix:
                 f"coordinates must be 'nm' or 'pixels', got {coordinates!r}"
             )
 
+        # TODO: dedupe this mask pipeline across both classes and batch
+        # mesh.contains (queries.neuropils._batched_mesh_contains) to avoid OOM.
         neuropil_masks: dict[str, np.ndarray] = {}
         for name in neuropil_names:
             logger.info("Loading neuropil mesh: %s", name)
@@ -1031,7 +1001,7 @@ class NestedMatrix:
                 weight_column=weight_column,
                 cell_type_column=cell_type_column,
                 neuron_id_column=neuron_id_column,
-                type_order=type_order,
+                order=order,
                 annotation_scope=annotation_scope,
             )
             logger.info(
@@ -1109,75 +1079,19 @@ class NestedMatrix:
         neuron_annotations: pd.DataFrame, neuron_id_column: str
     ) -> set[str]:
         return set(
-            neuron_annotations[neuron_id_column]
-            .dropna()
-            .map(NestedMatrix._stringify_id_value)
+            neuron_annotations[neuron_id_column].dropna().map(_stringify_id_value)
         )
-
-    @staticmethod
-    def _is_missing_scalar(value: Any) -> bool:
-        missing = pd.isna(value)
-        if isinstance(missing, (bool, np.bool_)):
-            return bool(missing)
-        return False
-
-    @staticmethod
-    def _stringify_id_value(value: Any) -> str:
-        if isinstance(value, (bool, np.bool_)):
-            return str(value)
-        if isinstance(value, (int, np.integer)):
-            return str(int(value))
-        if isinstance(value, (float, np.floating)):
-            value_float = float(value)
-            if np.isfinite(value_float) and value_float.is_integer():
-                return str(int(value_float))
-        return str(value)
-
-    @staticmethod
-    def _stringify_id_axis(values: Iterable[Any], axis_name: str) -> pd.Index:
-        ids: list[str] = []
-        for value in values:
-            if NestedMatrix._is_missing_scalar(value):
-                raise ValueError(f"{axis_name} contains null neuron IDs")
-            ids.append(NestedMatrix._stringify_id_value(value))
-        return pd.Index(ids)
-
-    @staticmethod
-    def _normalize_id_values(values: Iterable[Any]) -> list[str]:
-        return [
-            NestedMatrix._stringify_id_value(value)
-            for value in values
-            if not NestedMatrix._is_missing_scalar(value)
-        ]
-
-    @staticmethod
-    def _find_duplicates(values: Iterable[str]) -> list[str]:
-        seen: set[str] = set()
-        duplicates: list[str] = []
-        duplicate_seen: set[str] = set()
-        for value in values:
-            if value in seen and value not in duplicate_seen:
-                duplicates.append(value)
-                duplicate_seen.add(value)
-            seen.add(value)
-        return duplicates
 
     @staticmethod
     def _normalize_adjacency_axes(adjacency: pd.DataFrame) -> pd.DataFrame:
         adjacency = adjacency.copy()
-        row_keep = [
-            not NestedMatrix._is_missing_scalar(value) for value in adjacency.index
-        ]
-        col_keep = [
-            not NestedMatrix._is_missing_scalar(value) for value in adjacency.columns
-        ]
+        row_keep = [not _is_missing_scalar(value) for value in adjacency.index]
+        col_keep = [not _is_missing_scalar(value) for value in adjacency.columns]
         if not all(row_keep) or not all(col_keep):
             adjacency = adjacency.loc[row_keep, col_keep].copy()
 
-        adjacency.index = NestedMatrix._stringify_id_axis(
-            adjacency.index, "connectivity row index"
-        )
-        adjacency.columns = NestedMatrix._stringify_id_axis(
+        adjacency.index = _stringify_id_axis(adjacency.index, "connectivity row index")
+        adjacency.columns = _stringify_id_axis(
             adjacency.columns, "connectivity columns"
         )
 
@@ -1217,8 +1131,8 @@ class NestedMatrix:
     ) -> pd.DataFrame:
         normalized = cls._drop_null_edge_ids(synapses_df, pre_col, post_col)
         if not normalized.empty:
-            normalized[pre_col] = normalized[pre_col].map(cls._stringify_id_value)
-            normalized[post_col] = normalized[post_col].map(cls._stringify_id_value)
+            normalized[pre_col] = normalized[pre_col].map(_stringify_id_value)
+            normalized[post_col] = normalized[post_col].map(_stringify_id_value)
         return normalized
 
     @staticmethod
@@ -1264,13 +1178,13 @@ class NestedMatrix:
     ) -> pd.DataFrame:
         annotation_ids = cls._annotation_id_set(neuron_annotations, neuron_id_column)
         valid_pre = synapses_df[pre_col].map(
-            lambda value: not cls._is_missing_scalar(value)
+            lambda value: not _is_missing_scalar(value)
         )
         valid_post = synapses_df[post_col].map(
-            lambda value: not cls._is_missing_scalar(value)
+            lambda value: not _is_missing_scalar(value)
         )
-        pre_ids = synapses_df[pre_col].map(cls._stringify_id_value)
-        post_ids = synapses_df[post_col].map(cls._stringify_id_value)
+        pre_ids = synapses_df[pre_col].map(_stringify_id_value)
+        post_ids = synapses_df[post_col].map(_stringify_id_value)
         keep_mask = (
             valid_pre
             & valid_post
@@ -1353,6 +1267,17 @@ class NestedMatrix:
         )
 
     @staticmethod
+    def _materialize_selector(values: _Selector) -> _Selector:
+        """Freeze a one-shot selector so it survives reuse across axes and ROIs."""
+        if (
+            values is None
+            or isinstance(values, (str, bytes))
+            or not isinstance(values, Iterable)
+        ):
+            return values
+        return tuple(values)
+
+    @staticmethod
     def _selector_to_str_set(
         values: _Selector,
     ) -> set[str] | None:
@@ -1360,14 +1285,14 @@ class NestedMatrix:
             return None
         if isinstance(values, (str, bytes)) or not isinstance(values, Iterable):
             return (
-                {NestedMatrix._stringify_id_value(values)}
-                if not NestedMatrix._is_missing_scalar(values)
+                {_stringify_id_value(values)}
+                if not _is_missing_scalar(values)
                 else set()
             )
         return {
-            NestedMatrix._stringify_id_value(value)
+            _stringify_id_value(value)
             for value in values
-            if not NestedMatrix._is_missing_scalar(value)
+            if not _is_missing_scalar(value)
         }
 
     @staticmethod
@@ -1387,7 +1312,9 @@ class NestedMatrix:
 
         axis_ids: set[str] = set()
         if selected_type_set is not None:
-            resolved = NestedMatrix._resolve_relevant_annotations(
+            # TODO: reuse this ResolvedAnnotations in build_axis_ordering
+            # instead of re-resolving the same frame per axis.
+            resolved = resolve_relevant_annotations(
                 matrix_ids=available_ids,
                 annotations=annotations,
                 id_col=id_col,
@@ -1396,9 +1323,7 @@ class NestedMatrix:
             resolved_types = resolved.typed[type_col].astype(str)
             type_mask = resolved_types.isin(selected_type_set)
             axis_ids.update(
-                resolved.typed.loc[type_mask, id_col].map(
-                    NestedMatrix._stringify_id_value
-                )
+                resolved.typed.loc[type_mask, id_col].map(_stringify_id_value)
             )
 
         if selected_neuron_set is not None:
@@ -1406,86 +1331,11 @@ class NestedMatrix:
 
         return axis_ids
 
-    @staticmethod
-    def _build_axis_ordering(
-        axis_ids: set[str],
-        annotations: pd.DataFrame,
-        id_col: str,
-        type_col: str,
-        type_order: _TypeOrder,
-    ) -> _AxisOrdering:
-        resolved = NestedMatrix._resolve_relevant_annotations(
-            matrix_ids=axis_ids,
-            annotations=annotations,
-            id_col=id_col,
-            type_col=type_col,
-        )
-        sorted_types = NestedMatrix._resolve_type_order(
-            typed_annotations=resolved.typed,
-            type_col=type_col,
-            preferred_type_order=type_order,
-        )
-        ordered_neurons, boundaries = NestedMatrix._build_ordered_neurons(
-            typed_annotations=resolved.typed,
-            type_col=type_col,
-            sorted_types=sorted_types,
-            neuron_id_column=id_col,
-        )
-        if resolved.untyped_ids:
-            logging.getLogger(__name__).warning(
-                "%d neuron(s) present in the matrix axis have annotation rows "
-                "but missing %s; they will appear in the matrix but are excluded "
-                "from type-level analysis: %s",
-                len(resolved.untyped_ids),
-                type_col,
-                (
-                    resolved.untyped_ids[:10]
-                    if len(resolved.untyped_ids) > 10
-                    else resolved.untyped_ids
-                ),
-            )
-
-        if resolved.missing_ids:
-            logging.getLogger(__name__).warning(
-                "%d neuron(s) present in the matrix axis but missing from "
-                "annotations; they will appear in the matrix but are excluded "
-                "from type-level analysis: %s",
-                len(resolved.missing_ids),
-                (
-                    resolved.missing_ids[:10]
-                    if len(resolved.missing_ids) > 10
-                    else resolved.missing_ids
-                ),
-            )
-
-        ordered_neurons.extend(resolved.untyped_ids)
-        ordered_neurons.extend(resolved.missing_ids)
-        return _AxisOrdering(
-            ordered_neurons=tuple(ordered_neurons),
-            type_boundaries=boundaries,
-            neuron_to_type=resolved.id_map,
-        )
-
     @property
     def sum_type_matrix(self) -> pd.DataFrame:
-        """Calculate the cell type-level connectivity matrix (sum).
+        """Total weight between each pair of cell types (read-only view).
 
-        Aggregates the neuron-level matrix into a type-level matrix by summing
-        all connections between neurons of each type pair. The returned
-        DataFrame is a read-only view; call ``.copy()`` before editing.
-
-        Returns
-        -------
-        pd.DataFrame
-            A square matrix with cell types as both index and columns,
-            where each value represents the total connectivity weight
-            between those two cell types.
-
-        Examples
-        --------
-        >>> matrix = NestedMatrix.from_connectivity(...)
-        >>> type_connectivity = matrix.sum_type_matrix
-        >>> print(type_connectivity.loc['KC', 'MB'])  # KC -> MB connections
+        >>> matrix.sum_type_matrix.loc['KC', 'MB']  # doctest: +SKIP
         """
         return _readonly_dataframe(self._sum_type_matrix)
 
@@ -1495,21 +1345,10 @@ class NestedMatrix:
 
     @property
     def mean_type_matrix(self) -> pd.DataFrame:
-        """Calculate the mean cell type-level connectivity matrix.
+        """Mean weight across each type-pair block (read-only view).
 
-        Aggregates the neuron-level matrix into a type-level matrix by taking
-        the arithmetic mean of all neuron-to-neuron weights within each type
-        pair block. This includes zero-valued entries in the block, so larger
-        cell types do not automatically dominate the visualization by virtue of
-        having more neurons. The returned DataFrame is a read-only view; call
-        ``.copy()`` before editing.
-
-        Returns
-        -------
-        pd.DataFrame
-            A square matrix with cell types as both index and columns,
-            where each value represents the mean connectivity weight across
-            all neuron pairs in the corresponding type block.
+        Zero entries count towards the mean, so large cell types don't dominate
+        just by having more neurons.
         """
         return _readonly_dataframe(self._mean_type_matrix)
 
@@ -1541,29 +1380,13 @@ class NestedMatrix:
         return pd.DataFrame(result, index=type_names, columns=type_names)
 
     def get_relative_weights(self, by_type: bool = False) -> pd.DataFrame:
-        """Calculate relative connection weights normalized by row sums.
+        """Row-normalized weights: each source's share of output per target.
 
-        Computes the proportion of each neuron's (or type's) total output
-        that goes to each target. Values range from 0 to 1, where 1 indicates
-        all output goes to that target.
-
-        Parameters
-        ----------
-        by_type : bool, default False
-            If True, calculate relative weights at the type level.
-            If False, calculate at the neuron level.
-
-        Returns
-        -------
-        pd.DataFrame
-            Matrix of relative weights where each row sums to 1.0
-            (except for rows with zero total output).
-
-        Examples
-        --------
-        >>> matrix = NestedMatrix.from_connectivity(...)
-        >>> relative = matrix.get_relative_weights(by_type=True)
-        >>> # Shows what proportion of each type's output goes to each target type
+        Each row is divided by its own sum, so rows sum to 1.0 -- except a row
+        whose weights sum to zero, which is left unchanged. That covers rows
+        with no output, and also rows whose positive and negative weights
+        cancel. Set *by_type* to compute this at the cell type level instead of
+        the neuron level.
         """
         df = self._sum_type_matrix if by_type else self._matrix
         row_sums = df.sum(axis=1).replace(0, 1)
@@ -1582,49 +1405,38 @@ class NestedMatrix:
     ) -> tuple[Figure, Axes]:
         """Plot the connectivity matrix as a heatmap.
 
-        Creates a visualization of the connectivity matrix with optional
-        type boundaries, customizable color scaling, and filtering options.
-
         Parameters
         ----------
         output_path : str | None, optional
-            If provided, save the plot to this file path. Directory will be
-            created if it doesn't exist.
+            Save the figure here, creating the directory if needed.
         level : {"neuron", "type_mean", "type_sum"}, default "neuron"
-            Which matrix to visualize. ``"neuron"`` plots the neuron-level
-            matrix with nested type boundaries. ``"type_mean"`` plots
-            ``mean_type_matrix``. ``"type_sum"`` plots ``sum_type_matrix``.
+            Plot the neuron-level matrix with nested type boundaries, or
+            ``mean_type_matrix`` / ``sum_type_matrix``.
         figsize : tuple[int, int], default (16, 14)
-            Figure size in inches (width, height).
-        show_neuron_labels: bool, default False
-            If True, show individual neuron IDs on axes. Only applies when
-            ``level="neuron"``. If False, shows type labels at boundaries.
-        vmin_percentile : float, default 0.0
-            Percentile for minimum color scale value (0-100). Computed
-            over nonzero values only, so zero-weight entries always map
-            to the bottom of the colormap.
-        vmax_percentile : float, default 100.0
-            Percentile for maximum color scale value (0-100). Computed
-            over nonzero values only. Values below 100 clip the strongest
-            connections to the max color, making mid-range weights more
-            visible.
+            Figure size in inches.
+        show_neuron_labels : bool, default False
+            Label axes with neuron IDs instead of type names. ``level="neuron"``
+            only.
+        vmin_percentile, vmax_percentile : float, default 0.0 and 100.0
+            Color scale range, as percentiles over the strictly positive values
+            -- so zeros always map to the bottom, and any negative weights are
+            excluded from the range and clipped. (Negatives reach the matrix
+            through ``from_connectivity()``, which passes weights through
+            unchanged, or through ``weight_mode="column"``.) A vmax below 100
+            clips the strongest connections, making mid-range weights visible.
         min_neurons_for_plot : int, default 1
-            Minimum number of neurons required per type to include in plot.
-            Types with fewer neurons will be filtered out.
+            Drop types with fewer neurons than this. ``level="neuron"`` only;
+            the type-level matrices are plotted whole.
         linewidth_scale : float, default 1.0
-            Multiplier applied to the default boundary line widths. Use values
-            above 1.0 for thicker boundaries and below 1.0 for thinner ones.
+            Multiplier on the default boundary line widths.
 
         Returns
         -------
         tuple[plt.Figure, plt.Axes]
-            Matplotlib figure and axes objects for further customization.
 
         Examples
         --------
-        >>> matrix = NestedMatrix.from_connectivity(...)
-        >>> fig, ax = matrix.plot(level="type_mean", output_path='connectivity.png')
-        >>> plt.show()
+        >>> fig, ax = matrix.plot(level="type_mean", output_path='conn.png')
         """
         valid_levels = {"neuron", "type_mean", "type_sum"}
         if level not in valid_levels:
@@ -1894,8 +1706,8 @@ class NestedMatrix:
             if weight not in cols:
                 df[weight] = 1
             df = NestedMatrix._coerce_weight_values(df, weight)
-            df[idx_col] = df[idx_col].map(NestedMatrix._stringify_id_value)
-            df[col_col] = df[col_col].map(NestedMatrix._stringify_id_value)
+            df[idx_col] = df[idx_col].map(_stringify_id_value)
+            df[col_col] = df[col_col].map(_stringify_id_value)
             adjacency = df.pivot_table(
                 index=idx_col,
                 columns=col_col,
@@ -1910,229 +1722,22 @@ class NestedMatrix:
         )
 
     @staticmethod
-    def _sort_cell_types(
-        types: list[Any], preferred: _TypeOrder = None
-    ) -> list[str]:
-        unique = {
-            NestedMatrix._stringify_id_value(t)
-            for t in types
-            if not NestedMatrix._is_missing_scalar(t)
-        }
-
-        def parse_label(label):
-            m = re.match(r"^([A-Za-z]+)(\d*)(.*)$", label.strip())
-            if not m:
-                return (label.upper(), float("inf"), "")
-            pfx, num, sfx = m.groups()
-            return (pfx.upper(), int(num) if num else float("inf"), sfx.upper())
-
-        parsed = {label: parse_label(label) for label in unique}
-        generic_order = sorted(unique, key=lambda x: (*parsed[x][:2], x))
-
-        if not preferred:
-            return generic_order
-
-        result = []
-        remaining = set(generic_order)
-
-        for preferred_value in preferred:
-            if NestedMatrix._is_missing_scalar(preferred_value):
-                continue
-            p = NestedMatrix._stringify_id_value(preferred_value)
-            matches = [t for t in generic_order if t == p or parsed[t][0] == p]
-            for m in matches:
-                if m in remaining:
-                    result.append(m)
-                    remaining.remove(m)
-
-        result.extend([t for t in generic_order if t in remaining])
-        return result
-
-    @staticmethod
-    def _resolve_relevant_annotations(
-        matrix_ids: set[str],
-        annotations: pd.DataFrame,
-        id_col: str,
-        type_col: str,
-    ) -> _ResolvedAnnotations:
-        valid_ids = annotations[id_col].map(
-            lambda value: not NestedMatrix._is_missing_scalar(value)
-        )
-        normalized = annotations.loc[valid_ids].copy()
-        ann_ids = normalized[id_col].map(NestedMatrix._stringify_id_value)
-        relevant = normalized[ann_ids.isin(matrix_ids)].copy()
-        relevant = relevant.assign(
-            **{
-                id_col: ann_ids.loc[relevant.index],
-                "__has_type__": relevant[type_col].notna(),
-                "__row_order__": np.arange(len(relevant)),
-            }
-        )
-        relevant["__first_seen__"] = relevant.groupby(id_col)[
-            "__row_order__"
-        ].transform("min")
-        relevant = relevant.sort_values(
-            by=["__first_seen__", "__has_type__", "__row_order__"],
-            ascending=[True, False, True],
-        ).drop_duplicates(subset=[id_col], keep="first")
-
-        relevant[type_col] = relevant[type_col].map(
-            lambda value: NestedMatrix._stringify_id_value(value)
-            if not NestedMatrix._is_missing_scalar(value)
-            else value
-        )
-
-        typed = relevant[relevant[type_col].notna()].copy()
-        id_map = dict(zip(typed[id_col], typed[type_col]))
-        typed_ids = set(typed[id_col])
-        untyped_ids = sorted(set(relevant[id_col]) - typed_ids)
-        missing_ids = sorted(matrix_ids - set(relevant[id_col]))
-
-        return _ResolvedAnnotations(relevant, typed, id_map, untyped_ids, missing_ids)
-
-    @staticmethod
-    def _resolve_type_order(
-        typed_annotations: pd.DataFrame,
-        type_col: str,
-        preferred_type_order: _TypeOrder,
-    ) -> list[str]:
-        present_types = [
-            cell_type
-            for cell_type in typed_annotations[type_col].unique()
-            if pd.notna(cell_type)
-        ]
-        return NestedMatrix._sort_cell_types(
-            present_types, preferred=preferred_type_order
-        )
-
-    @staticmethod
-    def _default_within_type_order(
-        type_rows: pd.DataFrame,
-        neuron_id_column: str,
-    ) -> list[str]:
-        return type_rows[neuron_id_column].tolist()
-
-    @staticmethod
-    def _is_missing_label(value: Any) -> bool:
-        missing = pd.isna(value)
-        if isinstance(missing, (bool, np.bool_)):
-            return bool(missing)
-        return False
-
-    @staticmethod
-    def _extract_ranked_label(
-        row: pd.Series,
-        rule: _WithinTypeOrderRule,
-        neuron_id_column: str,
-    ) -> str | None:
-        for column in rule.label_columns:
-            if column not in row.index:
-                continue
-
-            value = row[column]
-            if NestedMatrix._is_missing_label(value):
-                continue
-
-            match = rule.pattern.search(str(value).strip())
-            if not match:
-                continue
-
-            label = match.group(1)
-            if label in rule.rank:
-                return label
-
-        logging.getLogger(__name__).warning(
-            "Could not resolve a ranked column label for neuron %s from columns %s; "
-            "it will be ordered after ranked neurons",
-            row.get(neuron_id_column, "<unknown>"),
-            rule.label_columns,
-        )
-        return None
-
-    @staticmethod
-    def _order_neurons_by_rule(
-        type_rows: pd.DataFrame,
-        neuron_id_column: str,
-        rule: _WithinTypeOrderRule,
-    ) -> list[str]:
-        sorted_rows = type_rows.copy()
-        sorted_rows["__group_order__"] = np.arange(len(sorted_rows))
-        sorted_rows["__column_label__"] = sorted_rows.apply(
-            NestedMatrix._extract_ranked_label,
-            axis=1,
-            rule=rule,
-            neuron_id_column=neuron_id_column,
-        )
-        sorted_rows["__column_rank__"] = sorted_rows["__column_label__"].map(
-            rule.rank
-        )
-        sorted_rows["__has_column_rank__"] = sorted_rows["__column_rank__"].notna()
-        sorted_rows["__column_rank__"] = sorted_rows["__column_rank__"].fillna(
-            np.inf
-        )
-        sorted_rows = sorted_rows.sort_values(
-            by=["__has_column_rank__", "__column_rank__", "__group_order__"],
-            ascending=[False, True, True],
-        )
-
-        return sorted_rows[neuron_id_column].tolist()
-
-    @staticmethod
-    def _order_neurons_within_type(
-        type_name: str,
-        type_rows: pd.DataFrame,
-        neuron_id_column: str,
-    ) -> list[str]:
-        rule = _WITHIN_TYPE_ORDER_RULES.get(type_name)
-        if rule is None:
-            return NestedMatrix._default_within_type_order(type_rows, neuron_id_column)
-
-        return NestedMatrix._order_neurons_by_rule(type_rows, neuron_id_column, rule)
-
-    @staticmethod
-    def _build_ordered_neurons(
-        typed_annotations: pd.DataFrame,
-        type_col: str,
-        sorted_types: list[str],
-        neuron_id_column: str,
-    ) -> tuple[list[str], dict[str, tuple[int, int]]]:
-        ordered_neurons = []
-        boundaries = {}
-        current_pos = 0
-
-        for c_type in sorted_types:
-            type_rows = typed_annotations[typed_annotations[type_col] == c_type]
-            final_group = NestedMatrix._order_neurons_within_type(
-                type_name=str(c_type),
-                type_rows=type_rows,
-                neuron_id_column=neuron_id_column,
-            )
-            if not final_group:
-                continue
-
-            ordered_neurons.extend(final_group)
-            boundaries[str(c_type)] = (current_pos, current_pos + len(final_group))
-            current_pos += len(final_group)
-
-        return ordered_neurons, boundaries
-
-    @staticmethod
     def _align_neurons_and_boundaries(
         adjacency: pd.DataFrame,
         annotations: pd.DataFrame,
         id_col: str,
         type_col: str,
-        type_order: _TypeOrder,
+        order: NeuronOrderLike,
     ) -> tuple[list[str], dict[str, tuple[int, int]], dict[str, Any]]:
-        matrix_ids = set(NestedMatrix._normalize_id_values(adjacency.index)) | set(
-            NestedMatrix._normalize_id_values(adjacency.columns)
+        matrix_ids = set(_normalize_id_values(adjacency.index)) | set(
+            _normalize_id_values(adjacency.columns)
         )
-        axis = NestedMatrix._build_axis_ordering(
+        axis = build_axis_ordering(
             axis_ids=matrix_ids,
             annotations=annotations,
             id_col=id_col,
             type_col=type_col,
-            type_order=type_order,
+            order=order,
         )
         return (
             list(axis.ordered_neurons),
@@ -2144,12 +1749,19 @@ class NestedMatrix:
 class DirectedNestedMatrix:
     """A rectangular nested connectivity matrix with independent axes.
 
-    Rows are presynaptic/source neurons and columns are postsynaptic/target
-    neurons. Unlike ``NestedMatrix``, the matrix may be rectangular and the
-    source and target cell type sets may differ. Type and explicit neuron
-    selectors on the same axis are unioned. If an axis selector is ``None``,
-    that axis includes all available neurons for that axis independently of the
-    other axis selector.
+    Rows are presynaptic/source neurons, columns postsynaptic/target. Unlike
+    ``NestedMatrix`` the matrix may be rectangular and the two cell type sets
+    may differ.
+
+    Constructors take ``source_types``/``source_ids`` (and the ``target_``
+    pair) to select an axis; the resolved order is read back from
+    ``.source_neurons``/``.target_neurons``. Type and ID selectors on one axis
+    are unioned; leaving *both* of them ``None`` keeps every available neuron
+    on that axis.
+
+    Per axis, ``<axis>_neurons`` is ``<axis>_typed_neurons +
+    <axis>_untyped_neurons``, and only the typed part is covered by
+    ``<axis>_type_boundaries`` and ``<axis>_neuron_to_type``.
     """
 
     def __init__(
@@ -2163,19 +1775,17 @@ class DirectedNestedMatrix:
         target_neuron_to_type: Mapping[Any, Any] | None = None,
     ):
         matrix = matrix.copy()
-        matrix.index = NestedMatrix._stringify_id_axis(matrix.index, "matrix index")
-        matrix.columns = NestedMatrix._stringify_id_axis(
-            matrix.columns, "matrix columns"
-        )
+        matrix.index = _stringify_id_axis(matrix.index, "matrix index")
+        matrix.columns = _stringify_id_axis(matrix.columns, "matrix columns")
         source_axis = self._normalize_axis(
-            _AxisOrdering(
+            AxisOrdering(
                 ordered_neurons=tuple(source_neurons),
                 type_boundaries=dict(source_type_boundaries or {}),
                 neuron_to_type=dict(source_neuron_to_type or {}),
             )
         )
         target_axis = self._normalize_axis(
-            _AxisOrdering(
+            AxisOrdering(
                 ordered_neurons=tuple(target_neurons),
                 type_boundaries=dict(target_type_boundaries or {}),
                 neuron_to_type=dict(target_neuron_to_type or {}),
@@ -2201,8 +1811,8 @@ class DirectedNestedMatrix:
     def _from_axes(
         cls,
         matrix: pd.DataFrame,
-        source_axis: _AxisOrdering,
-        target_axis: _AxisOrdering,
+        source_axis: AxisOrdering,
+        target_axis: AxisOrdering,
     ) -> "DirectedNestedMatrix":
         return cls(
             matrix=matrix,
@@ -2215,25 +1825,23 @@ class DirectedNestedMatrix:
         )
 
     @staticmethod
-    def _normalize_axis(axis: _AxisOrdering) -> _AxisOrdering:
-        return _AxisOrdering(
+    def _normalize_axis(axis: AxisOrdering) -> AxisOrdering:
+        return AxisOrdering(
             ordered_neurons=tuple(
-                NestedMatrix._stringify_id_axis(
-                    axis.ordered_neurons, "axis ordered_neurons"
-                )
+                _stringify_id_axis(axis.ordered_neurons, "axis ordered_neurons")
             ),
             type_boundaries={
-                NestedMatrix._stringify_id_value(name): (int(start), int(end))
+                _stringify_id_value(name): (int(start), int(end))
                 for name, (start, end) in axis.type_boundaries.items()
             },
             neuron_to_type={
-                NestedMatrix._stringify_id_value(neuron): (
+                _stringify_id_value(neuron): (
                     cell_type
-                    if NestedMatrix._is_missing_scalar(cell_type)
-                    else NestedMatrix._stringify_id_value(cell_type)
+                    if _is_missing_scalar(cell_type)
+                    else _stringify_id_value(cell_type)
                 )
                 for neuron, cell_type in axis.neuron_to_type.items()
-                if not NestedMatrix._is_missing_scalar(neuron)
+                if not _is_missing_scalar(neuron)
             },
         )
 
@@ -2244,7 +1852,7 @@ class DirectedNestedMatrix:
         type_boundaries: dict[str, tuple[int, int]],
         neuron_to_type: dict[str, Any],
     ) -> None:
-        duplicate_neurons = NestedMatrix._find_duplicates(ordered_neurons)
+        duplicate_neurons = _find_duplicates(ordered_neurons)
         if duplicate_neurons:
             raise ValueError(
                 f"{axis_name}_neurons contains duplicate neuron IDs after "
@@ -2275,7 +1883,8 @@ class DirectedNestedMatrix:
             mismatched = [
                 neuron
                 for neuron in boundary_neurons
-                if str(neuron_to_type.get(neuron)) != name
+                if _is_missing_scalar(neuron_to_type.get(neuron))
+                or str(neuron_to_type.get(neuron)) != name
             ]
             if mismatched:
                 raise ValueError(
@@ -2296,12 +1905,14 @@ class DirectedNestedMatrix:
                 "type_boundaries before any unassigned neurons"
             )
 
+    # TODO: deduplicate the ~400 lines of validation/aggregation/plot helpers
+    # shared with NestedMatrix (a square matrix is a directed one with tied axes).
     @classmethod
     def _validate_invariants(
         cls,
         matrix: pd.DataFrame,
-        source_axis: _AxisOrdering,
-        target_axis: _AxisOrdering,
+        source_axis: AxisOrdering,
+        target_axis: AxisOrdering,
     ) -> None:
         if list(matrix.index) != list(source_axis.ordered_neurons):
             raise ValueError("matrix index must match source_neurons exactly")
@@ -2337,13 +1948,41 @@ class DirectedNestedMatrix:
 
     @property
     def source_neurons(self) -> tuple[str, ...]:
-        """Read-only ordered source neuron IDs."""
+        """Resolved row order (not a filter -- select with ``source_types``/``source_ids``)."""
         return self._source_neurons
 
     @property
     def target_neurons(self) -> tuple[str, ...]:
-        """Read-only ordered target neuron IDs."""
+        """Resolved column order (not a filter -- select with ``target_types``/``target_ids``)."""
         return self._target_neurons
+
+    @property
+    def source_typed_neurons(self) -> tuple[str, ...]:
+        """Row neurons carrying a cell type."""
+        return tuple(n for n in self._source_neurons if self._has_type("source", n))
+
+    @property
+    def source_untyped_neurons(self) -> tuple[str, ...]:
+        """Row neurons with no cell type, appended after the blocks."""
+        return tuple(n for n in self._source_neurons if not self._has_type("source", n))
+
+    @property
+    def target_typed_neurons(self) -> tuple[str, ...]:
+        """Column neurons carrying a cell type."""
+        return tuple(n for n in self._target_neurons if self._has_type("target", n))
+
+    @property
+    def target_untyped_neurons(self) -> tuple[str, ...]:
+        """Column neurons with no cell type, appended after the blocks."""
+        return tuple(n for n in self._target_neurons if not self._has_type("target", n))
+
+    def _has_type(self, axis: Literal["source", "target"], neuron: str) -> bool:
+        neuron_to_type = (
+            self._source_neuron_to_type
+            if axis == "source"
+            else self._target_neuron_to_type
+        )
+        return not _is_missing_scalar(neuron_to_type.get(neuron))
 
     @property
     def source_type_boundaries(self) -> Mapping[str, tuple[int, int]]:
@@ -2366,6 +2005,52 @@ class DirectedNestedMatrix:
         return MappingProxyType(self._target_neuron_to_type)
 
     @staticmethod
+    def _materialize_axis_selectors(
+        source_types: _Selector,
+        target_types: _Selector,
+        source_ids: _Selector,
+        target_ids: _Selector,
+    ) -> tuple[_Selector, _Selector, _Selector, _Selector]:
+        """Freeze all four axis selectors exactly once.
+
+        A selector object passed to more than one parameter is materialized
+        once and shared, so handing the same iterator to both axes works.
+        """
+        by_identity: dict[int, _Selector] = {}
+        frozen: list[_Selector] = []
+        for values in (source_types, target_types, source_ids, target_ids):
+            key = id(values)
+            if key not in by_identity:
+                by_identity[key] = NestedMatrix._materialize_selector(values)
+            frozen.append(by_identity[key])
+        return frozen[0], frozen[1], frozen[2], frozen[3]
+
+    @staticmethod
+    def _resolve_axis_orders(
+        order: NeuronOrderLike,
+        source_order: NeuronOrderLike,
+        target_order: NeuronOrderLike,
+    ) -> tuple[NeuronOrder, NeuronOrder]:
+        """Coerce the shared and per-axis order specs, each spec exactly once.
+
+        A spec object passed to more than one parameter is coerced once and
+        shared, so handing the same one-shot iterable to both axes works.
+        """
+        by_identity: dict[int, NeuronOrder] = {}
+
+        def coerce(spec: NeuronOrderLike) -> NeuronOrder:
+            key = id(spec)
+            if key not in by_identity:
+                by_identity[key] = as_neuron_order(spec)
+            return by_identity[key]
+
+        shared = coerce(order)
+        return (
+            shared if source_order is None else coerce(source_order),
+            shared if target_order is None else coerce(target_order),
+        )
+
+    @staticmethod
     def _validate_normalization_scope(normalization_scope: str) -> None:
         valid_scopes = {"selected", "all"}
         if normalization_scope not in valid_scopes:
@@ -2376,6 +2061,9 @@ class DirectedNestedMatrix:
 
     @staticmethod
     def _stringify_adjacency_axes(adjacency: pd.DataFrame) -> pd.DataFrame:
+        # TODO: drop this re-normalization (plus the one in
+        # _filter_adjacency_to_annotations); _coerce_to_adjacency already
+        # normalizes, so each extra pass is a full-matrix copy for nothing.
         return NestedMatrix._normalize_adjacency_axes(adjacency)
 
     @staticmethod
@@ -2384,10 +2072,10 @@ class DirectedNestedMatrix:
         neuron_annotations: pd.DataFrame,
         neuron_id_column: str,
         cell_type_column: str,
-        type_order: _TypeOrder,
         selected_types: _Selector,
         selected_neurons: _Selector,
-    ) -> _AxisOrdering:
+        order: NeuronOrderLike = None,
+    ) -> AxisOrdering:
         axis_ids = NestedMatrix._select_axis_ids(
             available_ids=available_ids,
             annotations=neuron_annotations,
@@ -2396,12 +2084,12 @@ class DirectedNestedMatrix:
             selected_types=selected_types,
             selected_neurons=selected_neurons,
         )
-        return NestedMatrix._build_axis_ordering(
+        return build_axis_ordering(
             axis_ids=axis_ids,
             annotations=neuron_annotations,
             id_col=neuron_id_column,
             type_col=cell_type_column,
-            type_order=type_order,
+            order=order,
         )
 
     @classmethod
@@ -2411,22 +2099,52 @@ class DirectedNestedMatrix:
         neuron_annotations: pd.DataFrame,
         source_types: _Selector = None,
         target_types: _Selector = None,
-        source_neurons: _Selector = None,
-        target_neurons: _Selector = None,
+        source_ids: _Selector = None,
+        target_ids: _Selector = None,
         cell_type_column: str = "cell_type",
         neuron_id_column: str = "root_id",
-        type_order: _TypeOrder = None,
-        source_type_order: _TypeOrder = None,
-        target_type_order: _TypeOrder = None,
+        order: NeuronOrderLike = None,
+        source_order: NeuronOrderLike = None,
+        target_order: NeuronOrderLike = None,
         annotation_scope: Literal["annotated_only", "all"] = "annotated_only",
     ) -> "DirectedNestedMatrix":
         """Create a rectangular directed nested matrix from connectivity data.
 
-        ``source_*`` selectors apply to rows and ``target_*`` selectors apply
-        to columns. Type and explicit neuron selectors on the same axis are
-        unioned. ``None`` selects all available neurons on that axis.
+        Parameters
+        ----------
+        connections_df : pd.DataFrame
+            Any format accepted by ``NestedMatrix.from_connectivity()``.
+        neuron_annotations : pd.DataFrame
+            Neuron ID and cell type columns.
+        source_types, target_types : selector, optional
+            Keep only these cell types on the row / column axis.
+        source_ids, target_ids : selector, optional
+            Keep only these neuron IDs, unioned with the same axis' type
+            selector. Leaving both selectors for an axis ``None`` keeps every
+            available neuron on it.
+        cell_type_column, neuron_id_column : str
+            Annotation column names.
+        order : NeuronOrder, mapping, sequence or None, optional
+            Neuron order for both axes; see
+            :class:`~crantpy.utils.ordering.NeuronOrder`.
+        source_order, target_order : optional
+            Per-axis override of ``order``.
+        annotation_scope : {"annotated_only", "all"}, default "annotated_only"
+            Which neurons to retain before axis selection.
+
+        Returns
+        -------
+        DirectedNestedMatrix
         """
         NestedMatrix._validate_annotation_scope(annotation_scope)
+        source_order, target_order = cls._resolve_axis_orders(
+            order, source_order, target_order
+        )
+        source_types, target_types, source_ids, target_ids = (
+            cls._materialize_axis_selectors(
+                source_types, target_types, source_ids, target_ids
+            )
+        )
         adjacency = NestedMatrix._coerce_to_adjacency(connections_df)
         adjacency = NestedMatrix._apply_annotation_scope_to_adjacency(
             adjacency=adjacency,
@@ -2441,18 +2159,18 @@ class DirectedNestedMatrix:
             neuron_annotations=neuron_annotations,
             neuron_id_column=neuron_id_column,
             cell_type_column=cell_type_column,
-            type_order=source_type_order if source_type_order is not None else type_order,
             selected_types=source_types,
-            selected_neurons=source_neurons,
+            selected_neurons=source_ids,
+            order=source_order,
         )
         target_axis = cls._build_axis_from_available(
             available_ids=set(adjacency.columns),
             neuron_annotations=neuron_annotations,
             neuron_id_column=neuron_id_column,
             cell_type_column=cell_type_column,
-            type_order=target_type_order if target_type_order is not None else type_order,
             selected_types=target_types,
-            selected_neurons=target_neurons,
+            selected_neurons=target_ids,
+            order=target_order,
         )
 
         matrix = adjacency.reindex(
@@ -2460,7 +2178,9 @@ class DirectedNestedMatrix:
             columns=target_axis.ordered_neurons,
             fill_value=0,
         ).astype(float)
-        return cls._from_axes(matrix=matrix, source_axis=source_axis, target_axis=target_axis)
+        return cls._from_axes(
+            matrix=matrix, source_axis=source_axis, target_axis=target_axis
+        )
 
     @classmethod
     def from_synapses(
@@ -2469,8 +2189,8 @@ class DirectedNestedMatrix:
         neuron_annotations: pd.DataFrame,
         source_types: _Selector = None,
         target_types: _Selector = None,
-        source_neurons: _Selector = None,
-        target_neurons: _Selector = None,
+        source_ids: _Selector = None,
+        target_ids: _Selector = None,
         pre_col: str = "pre_pt_root_id",
         post_col: str = "post_pt_root_id",
         weight_mode: Literal[
@@ -2480,22 +2200,33 @@ class DirectedNestedMatrix:
         normalization_scope: Literal["selected", "all"] = "selected",
         cell_type_column: str = "cell_type",
         neuron_id_column: str = "root_id",
-        type_order: _TypeOrder = None,
-        source_type_order: _TypeOrder = None,
-        target_type_order: _TypeOrder = None,
+        order: NeuronOrderLike = None,
+        source_order: NeuronOrderLike = None,
+        target_order: NeuronOrderLike = None,
         annotation_scope: Literal["annotated_only", "all"] = "annotated_only",
     ) -> "DirectedNestedMatrix":
         """Create a rectangular directed nested matrix from synapse rows.
 
-        The default ``normalization_scope="selected"`` normalizes relative
-        weights after source/target filtering. Use ``"all"`` to normalize by
-        all partners for the selected source or target neurons before the
-        matrix is restricted to the selected axes.
+        Axis selection and ordering work as in ``from_connectivity()``.
+
+        ``normalization_scope="selected"`` (the default) normalizes relative
+        weights after axis filtering; ``"all"`` normalizes by every partner
+        first, then restricts to the selected axes.
         """
         NestedMatrix._validate_weighting(weight_mode, weight_column)
         NestedMatrix._validate_annotation_scope(annotation_scope)
         cls._validate_normalization_scope(normalization_scope)
+        source_order, target_order = cls._resolve_axis_orders(
+            order, source_order, target_order
+        )
+        source_types, target_types, source_ids, target_ids = (
+            cls._materialize_axis_selectors(
+                source_types, target_types, source_ids, target_ids
+            )
+        )
 
+        # TODO: stringify the synapse ID columns once at this entry boundary
+        # instead of re-normalizing (and copying) inside each helper below.
         scoped_synapses = NestedMatrix._apply_annotation_scope_to_synapses(
             synapses_df=synapses_df,
             neuron_annotations=neuron_annotations,
@@ -2509,26 +2240,22 @@ class DirectedNestedMatrix:
         )
 
         source_axis = cls._build_axis_from_available(
-            available_ids=set(
-                NestedMatrix._normalize_id_values(scoped_synapses[pre_col])
-            ),
+            available_ids=set(_normalize_id_values(scoped_synapses[pre_col])),
             neuron_annotations=neuron_annotations,
             neuron_id_column=neuron_id_column,
             cell_type_column=cell_type_column,
-            type_order=source_type_order if source_type_order is not None else type_order,
             selected_types=source_types,
-            selected_neurons=source_neurons,
+            selected_neurons=source_ids,
+            order=source_order,
         )
         target_axis = cls._build_axis_from_available(
-            available_ids=set(
-                NestedMatrix._normalize_id_values(scoped_synapses[post_col])
-            ),
+            available_ids=set(_normalize_id_values(scoped_synapses[post_col])),
             neuron_annotations=neuron_annotations,
             neuron_id_column=neuron_id_column,
             cell_type_column=cell_type_column,
-            type_order=target_type_order if target_type_order is not None else type_order,
             selected_types=target_types,
-            selected_neurons=target_neurons,
+            selected_neurons=target_ids,
+            order=target_order,
         )
 
         edges = cls._aggregate_directed_synapse_edges(
@@ -2549,7 +2276,9 @@ class DirectedNestedMatrix:
             fill_value=0,
         ).astype(float)
 
-        return cls._from_axes(matrix=matrix, source_axis=source_axis, target_axis=target_axis)
+        return cls._from_axes(
+            matrix=matrix, source_axis=source_axis, target_axis=target_axis
+        )
 
     @classmethod
     def _aggregate_directed_synapse_edges(
@@ -2566,13 +2295,13 @@ class DirectedNestedMatrix:
         normalization_scope: Literal["selected", "all"],
     ) -> pd.DataFrame:
         valid_pre = synapses_df[pre_col].map(
-            lambda value: not NestedMatrix._is_missing_scalar(value)
+            lambda value: not _is_missing_scalar(value)
         )
         valid_post = synapses_df[post_col].map(
-            lambda value: not NestedMatrix._is_missing_scalar(value)
+            lambda value: not _is_missing_scalar(value)
         )
-        pre_ids = synapses_df[pre_col].map(NestedMatrix._stringify_id_value)
-        post_ids = synapses_df[post_col].map(NestedMatrix._stringify_id_value)
+        pre_ids = synapses_df[pre_col].map(_stringify_id_value)
+        post_ids = synapses_df[post_col].map(_stringify_id_value)
 
         if normalization_scope == "all" and weight_mode == "relative_outgoing":
             keep_mask = valid_pre & valid_post & pre_ids.isin(source_ids)
@@ -2608,8 +2337,8 @@ class DirectedNestedMatrix:
         position_column: str = "ctr_pt_position",
         source_types: _Selector = None,
         target_types: _Selector = None,
-        source_neurons: _Selector = None,
-        target_neurons: _Selector = None,
+        source_ids: _Selector = None,
+        target_ids: _Selector = None,
         pre_col: str = "pre_pt_root_id",
         post_col: str = "post_pt_root_id",
         weight_mode: Literal[
@@ -2619,14 +2348,18 @@ class DirectedNestedMatrix:
         normalization_scope: Literal["selected", "all"] = "selected",
         cell_type_column: str = "cell_type",
         neuron_id_column: str = "root_id",
-        type_order: _TypeOrder = None,
-        source_type_order: _TypeOrder = None,
-        target_type_order: _TypeOrder = None,
+        order: NeuronOrderLike = None,
+        source_order: NeuronOrderLike = None,
+        target_order: NeuronOrderLike = None,
         annotation_scope: Literal["annotated_only", "all"] = "annotated_only",
         include_other: bool = True,
         voxel_offset: tuple[float, float, float] | None = None,
     ) -> "NeuropilCollection":
-        """Create directed nested matrices per neuropil using mesh containment."""
+        """Create one DirectedNestedMatrix per neuropil, by mesh containment.
+
+        Arguments match ``from_synapses()`` and apply independently inside each
+        ROI. ROIs empty on either axis are skipped.
+        """
         from crantpy.utils.config import (
             NEUROPIL_MESH_DICT,
             SCALE_X,
@@ -2641,6 +2374,14 @@ class DirectedNestedMatrix:
         NestedMatrix._validate_weighting(weight_mode, weight_column)
         NestedMatrix._validate_annotation_scope(annotation_scope)
         cls._validate_normalization_scope(normalization_scope)
+        source_order, target_order = cls._resolve_axis_orders(
+            order, source_order, target_order
+        )
+        source_types, target_types, source_ids, target_ids = (
+            cls._materialize_axis_selectors(
+                source_types, target_types, source_ids, target_ids
+            )
+        )
 
         if neuropil_names is None:
             neuropil_names = list(NEUROPIL_MESH_DICT.values())
@@ -2668,6 +2409,8 @@ class DirectedNestedMatrix:
 
         positions = np.vstack(scoped_synapses[position_column].values)
         if coordinates == "pixels":
+            # int positions would reject a float offset and truncate float scales
+            positions = positions.astype(float)
             if voxel_offset is not None:
                 positions += np.array(voxel_offset)
             positions[:, 0] = positions[:, 0] * SCALE_X
@@ -2678,6 +2421,8 @@ class DirectedNestedMatrix:
                 f"coordinates must be 'nm' or 'pixels', got {coordinates!r}"
             )
 
+        # TODO: dedupe this mask pipeline across both classes and batch
+        # mesh.contains (queries.neuropils._batched_mesh_contains) to avoid OOM.
         neuropil_masks: dict[str, np.ndarray] = {}
         for name in neuropil_names:
             neuropil_masks[name] = load_neuropil_mesh(name).contains(positions)
@@ -2699,8 +2444,8 @@ class DirectedNestedMatrix:
                 neuron_annotations=neuron_annotations,
                 source_types=source_types,
                 target_types=target_types,
-                source_neurons=source_neurons,
-                target_neurons=target_neurons,
+                source_ids=source_ids,
+                target_ids=target_ids,
                 pre_col=pre_col,
                 post_col=post_col,
                 weight_mode=weight_mode,
@@ -2708,9 +2453,8 @@ class DirectedNestedMatrix:
                 normalization_scope=normalization_scope,
                 cell_type_column=cell_type_column,
                 neuron_id_column=neuron_id_column,
-                type_order=type_order,
-                source_type_order=source_type_order,
-                target_type_order=target_type_order,
+                source_order=source_order,
+                target_order=target_order,
                 annotation_scope=annotation_scope,
             )
             if matrix.matrix.shape[0] == 0 or matrix.matrix.shape[1] == 0:
@@ -2788,9 +2532,7 @@ class DirectedNestedMatrix:
 
         if level == "type_mean":
             data = self._mean_type_matrix
-            source_boundaries = {
-                name: (i, i + 1) for i, name in enumerate(data.index)
-            }
+            source_boundaries = {name: (i, i + 1) for i, name in enumerate(data.index)}
             target_boundaries = {
                 name: (i, i + 1) for i, name in enumerate(data.columns)
             }
@@ -2799,9 +2541,7 @@ class DirectedNestedMatrix:
             colorbar_label = "Mean Weight"
         elif level == "type_sum":
             data = self._sum_type_matrix
-            source_boundaries = {
-                name: (i, i + 1) for i, name in enumerate(data.index)
-            }
+            source_boundaries = {name: (i, i + 1) for i, name in enumerate(data.index)}
             target_boundaries = {
                 name: (i, i + 1) for i, name in enumerate(data.columns)
             }
@@ -2851,12 +2591,12 @@ class DirectedNestedMatrix:
             ax,
             source_labels=source_labels if show_neuron_labels else None,
             target_labels=target_labels if show_neuron_labels else None,
-            source_boundaries=source_boundaries
-            if show_type_labels or level != "neuron"
-            else None,
-            target_boundaries=target_boundaries
-            if show_type_labels or level != "neuron"
-            else None,
+            source_boundaries=(
+                source_boundaries if show_type_labels or level != "neuron" else None
+            ),
+            target_boundaries=(
+                target_boundaries if show_type_labels or level != "neuron" else None
+            ),
         )
 
         plt.tight_layout()
