@@ -32,7 +32,6 @@ from collections.abc import (
     Set as AbstractSet,
 )
 from dataclasses import dataclass
-from functools import cached_property
 from types import MappingProxyType
 from typing import Any, Literal, NamedTuple
 
@@ -130,11 +129,18 @@ def _find_duplicates(values: Iterable[str]) -> list[str]:
 
 
 def _reject_unordered(value: Any, what: str) -> Any:
-    """Reject sets, whose iteration order varies between interpreter runs.
+    """Reject rule iterables that cannot work: sets and bytes.
 
-    Key views (``dict.keys()``, and so ``matrix.type_boundaries.keys()``) are
-    ``Set`` instances but iterate in insertion order, so they are allowed.
+    Sets iterate in an order that varies between interpreter runs. Key views
+    (``dict.keys()``, and so ``matrix.type_boundaries.keys()``) are ``Set``
+    instances but iterate in insertion order, so they are allowed. Iterating
+    bytes yields integers, so no string label would ever match.
     """
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        raise TypeError(
+            f"{what} must be an iterable of string labels, not "
+            f"{type(value).__name__}; iterating {value!r} yields integers"
+        )
     if isinstance(value, AbstractSet) and not isinstance(value, KeysView):
         raise TypeError(
             f"{what} must be an ordered iterable; set and frozenset are not "
@@ -143,15 +149,14 @@ def _reject_unordered(value: Any, what: str) -> Any:
     return value
 
 
-def _hashable(rule: Any) -> Any:
-    """Canonicalize a snapshotted rule so a :class:`NeuronOrder` can be hashed."""
-    if isinstance(rule, Mapping):
-        # frozenset, not a sorted tuple: no sort key over arbitrary keys is a
-        # total ordering (distinct keys of one class can share a str()), and a
-        # tie would leave the hash dependent on insertion order, breaking the
-        # eq/hash contract.
-        return frozenset((name, _hashable(nested)) for name, nested in rule.items())
-    return rule
+def _reject_bytes_like(value: Any, what: str) -> Any:
+    """Reject bytes-like labels, which could only silently never match."""
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        raise TypeError(
+            f"{what} must be a string, not {type(value).__name__}: "
+            f"{value!r} can never match a label"
+        )
+    return value
 
 
 @dataclass(frozen=True)
@@ -170,9 +175,10 @@ class ColumnOrderRule:
         Column labels, first to last, e.g. ``["R1", "L8", "R2", ...]``.
     label_columns : Iterable[str], default ("cell_instance", "cell_subtype")
         Annotation columns to search, in priority order.
-    pattern : re.Pattern[str], optional
-        Regex whose first group is the label. Defaults to a trailing ``L``/``R``
-        plus digits, so ``"EPG/PEG_R1"`` gives ``"R1"``.
+    pattern : re.Pattern[str] or str, optional
+        Regex whose first group is the label; a plain string is compiled.
+        Defaults to a trailing ``L``/``R`` plus digits, so ``"EPG/PEG_R1"``
+        gives ``"R1"``.
 
     Examples
     --------
@@ -188,25 +194,36 @@ class ColumnOrderRule:
             ("order", self.order),
             ("label_columns", self.label_columns),
         ):
-            if isinstance(value, (str, bytes)):
+            if isinstance(value, str):
                 # tuple("R1") == ("R", "1"): the label would silently never rank.
                 raise TypeError(
                     f"ColumnOrderRule.{field_name} takes an iterable of labels, "
                     f"not a bare string; wrap it: [{value!r}]"
                 )
             _reject_unordered(value, f"ColumnOrderRule.{field_name}")
+        if isinstance(self.pattern, str):
+            object.__setattr__(self, "pattern", re.compile(self.pattern))
+        if not isinstance(self.pattern, re.Pattern) or not isinstance(
+            self.pattern.pattern, str
+        ):
+            raise TypeError(
+                "ColumnOrderRule.pattern must be a str regex or a compiled "
+                f"str pattern (a bytes pattern cannot match); got {self.pattern!r}"
+            )
+        if self.pattern.groups < 1:
+            raise ValueError(
+                "ColumnOrderRule.pattern needs a capture group for the label; "
+                f"{self.pattern.pattern!r} has none"
+            )
         object.__setattr__(self, "order", tuple(self.order))
         object.__setattr__(self, "label_columns", tuple(self.label_columns))
-
-    @cached_property
-    def rank(self) -> Mapping[str, int]:
-        """Read-only mapping from column label to its position in ``order``."""
-        return MappingProxyType({label: i for i, label in enumerate(self.order)})
-
-    def __getstate__(self) -> dict[str, Any]:
-        # Drop the cached proxy; mappingproxy cannot be pickled and `rank` is
-        # cheap to rebuild from `order`.
-        return {k: v for k, v in self.__dict__.items() if k != "rank"}
+        for field_name in ("order", "label_columns"):
+            for entry in getattr(self, field_name):
+                if not isinstance(entry, str):
+                    raise TypeError(
+                        f"ColumnOrderRule.{field_name} entries must be "
+                        f"strings; got {type(entry).__name__}: {entry!r}"
+                    )
 
 
 #: ``(type_name, type_rows, neuron_id_column) -> ordered neuron IDs``. The
@@ -260,6 +277,7 @@ def _extract_ranked_label(
     row: pd.Series,
     rule: ColumnOrderRule,
     neuron_id_column: str,
+    rank: Mapping[str, int],
 ) -> str | None:
     for column in rule.label_columns:
         if column not in row.index:
@@ -274,7 +292,7 @@ def _extract_ranked_label(
             continue
 
         label = match.group(1)
-        if label in rule.rank:
+        if label in rank:
             return label
 
     logger.warning(
@@ -297,6 +315,7 @@ def _order_by_column_rule(rule: ColumnOrderRule) -> WithinTypeSorter:
             # once, on an all-NaN dummy row, which would warn about "neuron nan".
             return []
 
+        rank = {label: i for i, label in enumerate(rule.order)}
         sorted_rows = type_rows.copy()
         sorted_rows["__group_order__"] = np.arange(len(sorted_rows))
         sorted_rows["__column_label__"] = sorted_rows.apply(
@@ -304,8 +323,9 @@ def _order_by_column_rule(rule: ColumnOrderRule) -> WithinTypeSorter:
             axis=1,
             rule=rule,
             neuron_id_column=neuron_id_column,
+            rank=rank,
         )
-        sorted_rows["__column_rank__"] = sorted_rows["__column_label__"].map(rule.rank)
+        sorted_rows["__column_rank__"] = sorted_rows["__column_label__"].map(rank)
         sorted_rows["__has_column_rank__"] = sorted_rows["__column_rank__"].notna()
         sorted_rows["__column_rank__"] = sorted_rows["__column_rank__"].fillna(np.inf)
         sorted_rows = sorted_rows.sort_values(
@@ -363,10 +383,9 @@ def _resolve_within_type_order(
         by_type: dict[str, WithinTypeSorter] = {}
         seen: dict[str, Any] = {}
         for name, rule in merged.items():
+            _reject_bytes_like(name, "order.within cell type keys")
             key = _stringify_id_value(name)
             if key in seen:
-                # Silently letting one shadow the other would make the result
-                # depend on insertion order, which `==` and `hash` cannot see.
                 raise ValueError(
                     "order.within has two keys naming the same cell type "
                     f"{key!r}: {seen[key]!r} and {name!r}"
@@ -426,40 +445,28 @@ DEFAULT_WITHIN_TYPE_ORDER: Mapping[str, WithinTypeRule] = MappingProxyType(
 # ---------------------------------------------------------------------------
 
 
-def _unwrap_proxies(rule: Any) -> Any:
-    """Inverse of the mapping half of :func:`_snapshot`, for pickling."""
-    if isinstance(rule, Mapping):
-        return {name: _unwrap_proxies(nested) for name, nested in rule.items()}
-    return rule
-
-
-def _require_hashable(value: Any, what: str) -> Any:
-    """Reject *value* unless it is hashable, keeping NeuronOrder's contract."""
-    try:
-        hash(value)
-    except TypeError:
-        raise TypeError(
-            f"{what} must be hashable so NeuronOrder stays immutable and "
-            f"hashable as documented; got a {type(value).__name__}: {value!r}"
-        ) from None
-    return value
-
-
 def _snapshot(rule: Any) -> Any:
     """Recursively freeze an order rule so it is deterministic and reusable."""
-    if rule is None or isinstance(rule, str) or rule is DEFAULT_WITHIN_TYPE_ORDER:
+    if rule is None or isinstance(rule, str):
         return rule
     if callable(rule):
-        return _require_hashable(rule, "an order rule callable")
+        return rule
     if isinstance(rule, Mapping):
-        return MappingProxyType(
-            {name: _snapshot(nested_rule) for name, nested_rule in rule.items()}
-        )
+        for name in rule:
+            _reject_bytes_like(name, "order rule mapping keys")
+        return {name: _snapshot(nested_rule) for name, nested_rule in rule.items()}
     _reject_unordered(rule, "order rules")
     if isinstance(rule, Iterable):
         entries = tuple(rule)
         for entry in entries:
-            _require_hashable(entry, "order rule entries")
+            _reject_bytes_like(entry, "order rule entries")
+            if isinstance(entry, Iterable) and not isinstance(entry, str):
+                # A nested list/tuple would stringify to "['a']" and silently
+                # never match a label.
+                raise TypeError(
+                    "order rule entries must be scalar labels; got "
+                    f"{type(entry).__name__}: {entry!r}"
+                )
         return entries
     return rule
 
@@ -475,19 +482,12 @@ class NeuronOrder:
     ----------
     types : {"label", "size"}, sequence or callable, default "label"
         ``"label"`` sorts by ``(ALPHA_PREFIX, numeric_suffix, label)``;
-        ``"size"`` puts the largest blocks first; a sequence pulls those labels
-        to the front (matching a type exactly, or -- in upper case -- every type
-        with that alphabetic prefix); a callable takes
+        ``"size"`` puts the largest blocks first; a sequence pulls its entries
+        to the front -- each matching one type exactly, unnamed types
+        following in ``"label"`` order -- so ``types=list(other.type_boundaries)``
+        reproduces another matrix's block order; a callable takes
         ``(type_names, typed_annotations, type_col)`` and returns them
         reordered.
-
-        A sequence is a *preference*, not an exact order: because an upper-case
-        entry also prefix-matches, feeding one matrix's block names back to
-        another does not reproduce that order when a bare prefix and its
-        numbered siblings both occur (``["ER", "ER1"]`` puts ``ER`` last). To
-        copy an exact order, use a callable::
-
-            order={"types": lambda names, rows, col: list(other.type_boundaries)}
     within : rule or {cell_type: rule} mapping, default DEFAULT_WITHIN_TYPE_ORDER
         ``"annotation"``, ``"id"``, a :class:`ColumnOrderRule`, a label
         sequence, a ``(type_name, type_rows, id_column)`` callable, or a
@@ -508,24 +508,9 @@ class NeuronOrder:
         object.__setattr__(self, "types", _snapshot(self.types))
         object.__setattr__(self, "within", _snapshot(self.within))
 
-    def __hash__(self) -> int:
-        return hash((_hashable(self.types), _hashable(self.within)))
 
-    def __getstate__(self) -> dict[str, Any]:
-        # mappingproxy is not picklable; unwrap every level on the way out.
-        state = dict(self.__dict__)
-        state["types"] = _unwrap_proxies(state.get("types"))
-        state["within"] = _unwrap_proxies(state.get("within"))
-        return state
-
-    def __setstate__(self, state: dict[str, Any]) -> None:
-        state = dict(state)
-        state["types"] = _snapshot(state.get("types"))
-        state["within"] = _snapshot(state.get("within"))
-        self.__dict__.update(state)
-
-
-#: Applied when a constructor gets no ``order``.
+#: The default order. A constructor given no ``order`` builds a fresh equal
+#: instance rather than sharing this one.
 DEFAULT_ORDER = NeuronOrder()
 
 #: What ``order=`` accepts: a :class:`NeuronOrder`, a
@@ -535,9 +520,13 @@ NeuronOrderLike = NeuronOrder | Mapping[str, Any] | Iterable[Any] | None
 
 
 def as_neuron_order(spec: NeuronOrderLike) -> NeuronOrder:
-    """Coerce an ``order=`` argument into a :class:`NeuronOrder`."""
+    """Coerce an ``order=`` argument into a :class:`NeuronOrder`.
+
+    ``None`` builds a fresh default instance rather than handing out a shared
+    one, so editing one order's rules can never leak into another build.
+    """
     if spec is None:
-        return DEFAULT_ORDER
+        return NeuronOrder()
     if isinstance(spec, NeuronOrder):
         return spec
     if isinstance(spec, Mapping):
@@ -548,9 +537,10 @@ def as_neuron_order(spec: NeuronOrderLike) -> NeuronOrder:
                 "To set a per-cell-type rule, nest it: "
                 "order={'within': {'EPG/PEG': ...}}"
             )
+        default = NeuronOrder()
         return NeuronOrder(
-            types=spec.get("types", DEFAULT_ORDER.types),
-            within=spec.get("within", DEFAULT_ORDER.within),
+            types=spec.get("types", default.types),
+            within=spec.get("within", default.within),
         )
     if isinstance(spec, str):
         raise TypeError(
@@ -588,9 +578,8 @@ def _sort_cell_types(
     Without *preferred*: ``(ALPHA_PREFIX, numeric_suffix, label)``, un-numbered
     labels last within their prefix -- ``ER1, ER2, ER10, ER``.
 
-    Each *preferred* entry matches a type exactly, or -- in upper case -- every
-    type sharing its alphabetic prefix (``["ER"]`` pulls ``ER1, ER2, ER10``
-    forward). Unnamed types follow in generic order.
+    Each *preferred* entry matches one type exactly; unnamed types follow in
+    generic order.
     """
     _reject_unordered(preferred, "_sort_cell_types(preferred=...)")
     unique = {_stringify_id_value(t) for t in types if not _is_missing_scalar(t)}
@@ -607,9 +596,9 @@ def _sort_cell_types(
     for preferred_value in preferred:
         if _is_missing_scalar(preferred_value):
             continue
+        _reject_bytes_like(preferred_value, "preferred cell type entries")
         wanted = _stringify_id_value(preferred_value)
-        matches = [t for t in generic_order if t == wanted or parsed[t][0] == wanted]
-        for match in matches:
+        for match in [t for t in generic_order if t == wanted]:
             if match in remaining:
                 result.append(match)
                 remaining.remove(match)
@@ -710,9 +699,6 @@ def _order_types_by_size(
     type_names: list[str], typed_annotations: pd.DataFrame, type_col: str
 ) -> list[str]:
     """Largest blocks first, ties broken by label order."""
-    # _stringify_id_value, not astype(str): the type names come from
-    # resolve_type_order, which normalizes 1.0 to "1" -- astype(str) would key
-    # the counts on "1.0", miss every lookup, and tie every block at zero.
     counts = typed_annotations[type_col].map(_stringify_id_value).value_counts()
     by_label = _sort_cell_types(type_names)
     return sorted(
@@ -766,9 +752,6 @@ def _apply_type_sorter(
     type_col: str,
 ) -> list[str]:
     """Run *sorter* and check it returned exactly the present cell types."""
-    # Snapshot the expectation and hand the sorter its own copy: a callback
-    # mutating the list it receives must not also edit what it is checked
-    # against, or dropped blocks would slip through the exactly-once check.
     expected = list(type_names)
     ordered = [
         str(value) for value in sorter(list(type_names), typed_annotations, type_col)
@@ -792,10 +775,6 @@ def resolve_type_order(
     types_rule: TypeRule = "label",
 ) -> list[str]:
     """Order the cell types present in *typed_annotations*."""
-    # _stringify_id_value, not str: build_ordered_neurons normalizes the type
-    # column the same way, and str(1.0) == "1.0" would never match "1".
-    # Dedupe on the normalized form, not with unique(): raw 1 and "1" are
-    # distinct to unique() but the same cell type here.
     present_types: list[str] = []
     seen: set[str] = set()
     for cell_type in typed_annotations[type_col]:
@@ -825,17 +804,13 @@ def build_ordered_neurons(
     IDs are always in the form the matrix axes use.
     """
     sorter_for = _resolve_within_type_order(within)
-    # resolve_type_order stringifies its output, so match on the same form --
-    # otherwise an un-normalized type column (e.g. integer labels) silently
-    # matches nothing and every block comes back empty.
     normalized_types = typed_annotations[type_col].map(_stringify_id_value)
-    # Same for the IDs: a float column would otherwise yield "10.0", which
-    # matches nothing on a matrix axis built from _stringify_id_value.
     typed_annotations = typed_annotations.assign(
         **{
+            type_col: normalized_types,
             neuron_id_column: typed_annotations[neuron_id_column].map(
                 _stringify_id_value
-            )
+            ),
         }
     )
     ordered_neurons: list[str] = []

@@ -310,8 +310,13 @@ def test_synapse_in_multiple_neuropils(mock_load: MagicMock) -> None:
 
     assert "antennal_lobe_left" in result
     assert "fan_shaped_body" in result
+    # The shared synapse (pre 1 -> post 5, index 1) must contribute an edge to
+    # BOTH matrices -- assignment is not exclusive first-mesh-wins.
+    assert result["antennal_lobe_left"].matrix.loc["1", "5"] > 0
+    assert result["fan_shaped_body"].matrix.loc["1", "5"] > 0
     # synapse index 3 is unassigned
     assert "other" in result
+    assert result["other"].matrix.loc["2", "5"] > 0
 
 
 def test_collection_plot_shortcut() -> None:
@@ -1950,10 +1955,10 @@ def test_directed_within_type_order_can_differ_per_axis() -> None:
     assert list(matrix.target_neurons) == ["40", "30"]
 
 
-def test_column_order_rule_ranks_labels_by_position() -> None:
+def test_column_order_rule_normalizes_its_fields() -> None:
     rule = ColumnOrderRule(order=["R1", "L1", "R2"])
 
-    assert dict(rule.rank) == {"R1": 0, "L1": 1, "R2": 2}
+    assert rule.order == ("R1", "L1", "R2")
     assert rule.label_columns == ("cell_instance", "cell_subtype")
 
 
@@ -2235,7 +2240,7 @@ def test_order_bare_string_is_rejected_as_ambiguous() -> None:
 def test_order_partial_mapping_keeps_the_other_default() -> None:
     from crantpy.utils.ordering import DEFAULT_ORDER, as_neuron_order
 
-    assert as_neuron_order({"types": "size"}).within is DEFAULT_ORDER.within
+    assert as_neuron_order({"types": "size"}).within == DEFAULT_ORDER.within
     assert as_neuron_order({"within": None}).types == DEFAULT_ORDER.types
     assert as_neuron_order({"within": None}).within is None
 
@@ -2623,8 +2628,8 @@ def test_order_objects_survive_pickle_and_deepcopy_after_use() -> None:
 
     from crantpy.utils.ordering import DEFAULT_ORDER, EB_COLUMN_ORDER
 
-    # Building a matrix populates ColumnOrderRule.rank; that must not make the
-    # module-level singletons unpicklable.
+    # Using the module-level singletons in a build must not make them
+    # unpicklable.
     NestedMatrix.from_connectivity(_columnar_adjacency(), _columnar_annotations())
 
     assert pickle.loads(pickle.dumps(EB_COLUMN_ORDER)) == EB_COLUMN_ORDER
@@ -2646,13 +2651,17 @@ def test_key_views_are_accepted_at_every_guard() -> None:
         order=["R1"], label_columns=labels
     ).label_columns == ("R1", "L1")
     # Assert what they resolve TO: `is not None` would hold for any callable.
+    rank_labels = {"R2": 0, "R1": 1, "L1": 2}.keys()
     within_rows = pd.DataFrame(
-        {"root_id": ["10", "2"], "cell_subtype": ["A_R1", "A_L1"]}
+        {"root_id": ["2", "7", "10"], "cell_subtype": ["A_L1", "A_R1", "A_R2"]}
     )
-    assert ordering._resolve_within_type_rule(labels)("A", within_rows, "root_id") == [
+    assert ordering._resolve_within_type_rule(rank_labels)(
+        "A", within_rows, "root_id"
+    ) == [
         "10",
+        "7",
         "2",
-    ]  # ranked R1 then L1, not sorted by ID
+    ]  # ranked R2, R1, L1 -- differs from annotation, numeric-ID and string order
 
     # A key view naming the cell types themselves, so it can actually reorder.
     type_labels = {"B": 0, "A": 1}.keys()
@@ -2675,65 +2684,49 @@ def test_key_views_are_accepted_at_every_guard() -> None:
             call()
 
 
-def test_neuron_order_is_hashable() -> None:
-    from crantpy.utils.ordering import DEFAULT_ORDER
-
-    # frozen=True should mean usable as a dict key / lru_cache argument, which
-    # the default mapping-valued `within` would otherwise prevent.
-    assert hash(NeuronOrder()) == hash(DEFAULT_ORDER)
-    assert hash(NeuronOrder(types=["A"])) != hash(NeuronOrder(types=["B"]))
-    assert len({NeuronOrder(), NeuronOrder(types=["A"]), DEFAULT_ORDER}) == 2
-    assert hash(NeuronOrder(within={"A": {"B": 1}}))  # nested mapping
+def test_non_scalar_rule_entries_are_rejected() -> None:
+    # A list entry would stringify to "['x']" and silently never match.
+    with pytest.raises(TypeError, match="scalar labels"):
+        NeuronOrder(types=[["x"]])
+    with pytest.raises(TypeError, match="scalar labels"):
+        NeuronOrder(within={"A": [["x"]]})
 
 
-def test_neuron_order_rejects_unhashable_rule_entries() -> None:
-    # A mutable entry would survive the shallow snapshot, keeping the order
-    # aliased to caller state and making the advertised hash() raise.
-    label = ["x"]
-    with pytest.raises(TypeError, match="hashable"):
-        NeuronOrder(types=[label])
-    with pytest.raises(TypeError, match="hashable"):
-        NeuronOrder(within={"A": [label]})
-
-
-def test_neuron_order_rejects_unhashable_callable_rules() -> None:
+def test_unhashable_callable_rules_are_accepted() -> None:
     from dataclasses import dataclass, field
 
-    # eq=True without frozen sets __hash__ = None: a valid sorter for ordering,
-    # but hash(NeuronOrder(...)) would raise if it were accepted.
+    # eq=True without frozen sets __hash__ = None; a valid sorter regardless.
     @dataclass(eq=True)
     class MutableSorter:
         calls: list = field(default_factory=list)
 
         def __call__(self, type_names, typed_annotations, type_col):
-            return type_names
+            self.calls.append(list(type_names))
+            return list(reversed(type_names))
 
-    with pytest.raises(TypeError, match="hashable"):
-        NeuronOrder(types=MutableSorter())
-    with pytest.raises(TypeError, match="hashable"):
-        NeuronOrder(within={"A": MutableSorter()})
-    # A plain function stays accepted and hashable.
-    assert hash(NeuronOrder(types=lambda names, rows, col: names))
+    adjacency, annotations = _two_block_inputs()
+    matrix = NestedMatrix.from_connectivity(
+        adjacency, annotations, order=NeuronOrder(types=MutableSorter())
+    )
+    assert list(matrix.type_boundaries) == ["B", "A"]
 
 
-def test_order_defaults_are_read_only() -> None:
+def test_mutating_one_order_leaves_the_defaults_alone() -> None:
     from crantpy.utils.ordering import (
-        DEFAULT_ORDER,
         DEFAULT_WITHIN_TYPE_ORDER,
         EB_COLUMN_ORDER,
+        as_neuron_order,
     )
 
-    # Warm ColumnOrderRule.rank, which is where the cache lives.
-    NestedMatrix.from_connectivity(_columnar_adjacency(), _columnar_annotations())
+    # The module-level default table itself stays read-only...
+    with pytest.raises(TypeError):
+        DEFAULT_WITHIN_TYPE_ORDER["written"] = "through"  # type: ignore[index]
 
-    for mapping in (
-        EB_COLUMN_ORDER.rank,
-        DEFAULT_WITHIN_TYPE_ORDER,
-        DEFAULT_ORDER.within,
-        NeuronOrder(within={"A": "id"}).within,
-    ):
-        with pytest.raises(TypeError):
-            mapping["written"] = "through"  # type: ignore[index]
+    # ...and every order snapshots its own copy of it, so editing one order
+    # cannot poison the defaults a later build resolves.
+    order = as_neuron_order(None)
+    order.within["EPG/PEG"] = "id"  # type: ignore[index]
+    assert as_neuron_order(None).within["EPG/PEG"] is EB_COLUMN_ORDER
 
 
 def test_order_accepts_a_key_view_but_still_rejects_a_set() -> None:
@@ -2841,48 +2834,11 @@ def test_annotations_with_a_duplicate_index_are_accepted() -> None:
         )
 
 
-def test_neuron_order_hash_agrees_with_equality_for_stringwise_equal_keys() -> None:
-    # 1 and "1" stringify alike; sorting on str() alone would leave the hash
-    # dependent on insertion order while __eq__ stayed order-independent.
-    a = NeuronOrder(within={1: "id", "1": "annotation"})
-    b = NeuronOrder(within={"1": "annotation", 1: "id"})
-
-    assert a == b
-    assert hash(a) == hash(b)
-    assert len({a, b}) == 1
-    assert b in {a: "value"}
-
-
-def test_neuron_order_hash_is_insertion_order_independent_on_sort_key_ties() -> None:
-    # Two distinct keys of one class sharing a str() defeat any sort-based
-    # canonicalization: the tie kept insertion order, so equal orders hashed
-    # differently. The frozenset canonicalization has no order to leak.
-    class Key:
-        def __init__(self, value: int) -> None:
-            self.value = value
-
-        def __eq__(self, other: object) -> bool:
-            return isinstance(other, Key) and self.value == other.value
-
-        def __hash__(self) -> int:
-            return hash(self.value)
-
-        def __str__(self) -> str:
-            return "key"
-
-    k1, k2 = Key(1), Key(2)
-    a = NeuronOrder(within={k1: "id", k2: "annotation"})
-    b = NeuronOrder(within={k2: "annotation", k1: "id"})
-
-    assert a == b
-    assert hash(a) == hash(b)
-
-
 def test_within_keys_naming_the_same_cell_type_are_rejected() -> None:
     from crantpy.utils.ordering import build_ordered_neurons
 
-    # 1 and "1" normalize to the same cell type, so one would shadow the other
-    # depending on insertion order -- invisible to both __eq__ and __hash__.
+    # 1 and "1" normalize to the same cell type, so one would silently shadow
+    # the other depending on insertion order.
     annotations = pd.DataFrame(
         {"root_id": ["30", "4", "200"], "cell_type": ["1", "1", "1"]}
     )
@@ -2898,56 +2854,62 @@ def test_within_keys_naming_the_same_cell_type_are_rejected() -> None:
     )[0] == ["4", "30", "200"]
 
 
+def test_colliding_within_keys_survive_the_snapshot() -> None:
+    # 1 and "1" are distinct dict keys; _snapshot must keep them distinct so
+    # the build-time duplicate-key guard above still sees both when the
+    # mapping arrives through order= rather than a direct call.
+    assert NeuronOrder(within={1: "id", "1": "annotation"}) == NeuronOrder(
+        within={"1": "annotation", 1: "id"}
+    )
+
+    adjacency = pd.DataFrame([[0]], index=["30"], columns=["30"])
+    annotations = pd.DataFrame({"root_id": ["30"], "cell_type": ["1"]})
+    with pytest.raises(ValueError, match="naming the same cell type"):
+        NestedMatrix.from_connectivity(
+            adjacency, annotations, order={"within": {1: "id", "1": "annotation"}}
+        )
+
+
 def test_order_with_a_nested_mapping_still_round_trips() -> None:
     import copy
     import pickle
 
-    # _snapshot wraps every level in MappingProxyType, so the pickle hooks have
-    # to unwrap every level too.
+    # _snapshot copies every level to plain containers, so the object pickles
+    # without custom hooks.
     order = NeuronOrder(within={"A": {"B": 1}})
 
     restored = pickle.loads(pickle.dumps(order))
     assert restored == order
-    assert hash(restored) == hash(order)
     assert copy.deepcopy(order) == order
-    with pytest.raises(TypeError):
-        restored.within["A"]["B"] = 2  # type: ignore[index]
 
 
 # ---------------------------------------------------------------------------
-# Contracts stated by the ordering docstrings
+# Behavior documented in the ordering docstrings
 # ---------------------------------------------------------------------------
 
 
 def test_column_rule_skips_a_matching_but_unranked_column() -> None:
     from crantpy.utils.ordering import ColumnOrderRule, _extract_ranked_label
 
-    # ColumnOrderRule promises that a column matching the pattern but absent
-    # from `order` is skipped and the next column tried.
+    # A column matching the pattern but absent from `order` is skipped and
+    # the next column tried.
     rule = ColumnOrderRule(order=["R1", "L1"])
+    rank = {"R1": 0, "L1": 1}
     row = pd.Series({"cell_instance": "X_R9", "cell_subtype": "X_L1", "root_id": "1"})
 
-    assert _extract_ranked_label(row, rule, "root_id") == "L1"
+    assert _extract_ranked_label(row, rule, "root_id", rank) == "L1"
 
     # ...and with no ranked label anywhere, the neuron stays unranked.
     unranked = pd.Series(
         {"cell_instance": "X_R9", "cell_subtype": "X_R8", "root_id": "1"}
     )
-    assert _extract_ranked_label(unranked, rule, "root_id") is None
+    assert _extract_ranked_label(unranked, rule, "root_id", rank) is None
 
 
-def test_sort_cell_types_prefix_match_pulls_the_whole_family_forward() -> None:
+def test_preferred_entries_match_exactly() -> None:
     from crantpy.utils.ordering import _sort_cell_types
 
-    # An upper-case entry matches every type sharing that alphabetic prefix.
-    assert _sort_cell_types(["ER1", "ER10", "ER2", "AB3"], preferred=["ER"]) == [
-        "ER1",
-        "ER2",
-        "ER10",
-        "AB3",
-    ]
-
-    # An exact entry moves only that one type.
+    # A preferred entry moves only the type it names exactly...
     assert _sort_cell_types(["ER1", "ER10", "ER2", "AB3"], preferred=["ER10"]) == [
         "ER10",
         "AB3",
@@ -2955,9 +2917,8 @@ def test_sort_cell_types_prefix_match_pulls_the_whole_family_forward() -> None:
         "ER2",
     ]
 
-    # ...and the prefix match is upper-case only, as documented: a lower-case
-    # entry matches nothing, leaving the generic order untouched.
-    assert _sort_cell_types(["ER1", "ER2", "AB3"], preferred=["er"]) == [
+    # ...even when it is also a prefix of other types.
+    assert _sort_cell_types(["ER1", "ER2", "AB3"], preferred=["ER"]) == [
         "AB3",
         "ER1",
         "ER2",
@@ -3053,9 +3014,8 @@ def test_order_with_a_mapping_types_rule_still_round_trips() -> None:
     import copy
     import pickle
 
-    # _snapshot proxies both fields, so the pickle hooks must unwrap both. A
-    # mapping is not a legal `types` rule, but the object is constructible and
-    # the changelog promises these are picklable and deep-copyable.
+    # A mapping is not a legal `types` rule, but the object is constructible
+    # and must still pickle and deep-copy.
     order = NeuronOrder(types={"a": 1})
 
     restored = pickle.loads(pickle.dumps(order))
@@ -3063,40 +3023,29 @@ def test_order_with_a_mapping_types_rule_still_round_trips() -> None:
     assert copy.deepcopy(order) == order
     assert NeuronOrder(types=["B", "A"]).types == ("B", "A")
 
-    # ...and the round trip restores immutability, not just equality.
-    with pytest.raises(TypeError):
-        restored.types["a"] = 2  # type: ignore[index]
 
-
-def test_copying_another_matrix_block_order_needs_a_callable() -> None:
-    # A bare prefix type alongside its numbered siblings: "ER" also prefix-matches
-    # ER1/ER2, so feeding a block order back as a *sequence* does not reproduce
-    # it. The documented way to copy an exact order is a callable.
+def test_feeding_a_block_order_back_reproduces_it_exactly() -> None:
+    # A bare type name alongside its numbered siblings ("ER" next to ER1/ER2)
+    # matches exactly, so another matrix's block order round-trips as a
+    # sequence.
     annotations = pd.DataFrame(
         {
-            "root_id": ["11", "12", "13", "21", "31"],
-            "cell_type": ["ER", "ER", "ER", "ER1", "ER2"],
+            "root_id": ["11", "12", "13", "21", "31", "41"],
+            "cell_type": ["ER", "ER", "ER", "ER1", "ER2", "AB1"],
         }
     )
     adjacency = pd.DataFrame(
-        np.zeros((5, 5)), index=annotations.root_id, columns=annotations.root_id
+        np.zeros((6, 6)), index=annotations.root_id, columns=annotations.root_id
     )
     first = NestedMatrix.from_connectivity(
         adjacency, annotations, order={"types": "size"}
     )
-    assert list(first.type_boundaries) == ["ER", "ER1", "ER2"]
+    assert list(first.type_boundaries) == ["ER", "AB1", "ER1", "ER2"]
 
     as_sequence = NestedMatrix.from_connectivity(
         adjacency, annotations, order=first.type_boundaries.keys()
     )
-    assert list(as_sequence.type_boundaries) == ["ER1", "ER2", "ER"]
-
-    as_callable = NestedMatrix.from_connectivity(
-        adjacency,
-        annotations,
-        order={"types": lambda names, rows, col: list(first.type_boundaries)},
-    )
-    assert list(as_callable.type_boundaries) == list(first.type_boundaries)
+    assert list(as_sequence.type_boundaries) == list(first.type_boundaries)
 
 
 def test_untyped_tail_order_is_pinned() -> None:
@@ -3209,15 +3158,15 @@ def test_stringify_id_value_keeps_bools_distinct_from_ints() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Contracts of the public ordering helpers
+# Validation in the public ordering helpers
 # ---------------------------------------------------------------------------
 
 
 def test_sorters_returning_each_neuron_exactly_once_is_enforced_by_identity() -> None:
     from crantpy.utils.ordering import _apply_within_type_sorter
 
-    # The contract is "each exactly once", not "the right number of them": a
-    # same-length sorter that duplicates one neuron and drops another must fail.
+    # A same-length sorter that duplicates one neuron and drops another must
+    # still fail.
     rows = pd.DataFrame({"root_id": ["1", "2", "3"]})
 
     with pytest.raises(ValueError, match="exactly once"):
@@ -3344,13 +3293,13 @@ def test_unresolvable_label_warning_names_the_neuron_or_says_unknown(
     caplog.set_level("WARNING", logger="crantpy.utils.ordering")
 
     _extract_ranked_label(
-        pd.Series({"root_id": "77", "cell_subtype": "x"}), rule, "root_id"
+        pd.Series({"root_id": "77", "cell_subtype": "x"}), rule, "root_id", {"R1": 0}
     )
     assert "for neuron 77" in caplog.text
 
     caplog.clear()
     # A row without the ID column at all falls back to the placeholder.
-    _extract_ranked_label(pd.Series({"cell_subtype": "x"}), rule, "root_id")
+    _extract_ranked_label(pd.Series({"cell_subtype": "x"}), rule, "root_id", {"R1": 0})
     assert "for neuron <unknown>" in caplog.text
 
 
@@ -3386,8 +3335,6 @@ def test_sort_cell_types_is_case_insensitive_on_the_prefix() -> None:
     # after all upper-case ones.
     assert _sort_cell_types(["er1", "ER2"]) == ["er1", "ER2"]
     assert _sort_cell_types(["ER2", "er1"]) == ["er1", "ER2"]
-    # An upper-case preferred entry prefix-matches a lower-case label too.
-    assert _sort_cell_types(["er1", "ER2"], preferred=["ER"]) == ["er1", "ER2"]
 
     # The no-regex-match fallback upper-cases as well.
     assert _sort_cell_types(["_a", "_B"]) == ["_a", "_B"]
@@ -3785,3 +3732,184 @@ def test_directed_include_other_collects_unassigned_synapses(
         synapses, _make_directed_annotations(), include_other=False, **kwargs
     )
     assert set(without) == {"antennal_lobe_left"}
+
+
+# ---------------------------------------------------------------------------
+# Bytes rules, pattern validation, and normalized sorter inputs
+# ---------------------------------------------------------------------------
+
+
+def test_bytes_order_rules_are_rejected_not_silently_ignored() -> None:
+    from crantpy.utils.ordering import (
+        _sort_cell_types,
+        as_neuron_order,
+        build_ordered_neurons,
+    )
+
+    # bytes iterate as integers, so b"ER" would silently become (69, 82) and
+    # the requested order would be dropped without an error.
+    with pytest.raises(TypeError, match="yields integers"):
+        NeuronOrder(types=b"ER")
+    with pytest.raises(TypeError, match="yields integers"):
+        NeuronOrder(types=bytearray(b"ER"))
+    with pytest.raises(TypeError, match="yields integers"):
+        NeuronOrder(within={"A": b"R1"})
+    with pytest.raises(TypeError, match="yields integers"):
+        as_neuron_order(b"PEN")
+    with pytest.raises(TypeError, match="yields integers"):
+        ColumnOrderRule(order=b"R1")
+    with pytest.raises(TypeError, match="yields integers"):
+        ColumnOrderRule(order=["R1"], label_columns=bytearray(b"c"))
+    with pytest.raises(TypeError, match="yields integers"):
+        NeuronOrder(types=memoryview(b"ER"))
+
+    # ...and one nesting level down: entries and mapping keys, where the bytes
+    # would stringify to "b'ER'" and silently never match.
+    with pytest.raises(TypeError, match="never match"):
+        NeuronOrder(types=[b"ER"])
+    with pytest.raises(TypeError, match="never match"):
+        NeuronOrder(within={b"ER1": "id"})
+    with pytest.raises(TypeError, match="never match"):
+        build_ordered_neurons(
+            pd.DataFrame({"root_id": ["1"], "cell_type": ["A"]}),
+            "cell_type",
+            ["A"],
+            "root_id",
+            within={b"A": "id"},
+        )
+    with pytest.raises(TypeError, match="must be strings"):
+        ColumnOrderRule(order=[b"R1"])
+    with pytest.raises(TypeError, match="never match"):
+        _sort_cell_types(["ER"], preferred=[b"ER"])
+
+
+def test_column_rule_pattern_must_have_a_capture_group() -> None:
+    import re
+
+    with pytest.raises(ValueError, match="capture group"):
+        ColumnOrderRule(order=["R1"], pattern=re.compile(r"[LR]\d+\s*$"))
+    with pytest.raises(ValueError, match="capture group"):
+        ColumnOrderRule(order=["R1"], pattern=r"[LR]\d+\s*$")
+
+    # A plain string is compiled; bytes patterns and non-patterns are rejected
+    # at construction instead of crashing inside DataFrame.apply.
+    compiled = ColumnOrderRule(order=["R1"], pattern=r"([LR]\d+)\s*$")
+    assert compiled.pattern.search("X_R1").group(1) == "R1"
+    with pytest.raises(TypeError, match="str regex"):
+        ColumnOrderRule(order=["R1"], pattern=re.compile(rb"([LR]\d+)$"))
+    with pytest.raises(TypeError, match="str regex"):
+        ColumnOrderRule(order=["R1"], pattern=None)  # type: ignore[arg-type]
+
+
+def test_within_sorters_receive_a_normalized_type_column() -> None:
+    from crantpy.utils.ordering import build_ordered_neurons
+
+    # The WithinTypeSorter doc says the frame arrives with its ID and cell
+    # type columns already normalized, so a sorter filtering on the type
+    # column must work even when the caller's frame holds raw values.
+    annotations = pd.DataFrame({"root_id": [2, 1], "cell_type": [1, 1]})
+
+    def sorter(name: str, rows: pd.DataFrame, id_col: str) -> list[str]:
+        return sorted(rows.loc[rows["cell_type"] == name, id_col])
+
+    ordered, boundaries = build_ordered_neurons(
+        annotations, "cell_type", ["1"], "root_id", within=sorter
+    )
+    assert ordered == ["1", "2"]
+    assert boundaries == {"1": (0, 2)}
+
+
+# ---------------------------------------------------------------------------
+# Read-only views: extension dtypes and derived frames
+# ---------------------------------------------------------------------------
+
+
+def test_extension_dtype_matrices_cannot_be_mutated_through_the_view() -> None:
+    frame = pd.DataFrame([[0, 4], [2, 0]], index=["1", "2"], columns=["1", "2"]).astype(
+        "Int64"
+    )
+    matrix = NestedMatrix(frame, {"A": (0, 2)}, ["1", "2"], {"1": "A", "2": "A"})
+    cached = matrix.sum_type_matrix.copy()
+
+    view = matrix.matrix
+    with pytest.raises(ValueError, match="immutable"):
+        view.loc["1", "2"] = 99
+    # Chained indexing has no hook to raise through; it must land on a copy,
+    # never on the internal frame backing the cached aggregates.
+    try:
+        view["2"]["1"] = 99
+    except Exception:
+        pass
+    assert matrix.matrix.loc["1", "2"] == 4
+    pd.testing.assert_frame_equal(
+        matrix.sum_type_matrix, cached, check_frame_type=False
+    )
+
+
+def test_derived_frames_from_the_view_are_plain_and_editable() -> None:
+    connectivity = pd.DataFrame({"pre": [1], "post": [2], "weight": [4]})
+    annotations = pd.DataFrame({"root_id": [1, 2], "cell_type": ["A", "B"]})
+    matrix = NestedMatrix.from_connectivity(connectivity, annotations)
+
+    derived = matrix.matrix + 1
+    assert type(derived) is pd.DataFrame
+    derived["new"] = 1  # fresh buffers: must not raise "immutable"
+    assert list(derived["new"]) == [1, 1]
+
+    copied = matrix.matrix.copy()
+    copied.loc["1", "2"] = 99
+    assert copied.loc["1", "2"] == 99
+    assert matrix.matrix.loc["1", "2"] == 4.0
+
+
+# ---------------------------------------------------------------------------
+# Fractional voxel offsets with integer synapse positions
+# ---------------------------------------------------------------------------
+
+
+@patch("crantpy.viz.mesh.load_neuropil_mesh")
+def test_fractional_voxel_offset_with_integer_positions(mock_load: MagicMock) -> None:
+    from crantpy.utils.config import SCALE_X, SCALE_Y, SCALE_Z
+
+    mesh = _mock_mesh([True] * 6)
+    mock_load.return_value = mesh
+
+    result = NestedMatrix.from_synapses_by_neuropil(
+        synapses_df=_make_synapses(),
+        neuron_annotations=_make_annotations(),
+        neuropil_names=["antennal_lobe_left"],
+        coordinates="pixels",
+        voxel_offset=(0.5, 0.5, 0.5),
+    )
+
+    assert "antennal_lobe_left" in result
+    tested = mesh.contains.call_args[0][0]
+    np.testing.assert_allclose(
+        tested[0],
+        [100.5 * SCALE_X, 200.5 * SCALE_Y, 300.5 * SCALE_Z],
+    )
+
+
+@patch("crantpy.viz.mesh.load_neuropil_mesh")
+def test_directed_fractional_voxel_offset_with_integer_positions(
+    mock_load: MagicMock,
+) -> None:
+    from crantpy.utils.config import SCALE_X, SCALE_Y, SCALE_Z
+
+    mesh = _mock_mesh([True] * 6)
+    mock_load.return_value = mesh
+
+    result = DirectedNestedMatrix.from_synapses_by_neuropil(
+        synapses_df=_make_synapses(),
+        neuron_annotations=_make_annotations(),
+        neuropil_names=["antennal_lobe_left"],
+        coordinates="pixels",
+        voxel_offset=(0.5, 0.5, 0.5),
+    )
+
+    assert "antennal_lobe_left" in result
+    tested = mesh.contains.call_args[0][0]
+    np.testing.assert_allclose(
+        tested[0],
+        [100.5 * SCALE_X, 200.5 * SCALE_Y, 300.5 * SCALE_Z],
+    )

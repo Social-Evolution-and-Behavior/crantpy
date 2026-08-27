@@ -165,7 +165,10 @@ class _ReadOnlyDataFrame(pd.DataFrame):
 
     @property
     def _constructor(self):
-        return _ReadOnlyDataFrame
+        # Derived results are plain frames: editable when they own their
+        # buffers, still protected by the numpy read-only flag when they share
+        # these. Only the directly returned view carries the friendly guard.
+        return pd.DataFrame
 
     @property
     def loc(self) -> _ReadOnlyIndexer:
@@ -218,10 +221,17 @@ def _set_dataframe_writeable(df: pd.DataFrame, writeable: bool) -> None:
 
 
 def _readonly_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    """Return a read-only DataFrame view over an immutable private DataFrame."""
+    """Return a read-only DataFrame view over an immutable private DataFrame.
+
+    Extension-dtype blocks (nullable, Arrow) have no read-only flag, so frames
+    holding any are exposed as a deep copy instead of a shared view.
+    """
 
     _set_dataframe_writeable(df, writeable=False)
-    view = _ReadOnlyDataFrame(df.copy(deep=False))
+    if any(not hasattr(array, "setflags") for array in df._mgr.arrays):
+        view = _ReadOnlyDataFrame(df.copy(deep=True))
+    else:
+        view = _ReadOnlyDataFrame(df.copy(deep=False))
     _set_dataframe_writeable(view, writeable=False)
     return view
 
@@ -931,6 +941,8 @@ class NestedMatrix:
         positions = np.vstack(synapses_df[position_column].values)
 
         if coordinates == "pixels":
+            # int positions would reject a float offset and truncate float scales
+            positions = positions.astype(float)
             if voxel_offset is not None:
                 positions += np.array(voxel_offset)
             positions[:, 0] = positions[:, 0] * SCALE_X
@@ -941,6 +953,8 @@ class NestedMatrix:
                 f"coordinates must be 'nm' or 'pixels', got {coordinates!r}"
             )
 
+        # TODO: dedupe this mask pipeline across both classes and batch
+        # mesh.contains (queries.neuropils._batched_mesh_contains) to avoid OOM.
         neuropil_masks: dict[str, np.ndarray] = {}
         for name in neuropil_names:
             logger.info("Loading neuropil mesh: %s", name)
@@ -1298,6 +1312,8 @@ class NestedMatrix:
 
         axis_ids: set[str] = set()
         if selected_type_set is not None:
+            # TODO: reuse this ResolvedAnnotations in build_axis_ordering
+            # instead of re-resolving the same frame per axis.
             resolved = resolve_relevant_annotations(
                 matrix_ids=available_ids,
                 annotations=annotations,
@@ -1889,6 +1905,8 @@ class DirectedNestedMatrix:
                 "type_boundaries before any unassigned neurons"
             )
 
+    # TODO: deduplicate the ~400 lines of validation/aggregation/plot helpers
+    # shared with NestedMatrix (a square matrix is a directed one with tied axes).
     @classmethod
     def _validate_invariants(
         cls,
@@ -2043,6 +2061,9 @@ class DirectedNestedMatrix:
 
     @staticmethod
     def _stringify_adjacency_axes(adjacency: pd.DataFrame) -> pd.DataFrame:
+        # TODO: drop this re-normalization (plus the one in
+        # _filter_adjacency_to_annotations); _coerce_to_adjacency already
+        # normalizes, so each extra pass is a full-matrix copy for nothing.
         return NestedMatrix._normalize_adjacency_axes(adjacency)
 
     @staticmethod
@@ -2204,6 +2225,8 @@ class DirectedNestedMatrix:
             )
         )
 
+        # TODO: stringify the synapse ID columns once at this entry boundary
+        # instead of re-normalizing (and copying) inside each helper below.
         scoped_synapses = NestedMatrix._apply_annotation_scope_to_synapses(
             synapses_df=synapses_df,
             neuron_annotations=neuron_annotations,
@@ -2386,6 +2409,8 @@ class DirectedNestedMatrix:
 
         positions = np.vstack(scoped_synapses[position_column].values)
         if coordinates == "pixels":
+            # int positions would reject a float offset and truncate float scales
+            positions = positions.astype(float)
             if voxel_offset is not None:
                 positions += np.array(voxel_offset)
             positions[:, 0] = positions[:, 0] * SCALE_X
@@ -2396,6 +2421,8 @@ class DirectedNestedMatrix:
                 f"coordinates must be 'nm' or 'pixels', got {coordinates!r}"
             )
 
+        # TODO: dedupe this mask pipeline across both classes and batch
+        # mesh.contains (queries.neuropils._batched_mesh_contains) to avoid OOM.
         neuropil_masks: dict[str, np.ndarray] = {}
         for name in neuropil_names:
             neuropil_masks[name] = load_neuropil_mesh(name).contains(positions)
