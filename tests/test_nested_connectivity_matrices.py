@@ -2678,6 +2678,16 @@ def test_neuron_order_is_hashable() -> None:
     assert hash(NeuronOrder(within={"A": {"B": 1}}))  # nested mapping
 
 
+def test_neuron_order_rejects_unhashable_rule_entries() -> None:
+    # A mutable entry would survive the shallow snapshot, keeping the order
+    # aliased to caller state and making the advertised hash() raise.
+    label = ["x"]
+    with pytest.raises(TypeError, match="hashable"):
+        NeuronOrder(types=[label])
+    with pytest.raises(TypeError, match="hashable"):
+        NeuronOrder(within={"A": [label]})
+
+
 def test_order_defaults_are_read_only() -> None:
     from crantpy.utils.ordering import (
         DEFAULT_ORDER,
@@ -3326,6 +3336,18 @@ def test_resolve_type_order_ignores_null_types() -> None:
 
     annotations = pd.DataFrame({"root_id": ["1", "2"], "cell_type": [np.nan, "A"]})
     assert resolve_type_order(annotations, "cell_type") == ["A"]
+
+
+def test_resolve_type_order_dedupes_on_normalized_type_names() -> None:
+    from crantpy.utils.ordering import resolve_type_order
+
+    # Raw 1, "1" and 1.0 are distinct to unique() but the same cell type once
+    # normalized; deduping the raw values used to yield ["1", "1", ...] and a
+    # spurious "exactly once" error from the sorter.
+    annotations = pd.DataFrame(
+        {"root_id": ["1", "2", "3", "4"], "cell_type": [1, "1", 1.0, "2"]}
+    )
+    assert resolve_type_order(annotations, "cell_type") == ["1", "2"]
 
 
 def test_order_types_by_size_breaks_ties_by_label_order() -> None:

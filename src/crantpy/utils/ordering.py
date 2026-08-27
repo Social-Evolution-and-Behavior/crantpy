@@ -442,7 +442,17 @@ def _snapshot(rule: Any) -> Any:
         )
     _reject_unordered(rule, "order rules")
     if isinstance(rule, Iterable):
-        return tuple(rule)
+        entries = tuple(rule)
+        for entry in entries:
+            try:
+                hash(entry)
+            except TypeError:
+                raise TypeError(
+                    "order rule entries must be hashable labels so NeuronOrder "
+                    "stays immutable and hashable; got a "
+                    f"{type(entry).__name__}: {entry!r}"
+                ) from None
+        return entries
     return rule
 
 
@@ -770,11 +780,17 @@ def resolve_type_order(
     """Order the cell types present in *typed_annotations*."""
     # _stringify_id_value, not str: build_ordered_neurons normalizes the type
     # column the same way, and str(1.0) == "1.0" would never match "1".
-    present_types = [
-        _stringify_id_value(cell_type)
-        for cell_type in typed_annotations[type_col].unique()
-        if pd.notna(cell_type)
-    ]
+    # Dedupe on the normalized form, not with unique(): raw 1 and "1" are
+    # distinct to unique() but the same cell type here.
+    present_types: list[str] = []
+    seen: set[str] = set()
+    for cell_type in typed_annotations[type_col]:
+        if _is_missing_scalar(cell_type):
+            continue
+        name = _stringify_id_value(cell_type)
+        if name not in seen:
+            seen.add(name)
+            present_types.append(name)
     return _apply_type_sorter(
         _resolve_type_rule(types_rule), present_types, typed_annotations, type_col
     )
