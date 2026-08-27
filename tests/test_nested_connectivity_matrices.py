@@ -2429,6 +2429,14 @@ def test_column_order_rule_rejects_unordered_sets() -> None:
         ColumnOrderRule(order={"R1", "L1"})
 
 
+def test_column_order_rule_rejects_bare_strings() -> None:
+    # tuple("R1") == ("R", "1"): the intended label would silently never rank.
+    with pytest.raises(TypeError, match="not a bare string"):
+        ColumnOrderRule(order="R1")
+    with pytest.raises(TypeError, match="not a bare string"):
+        ColumnOrderRule(order=["R1"], label_columns="cell_subtype")
+
+
 def test_within_rejects_a_mapping_nested_under_one_cell_type() -> None:
     adjacency, annotations = _ab_inputs()
 
@@ -2686,6 +2694,26 @@ def test_neuron_order_rejects_unhashable_rule_entries() -> None:
         NeuronOrder(types=[label])
     with pytest.raises(TypeError, match="hashable"):
         NeuronOrder(within={"A": [label]})
+
+
+def test_neuron_order_rejects_unhashable_callable_rules() -> None:
+    from dataclasses import dataclass, field
+
+    # eq=True without frozen sets __hash__ = None: a valid sorter for ordering,
+    # but hash(NeuronOrder(...)) would raise if it were accepted.
+    @dataclass(eq=True)
+    class MutableSorter:
+        calls: list = field(default_factory=list)
+
+        def __call__(self, type_names, typed_annotations, type_col):
+            return type_names
+
+    with pytest.raises(TypeError, match="hashable"):
+        NeuronOrder(types=MutableSorter())
+    with pytest.raises(TypeError, match="hashable"):
+        NeuronOrder(within={"A": MutableSorter()})
+    # A plain function stays accepted and hashable.
+    assert hash(NeuronOrder(types=lambda names, rows, col: names))
 
 
 def test_order_defaults_are_read_only() -> None:

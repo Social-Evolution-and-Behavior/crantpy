@@ -187,8 +187,17 @@ class ColumnOrderRule:
     pattern: re.Pattern[str] = COLUMN_LABEL_PATTERN
 
     def __post_init__(self) -> None:
-        _reject_unordered(self.order, "ColumnOrderRule.order")
-        _reject_unordered(self.label_columns, "ColumnOrderRule.label_columns")
+        for field_name, value in (
+            ("order", self.order),
+            ("label_columns", self.label_columns),
+        ):
+            if isinstance(value, (str, bytes)):
+                # tuple("R1") == ("R", "1"): the label would silently never rank.
+                raise TypeError(
+                    f"ColumnOrderRule.{field_name} takes an iterable of labels, "
+                    f"not a bare string; wrap it: [{value!r}]"
+                )
+            _reject_unordered(value, f"ColumnOrderRule.{field_name}")
         object.__setattr__(self, "order", tuple(self.order))
         object.__setattr__(self, "label_columns", tuple(self.label_columns))
 
@@ -427,15 +436,24 @@ def _unwrap_proxies(rule: Any) -> Any:
     return rule
 
 
+def _require_hashable(value: Any, what: str) -> Any:
+    """Reject *value* unless it is hashable, keeping NeuronOrder's contract."""
+    try:
+        hash(value)
+    except TypeError:
+        raise TypeError(
+            f"{what} must be hashable so NeuronOrder stays immutable and "
+            f"hashable as documented; got a {type(value).__name__}: {value!r}"
+        ) from None
+    return value
+
+
 def _snapshot(rule: Any) -> Any:
     """Recursively freeze an order rule so it is deterministic and reusable."""
-    if (
-        rule is None
-        or isinstance(rule, str)
-        or callable(rule)
-        or rule is DEFAULT_WITHIN_TYPE_ORDER
-    ):
+    if rule is None or isinstance(rule, str) or rule is DEFAULT_WITHIN_TYPE_ORDER:
         return rule
+    if callable(rule):
+        return _require_hashable(rule, "an order rule callable")
     if isinstance(rule, Mapping):
         return MappingProxyType(
             {name: _snapshot(nested_rule) for name, nested_rule in rule.items()}
@@ -444,14 +462,7 @@ def _snapshot(rule: Any) -> Any:
     if isinstance(rule, Iterable):
         entries = tuple(rule)
         for entry in entries:
-            try:
-                hash(entry)
-            except TypeError:
-                raise TypeError(
-                    "order rule entries must be hashable labels so NeuronOrder "
-                    "stays immutable and hashable; got a "
-                    f"{type(entry).__name__}: {entry!r}"
-                ) from None
+            _require_hashable(entry, "order rule entries")
         return entries
     return rule
 
