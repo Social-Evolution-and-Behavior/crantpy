@@ -2853,6 +2853,31 @@ def test_neuron_order_hash_agrees_with_equality_for_stringwise_equal_keys() -> N
     assert b in {a: "value"}
 
 
+def test_neuron_order_hash_is_insertion_order_independent_on_sort_key_ties() -> None:
+    # Two distinct keys of one class sharing a str() defeat any sort-based
+    # canonicalization: the tie kept insertion order, so equal orders hashed
+    # differently. The frozenset canonicalization has no order to leak.
+    class Key:
+        def __init__(self, value: int) -> None:
+            self.value = value
+
+        def __eq__(self, other: object) -> bool:
+            return isinstance(other, Key) and self.value == other.value
+
+        def __hash__(self) -> int:
+            return hash(self.value)
+
+        def __str__(self) -> str:
+            return "key"
+
+    k1, k2 = Key(1), Key(2)
+    a = NeuronOrder(within={k1: "id", k2: "annotation"})
+    b = NeuronOrder(within={k2: "annotation", k1: "id"})
+
+    assert a == b
+    assert hash(a) == hash(b)
+
+
 def test_within_keys_naming_the_same_cell_type_are_rejected() -> None:
     from crantpy.utils.ordering import build_ordered_neurons
 
