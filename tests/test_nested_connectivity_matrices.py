@@ -1963,10 +1963,22 @@ def test_eb_column_order_comes_from_config() -> None:
     # Spelled out literally: comparing against the constant it is built from
     # would move with any edit to it, leaving the anatomical ring unpinned.
     assert list(EB_COLUMN_ORDER.order) == [
-        "R1", "L8", "R2", "L7",
-        "R3", "L6", "R4", "L5",
-        "R5", "L4", "R6", "L3",
-        "R7", "L2", "R8", "L1",
+        "R1",
+        "L8",
+        "R2",
+        "L7",
+        "R3",
+        "L6",
+        "R4",
+        "L5",
+        "R5",
+        "L4",
+        "R6",
+        "L3",
+        "R7",
+        "L2",
+        "R8",
+        "L1",
     ]
     assert list(EB_COLUMN_LABELS) == list(EB_COLUMN_ORDER.order)
     assert tuple(EB_COLUMNAR_CELL_TYPES) == ("EPG/PEG",)
@@ -2545,7 +2557,13 @@ def test_directed_one_shot_selector_survives_every_roi(mock_load: MagicMock) -> 
         lambda: ordering._resolve_within_type_rule({"R1", "L1"}),
         lambda: ordering._resolve_within_type_order({"EPG/PEG": {"R1", "L1"}}),
     ],
-    ids=["_sort_cell_types", "by_preferred", "type_rule", "within_rule", "within_order"],
+    ids=[
+        "_sort_cell_types",
+        "by_preferred",
+        "type_rule",
+        "within_rule",
+        "within_order",
+    ],
 )
 def test_ordering_helpers_reject_sets(call) -> None:
     with pytest.raises(TypeError, match="ordered iterable|not a set"):
@@ -2623,16 +2641,20 @@ def test_key_views_are_accepted_at_every_guard() -> None:
     within_rows = pd.DataFrame(
         {"root_id": ["10", "2"], "cell_subtype": ["A_R1", "A_L1"]}
     )
-    assert ordering._resolve_within_type_rule(labels)(
-        "A", within_rows, "root_id"
-    ) == ["10", "2"]  # ranked R1 then L1, not sorted by ID
+    assert ordering._resolve_within_type_rule(labels)("A", within_rows, "root_id") == [
+        "10",
+        "2",
+    ]  # ranked R1 then L1, not sorted by ID
 
     # A key view naming the cell types themselves, so it can actually reorder.
     type_labels = {"B": 0, "A": 1}.keys()
     type_rows = pd.DataFrame({"cell_type": ["A", "A", "B"]})
     assert ordering._resolve_type_rule(type_labels)(
         ["A", "B"], type_rows, "cell_type"
-    ) == ["B", "A"]  # preferred order from the key view, not label or size order
+    ) == [
+        "B",
+        "A",
+    ]  # preferred order from the key view, not label or size order
 
     # ...and a real set is still rejected at each of them.
     for call in (
@@ -2657,7 +2679,11 @@ def test_neuron_order_is_hashable() -> None:
 
 
 def test_order_defaults_are_read_only() -> None:
-    from crantpy.utils.ordering import DEFAULT_ORDER, DEFAULT_WITHIN_TYPE_ORDER, EB_COLUMN_ORDER
+    from crantpy.utils.ordering import (
+        DEFAULT_ORDER,
+        DEFAULT_WITHIN_TYPE_ORDER,
+        EB_COLUMN_ORDER,
+    )
 
     # Warm ColumnOrderRule.rank, which is where the cache lives.
     NestedMatrix.from_connectivity(_columnar_adjacency(), _columnar_annotations())
@@ -2755,9 +2781,10 @@ def test_annotations_with_a_duplicate_index_are_accepted() -> None:
     interleaved = pd.DataFrame(
         {"root_id": ["1", "2", "1"], "cell_type": [None, "A", "A"]}
     )
-    assert NestedMatrix.from_connectivity(
-        adjacency, interleaved
-    ).ordered_neurons == ("1", "2")
+    assert NestedMatrix.from_connectivity(adjacency, interleaved).ordered_neurons == (
+        "1",
+        "2",
+    )
 
     for reindexed in (
         annotations.set_index("root_id", drop=False),
@@ -2766,10 +2793,14 @@ def test_annotations_with_a_duplicate_index_are_accepted() -> None:
     ):
         matrix = NestedMatrix.from_connectivity(adjacency, reindexed)
         assert matrix.ordered_neurons == expected.ordered_neurons
-        assert dict(matrix.neuron_to_type) == dict(expected.neuron_to_type) == {
-            "1": "A",
-            "2": "B",
-        }
+        assert (
+            dict(matrix.neuron_to_type)
+            == dict(expected.neuron_to_type)
+            == {
+                "1": "A",
+                "2": "B",
+            }
+        )
 
 
 def test_neuron_order_hash_agrees_with_equality_for_stringwise_equal_keys() -> None:
@@ -2846,20 +2877,28 @@ def test_sort_cell_types_prefix_match_pulls_the_whole_family_forward() -> None:
     from crantpy.utils.ordering import _sort_cell_types
 
     # An upper-case entry matches every type sharing that alphabetic prefix.
-    assert _sort_cell_types(
-        ["ER1", "ER10", "ER2", "AB3"], preferred=["ER"]
-    ) == ["ER1", "ER2", "ER10", "AB3"]
+    assert _sort_cell_types(["ER1", "ER10", "ER2", "AB3"], preferred=["ER"]) == [
+        "ER1",
+        "ER2",
+        "ER10",
+        "AB3",
+    ]
 
     # An exact entry moves only that one type.
-    assert _sort_cell_types(
-        ["ER1", "ER10", "ER2", "AB3"], preferred=["ER10"]
-    ) == ["ER10", "AB3", "ER1", "ER2"]
+    assert _sort_cell_types(["ER1", "ER10", "ER2", "AB3"], preferred=["ER10"]) == [
+        "ER10",
+        "AB3",
+        "ER1",
+        "ER2",
+    ]
 
     # ...and the prefix match is upper-case only, as documented: a lower-case
     # entry matches nothing, leaving the generic order untouched.
-    assert _sort_cell_types(
-        ["ER1", "ER2", "AB3"], preferred=["er"]
-    ) == ["AB3", "ER1", "ER2"]
+    assert _sort_cell_types(["ER1", "ER2", "AB3"], preferred=["er"]) == [
+        "AB3",
+        "ER1",
+        "ER2",
+    ]
 
 
 def test_sort_cell_types_puts_un_numbered_labels_last_in_their_prefix() -> None:
@@ -2905,9 +2944,10 @@ def test_documented_ordering_pipeline_works_on_un_normalized_types() -> None:
     # Called directly with raw (un-normalized) sorted_types, as a caller
     # composing the public helpers by hand may well do.
     raw = pd.DataFrame({"root_id": ["10", "20"], "cell_type": [7.0, 7.0]})
-    assert ordering.build_ordered_neurons(
-        raw, "cell_type", [7.0], "root_id"
-    ) == (["10", "20"], {"7": (0, 2)})
+    assert ordering.build_ordered_neurons(raw, "cell_type", [7.0], "root_id") == (
+        ["10", "20"],
+        {"7": (0, 2)},
+    )
 
     # Non-integral floats keep their decimal part on both sides.
     fractional = pd.DataFrame({"root_id": ["10"], "cell_type": [1.5]})
@@ -2927,12 +2967,11 @@ def test_order_types_size_agrees_across_cell_type_dtypes() -> None:
     # types, or every lookup misses, all sizes tie at zero, and "size" silently
     # degrades to label order.
     for cell_types in ([1, 2, 2, 2], [1.0, 2.0, 2.0, 2.0], ["1", "2", "2", "2"]):
-        raw = pd.DataFrame(
-            {"root_id": ["1", "2", "3", "4"], "cell_type": cell_types}
-        )
-        assert ordering.resolve_type_order(raw, "cell_type", "size") == ["2", "1"], (
-            cell_types
-        )
+        raw = pd.DataFrame({"root_id": ["1", "2", "3", "4"], "cell_type": cell_types})
+        assert ordering.resolve_type_order(raw, "cell_type", "size") == [
+            "2",
+            "1",
+        ], cell_types
 
     # And end to end, where the column is already normalized.
     annotations = pd.DataFrame(
@@ -3161,9 +3200,7 @@ def test_pipeline_normalizes_the_neuron_id_column_too() -> None:
     # so without normalization "id" order fell back to a lexicographic sort AND
     # returned IDs that match nothing on a stringified matrix axis.
     for ids in ([10.0, 9.0, 100.0], [10, 9, 100], ["10", "9", "100"]):
-        annotations = pd.DataFrame(
-            {"root_id": ids, "cell_type": ["A", "A", "A"]}
-        )
+        annotations = pd.DataFrame({"root_id": ids, "cell_type": ["A", "A", "A"]})
         assert ordering.build_ordered_neurons(
             annotations, "cell_type", ["A"], "root_id", within="id"
         ) == (["9", "10", "100"], {"A": (0, 3)}), ids
@@ -3194,9 +3231,10 @@ def test_build_ordered_neurons_skips_a_type_with_no_rows() -> None:
         {"root_id": ["1", "2", "3"], "cell_type": ["A", "A", "A"]}
     )
 
-    assert build_ordered_neurons(
-        annotations, "cell_type", ["A", "Z"], "root_id"
-    ) == (["1", "2", "3"], {"A": (0, 3)})
+    assert build_ordered_neurons(annotations, "cell_type", ["A", "Z"], "root_id") == (
+        ["1", "2", "3"],
+        {"A": (0, 3)},
+    )
 
 
 def test_is_missing_scalar_is_false_for_non_scalars() -> None:
@@ -3225,7 +3263,9 @@ def test_unresolvable_label_warning_names_the_neuron_or_says_unknown(
     rule = ColumnOrderRule(order=["R1"])
     caplog.set_level("WARNING", logger="crantpy.utils.ordering")
 
-    _extract_ranked_label(pd.Series({"root_id": "77", "cell_subtype": "x"}), rule, "root_id")
+    _extract_ranked_label(
+        pd.Series({"root_id": "77", "cell_subtype": "x"}), rule, "root_id"
+    )
     assert "for neuron 77" in caplog.text
 
     caplog.clear()
@@ -3284,9 +3324,7 @@ def test_sort_cell_types_drops_null_labels() -> None:
 def test_resolve_type_order_ignores_null_types() -> None:
     from crantpy.utils.ordering import resolve_type_order
 
-    annotations = pd.DataFrame(
-        {"root_id": ["1", "2"], "cell_type": [np.nan, "A"]}
-    )
+    annotations = pd.DataFrame({"root_id": ["1", "2"], "cell_type": [np.nan, "A"]})
     assert resolve_type_order(annotations, "cell_type") == ["A"]
 
 
@@ -3323,28 +3361,32 @@ def test_order_types_by_size_breaks_ties_by_label_order() -> None:
 
 
 def _square(ids: list[str]) -> pd.DataFrame:
-    return pd.DataFrame(
-        np.ones((len(ids), len(ids))), index=ids, columns=ids
-    )
+    return pd.DataFrame(np.ones((len(ids), len(ids))), index=ids, columns=ids)
 
 
 @pytest.mark.parametrize(
     "boundaries, ordered, neuron_to_type, message",
     [
         # zero-width block
-        ({"A": (0, 0), "B": (0, 2)}, ["1", "2"], {"1": "B", "2": "B"},
-         "invalid slice"),
+        ({"A": (0, 0), "B": (0, 2)}, ["1", "2"], {"1": "B", "2": "B"}, "invalid slice"),
         # block running past the end of the axis
         ({"A": (0, 5)}, ["1", "2"], {"1": "A", "2": "A"}, "invalid slice"),
         # neuron_to_type naming a neuron that is not on the axis
-        ({"A": (0, 2)}, ["1", "2"], {"1": "A", "2": "A", "99": "A"},
-         "not present in ordered_neurons"),
+        (
+            {"A": (0, 2)},
+            ["1", "2"],
+            {"1": "A", "2": "A", "99": "A"},
+            "not present in ordered_neurons",
+        ),
         # neurons sitting in the wrong block
-        ({"A": (0, 1), "B": (1, 2)}, ["1", "2"], {"1": "B", "2": "A"},
-         "does not match neuron_to_type"),
+        (
+            {"A": (0, 1), "B": (1, 2)},
+            ["1", "2"],
+            {"1": "B", "2": "A"},
+            "does not match neuron_to_type",
+        ),
         # matrix axes disagreeing with ordered_neurons
-        ({"A": (0, 2)}, ["2", "1"], {"1": "A", "2": "A"},
-         "must match ordered_neurons"),
+        ({"A": (0, 2)}, ["2", "1"], {"1": "A", "2": "A"}, "must match ordered_neurons"),
     ],
     ids=["zero-width", "past-end", "extra-neuron", "wrong-block", "axis-mismatch"],
 )
@@ -3358,13 +3400,15 @@ def test_validate_invariants_rejects_inconsistent_metadata(
 @pytest.mark.parametrize(
     "boundaries, source, neuron_to_type, message",
     [
-        ({"A": (0, 0), "B": (0, 2)}, ["1", "2"], {"1": "B", "2": "B"},
-         "invalid slice"),
+        ({"A": (0, 0), "B": (0, 2)}, ["1", "2"], {"1": "B", "2": "B"}, "invalid slice"),
         ({"A": (0, 5)}, ["1", "2"], {"1": "A", "2": "A"}, "invalid slice"),
-        ({"A": (0, 2)}, ["1", "2"], {"1": "A", "2": "A", "99": "A"},
-         "not present in"),
-        ({"A": (0, 1), "B": (1, 2)}, ["1", "2"], {"1": "B", "2": "A"},
-         "does not match"),
+        ({"A": (0, 2)}, ["1", "2"], {"1": "A", "2": "A", "99": "A"}, "not present in"),
+        (
+            {"A": (0, 1), "B": (1, 2)},
+            ["1", "2"],
+            {"1": "B", "2": "A"},
+            "does not match",
+        ),
     ],
     ids=["zero-width", "past-end", "extra-neuron", "wrong-block"],
 )
@@ -3384,9 +3428,7 @@ def test_directed_validate_axis_metadata_rejects_the_same(
 def test_duplicate_adjacency_axis_labels_are_summed() -> None:
     # 1.0 and "1" both normalize to "1", so the 2x2 frame collapses to a single
     # cell holding all four weights. Without the groupby, reindexing raises.
-    adjacency = pd.DataFrame(
-        [[1, 2], [3, 4]], index=[1.0, "1"], columns=[1.0, "1"]
-    )
+    adjacency = pd.DataFrame([[1, 2], [3, 4]], index=[1.0, "1"], columns=[1.0, "1"])
     annotations = pd.DataFrame({"root_id": ["1"], "cell_type": ["A"]})
 
     matrix = NestedMatrix.from_connectivity(adjacency, annotations)
@@ -3422,7 +3464,9 @@ def test_relative_weights_leave_a_zero_sum_row_unchanged() -> None:
     positive = matrix.matrix.copy()
     positive.loc["1"] = [0.0, 5.0, 15.0]
     normal = NestedMatrix(
-        positive, dict(matrix.type_boundaries), list(matrix.ordered_neurons),
+        positive,
+        dict(matrix.type_boundaries),
+        list(matrix.ordered_neurons),
         dict(matrix.neuron_to_type),
     )
     assert normal.get_relative_weights().loc["1"].sum() == pytest.approx(1.0)
@@ -3469,15 +3513,11 @@ def test_edge_list_weight_column_precedence_and_default() -> None:
 def test_duplicate_axis_labels_collapse_in_first_appearance_order() -> None:
     # groupby(sort=False): the surviving label order follows first appearance,
     # not sorted order -- "2" stays before "1".
-    rows = pd.DataFrame(
-        np.ones((3, 2)), index=["2", "1", "1"], columns=["9", "8"]
-    )
+    rows = pd.DataFrame(np.ones((3, 2)), index=["2", "1", "1"], columns=["9", "8"])
     normalized = NestedMatrix._normalize_adjacency_axes(rows)
     assert list(normalized.index) == ["2", "1"]
 
-    cols = pd.DataFrame(
-        np.ones((2, 4)), index=["7", "6"], columns=["9", "1", "9", "1"]
-    )
+    cols = pd.DataFrame(np.ones((2, 4)), index=["7", "6"], columns=["9", "1", "9", "1"])
     normalized = NestedMatrix._normalize_adjacency_axes(cols)
     assert list(normalized.columns) == ["9", "1"]
 
@@ -3502,9 +3542,7 @@ def test_order_types_by_size_puts_an_absent_type_last() -> None:
 
 def _segment_counts(ax: plt.Axes) -> list[int]:
     return [
-        len(c.get_segments())
-        for c in ax.collections
-        if isinstance(c, LineCollection)
+        len(c.get_segments()) for c in ax.collections if isinstance(c, LineCollection)
     ]
 
 
@@ -3594,9 +3632,7 @@ def test_untyped_warning_lists_up_to_ten_neurons(
     many = pd.DataFrame(
         {"root_id": [str(i) for i in range(1, 13)], "cell_type": [None] * 12}
     )
-    build_axis_ordering(
-        {str(i) for i in range(1, 13)}, many, "root_id", "cell_type"
-    )
+    build_axis_ordering({str(i) for i in range(1, 13)}, many, "root_id", "cell_type")
     logged = caplog.records[-1].args[-1]
     assert caplog.records[-1].args[0] == 12
     assert logged == ["1", "10", "11", "12", "2", "3", "4", "5", "6", "7"]

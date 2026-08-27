@@ -143,6 +143,7 @@ _DEFAULT_BOUNDARY_LINEWIDTHS = {
 
 _READ_ONLY_MESSAGE = "NestedMatrix data is immutable; call .copy() before editing"
 
+
 class _ReadOnlyIndexer:
     """Read-only wrapper for pandas indexers used by public matrix views."""
 
@@ -366,9 +367,7 @@ class NestedMatrix:
         matrix = matrix.copy()
         matrix.index = _stringify_id_axis(matrix.index, "matrix index")
         matrix.columns = _stringify_id_axis(matrix.columns, "matrix columns")
-        ordered_neurons = list(
-            _stringify_id_axis(ordered_neurons, "ordered_neurons")
-        )
+        ordered_neurons = list(_stringify_id_axis(ordered_neurons, "ordered_neurons"))
         type_boundaries = {
             _stringify_id_value(name): (int(start), int(end))
             for name, (start, end) in type_boundaries.items()
@@ -1066,26 +1065,18 @@ class NestedMatrix:
         neuron_annotations: pd.DataFrame, neuron_id_column: str
     ) -> set[str]:
         return set(
-            neuron_annotations[neuron_id_column]
-            .dropna()
-            .map(_stringify_id_value)
+            neuron_annotations[neuron_id_column].dropna().map(_stringify_id_value)
         )
 
     @staticmethod
     def _normalize_adjacency_axes(adjacency: pd.DataFrame) -> pd.DataFrame:
         adjacency = adjacency.copy()
-        row_keep = [
-            not _is_missing_scalar(value) for value in adjacency.index
-        ]
-        col_keep = [
-            not _is_missing_scalar(value) for value in adjacency.columns
-        ]
+        row_keep = [not _is_missing_scalar(value) for value in adjacency.index]
+        col_keep = [not _is_missing_scalar(value) for value in adjacency.columns]
         if not all(row_keep) or not all(col_keep):
             adjacency = adjacency.loc[row_keep, col_keep].copy()
 
-        adjacency.index = _stringify_id_axis(
-            adjacency.index, "connectivity row index"
-        )
+        adjacency.index = _stringify_id_axis(adjacency.index, "connectivity row index")
         adjacency.columns = _stringify_id_axis(
             adjacency.columns, "connectivity columns"
         )
@@ -1316,9 +1307,7 @@ class NestedMatrix:
             resolved_types = resolved.typed[type_col].astype(str)
             type_mask = resolved_types.isin(selected_type_set)
             axis_ids.update(
-                resolved.typed.loc[type_mask, id_col].map(
-                    _stringify_id_value
-                )
+                resolved.typed.loc[type_mask, id_col].map(_stringify_id_value)
             )
 
         if selected_neuron_set is not None:
@@ -1771,9 +1760,7 @@ class DirectedNestedMatrix:
     ):
         matrix = matrix.copy()
         matrix.index = _stringify_id_axis(matrix.index, "matrix index")
-        matrix.columns = _stringify_id_axis(
-            matrix.columns, "matrix columns"
-        )
+        matrix.columns = _stringify_id_axis(matrix.columns, "matrix columns")
         source_axis = self._normalize_axis(
             AxisOrdering(
                 ordered_neurons=tuple(source_neurons),
@@ -1825,9 +1812,7 @@ class DirectedNestedMatrix:
     def _normalize_axis(axis: AxisOrdering) -> AxisOrdering:
         return AxisOrdering(
             ordered_neurons=tuple(
-                _stringify_id_axis(
-                    axis.ordered_neurons, "axis ordered_neurons"
-                )
+                _stringify_id_axis(axis.ordered_neurons, "axis ordered_neurons")
             ),
             type_boundaries={
                 _stringify_id_value(name): (int(start), int(end))
@@ -1956,30 +1941,22 @@ class DirectedNestedMatrix:
     @property
     def source_typed_neurons(self) -> tuple[str, ...]:
         """Row neurons carrying a cell type."""
-        return tuple(
-            n for n in self._source_neurons if self._has_type("source", n)
-        )
+        return tuple(n for n in self._source_neurons if self._has_type("source", n))
 
     @property
     def source_untyped_neurons(self) -> tuple[str, ...]:
         """Row neurons with no cell type, appended after the blocks."""
-        return tuple(
-            n for n in self._source_neurons if not self._has_type("source", n)
-        )
+        return tuple(n for n in self._source_neurons if not self._has_type("source", n))
 
     @property
     def target_typed_neurons(self) -> tuple[str, ...]:
         """Column neurons carrying a cell type."""
-        return tuple(
-            n for n in self._target_neurons if self._has_type("target", n)
-        )
+        return tuple(n for n in self._target_neurons if self._has_type("target", n))
 
     @property
     def target_untyped_neurons(self) -> tuple[str, ...]:
         """Column neurons with no cell type, appended after the blocks."""
-        return tuple(
-            n for n in self._target_neurons if not self._has_type("target", n)
-        )
+        return tuple(n for n in self._target_neurons if not self._has_type("target", n))
 
     def _has_type(self, axis: Literal["source", "target"], neuron: str) -> bool:
         neuron_to_type = (
@@ -2180,7 +2157,9 @@ class DirectedNestedMatrix:
             columns=target_axis.ordered_neurons,
             fill_value=0,
         ).astype(float)
-        return cls._from_axes(matrix=matrix, source_axis=source_axis, target_axis=target_axis)
+        return cls._from_axes(
+            matrix=matrix, source_axis=source_axis, target_axis=target_axis
+        )
 
     @classmethod
     def from_synapses(
@@ -2238,9 +2217,7 @@ class DirectedNestedMatrix:
         )
 
         source_axis = cls._build_axis_from_available(
-            available_ids=set(
-                _normalize_id_values(scoped_synapses[pre_col])
-            ),
+            available_ids=set(_normalize_id_values(scoped_synapses[pre_col])),
             neuron_annotations=neuron_annotations,
             neuron_id_column=neuron_id_column,
             cell_type_column=cell_type_column,
@@ -2249,9 +2226,7 @@ class DirectedNestedMatrix:
             order=source_order,
         )
         target_axis = cls._build_axis_from_available(
-            available_ids=set(
-                _normalize_id_values(scoped_synapses[post_col])
-            ),
+            available_ids=set(_normalize_id_values(scoped_synapses[post_col])),
             neuron_annotations=neuron_annotations,
             neuron_id_column=neuron_id_column,
             cell_type_column=cell_type_column,
@@ -2278,7 +2253,9 @@ class DirectedNestedMatrix:
             fill_value=0,
         ).astype(float)
 
-        return cls._from_axes(matrix=matrix, source_axis=source_axis, target_axis=target_axis)
+        return cls._from_axes(
+            matrix=matrix, source_axis=source_axis, target_axis=target_axis
+        )
 
     @classmethod
     def _aggregate_directed_synapse_edges(
@@ -2528,9 +2505,7 @@ class DirectedNestedMatrix:
 
         if level == "type_mean":
             data = self._mean_type_matrix
-            source_boundaries = {
-                name: (i, i + 1) for i, name in enumerate(data.index)
-            }
+            source_boundaries = {name: (i, i + 1) for i, name in enumerate(data.index)}
             target_boundaries = {
                 name: (i, i + 1) for i, name in enumerate(data.columns)
             }
@@ -2539,9 +2514,7 @@ class DirectedNestedMatrix:
             colorbar_label = "Mean Weight"
         elif level == "type_sum":
             data = self._sum_type_matrix
-            source_boundaries = {
-                name: (i, i + 1) for i, name in enumerate(data.index)
-            }
+            source_boundaries = {name: (i, i + 1) for i, name in enumerate(data.index)}
             target_boundaries = {
                 name: (i, i + 1) for i, name in enumerate(data.columns)
             }
@@ -2591,12 +2564,12 @@ class DirectedNestedMatrix:
             ax,
             source_labels=source_labels if show_neuron_labels else None,
             target_labels=target_labels if show_neuron_labels else None,
-            source_boundaries=source_boundaries
-            if show_type_labels or level != "neuron"
-            else None,
-            target_boundaries=target_boundaries
-            if show_type_labels or level != "neuron"
-            else None,
+            source_boundaries=(
+                source_boundaries if show_type_labels or level != "neuron" else None
+            ),
+            target_boundaries=(
+                target_boundaries if show_type_labels or level != "neuron" else None
+            ),
         )
 
         plt.tight_layout()

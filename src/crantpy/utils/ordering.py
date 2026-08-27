@@ -146,12 +146,14 @@ def _reject_unordered(value: Any, what: str) -> Any:
 def _hashable(rule: Any) -> Any:
     """Canonicalize a snapshotted rule so a :class:`NeuronOrder` can be hashed."""
     if isinstance(rule, Mapping):
-        return tuple(sorted(
-            ((name, _hashable(nested)) for name, nested in rule.items()),
-            # str() alone ties distinct keys such as 1 and "1", leaving the
-            # order dependent on insertion and breaking the eq/hash contract.
-            key=lambda item: (str(item[0]), type(item[0]).__name__),
-        ))
+        return tuple(
+            sorted(
+                ((name, _hashable(nested)) for name, nested in rule.items()),
+                # str() alone ties distinct keys such as 1 and "1", leaving the
+                # order dependent on insertion and breaking the eq/hash contract.
+                key=lambda item: (str(item[0]), type(item[0]).__name__),
+            )
+        )
     return rule
 
 
