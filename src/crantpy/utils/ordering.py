@@ -766,13 +766,19 @@ def _apply_type_sorter(
     type_col: str,
 ) -> list[str]:
     """Run *sorter* and check it returned exactly the present cell types."""
-    ordered = [str(value) for value in sorter(type_names, typed_annotations, type_col)]
+    # Snapshot the expectation and hand the sorter its own copy: a callback
+    # mutating the list it receives must not also edit what it is checked
+    # against, or dropped blocks would slip through the exactly-once check.
+    expected = list(type_names)
+    ordered = [
+        str(value) for value in sorter(list(type_names), typed_annotations, type_col)
+    ]
 
-    if sorted(ordered) != sorted(type_names):
-        missing = sorted(set(type_names) - set(ordered))
-        unexpected = sorted(set(ordered) - set(type_names))
+    if sorted(ordered) != sorted(expected):
+        missing = sorted(set(expected) - set(ordered))
+        unexpected = sorted(set(ordered) - set(expected))
         raise ValueError(
-            f"order.types must return each of the {len(type_names)} present cell "
+            f"order.types must return each of the {len(expected)} present cell "
             f"type(s) exactly once, but returned {len(ordered)}; "
             f"missing={missing[:10]}, unexpected={unexpected[:10]}"
         )

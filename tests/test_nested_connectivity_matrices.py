@@ -3242,6 +3242,23 @@ def test_type_sorters_returning_each_block_exactly_once_is_enforced() -> None:
     ) == ["B", "A"]
 
 
+def test_type_sorter_mutating_its_input_cannot_bypass_the_check() -> None:
+    from crantpy.utils.ordering import _apply_type_sorter, resolve_type_order
+
+    # A sorter editing the list it receives in place used to edit the expected
+    # set too, so both sides of the comparison matched and blocks were dropped
+    # silently.
+    def dropping_sorter(type_names, typed_annotations, type_col):
+        type_names.remove("B")
+        return type_names
+
+    rows = pd.DataFrame({"root_id": ["1", "2"], "cell_type": ["A", "B"]})
+    with pytest.raises(ValueError, match="exactly once"):
+        _apply_type_sorter(dropping_sorter, ["A", "B"], rows, "cell_type")
+    with pytest.raises(ValueError, match="exactly once"):
+        resolve_type_order(rows, "cell_type", dropping_sorter)
+
+
 def test_stringify_id_axis_rejects_nulls_and_normalize_drops_them() -> None:
     from crantpy.utils.ordering import _normalize_id_values, _stringify_id_axis
 
