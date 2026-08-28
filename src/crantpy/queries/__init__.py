@@ -19,13 +19,8 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
         ],
         "nested_connectivity_matrices": [
             "All",
-            "ColumnOrderRule",
-            "DEFAULT_ORDER",
-            "DEFAULT_WITHIN_TYPE_ORDER",
             "DirectedNestedMatrix",
-            "EB_COLUMN_ORDER",
             "NestedMatrix",
-            "NeuronOrder",
             "NeuropilCollection",
         ],
         "neurons": [
@@ -47,14 +42,9 @@ __getattr__, __dir__, __all__ = lazy_loader.attach(
 __all__ = [
     "All",
     "CAVE_ROW_LIMIT",
-    "ColumnOrderRule",
-    "DEFAULT_ORDER",
-    "DEFAULT_WITHIN_TYPE_ORDER",
     "DirectedNestedMatrix",
-    "EB_COLUMN_ORDER",
     "NestedMatrix",
     "NeuronCriteria",
-    "NeuronOrder",
     "NeuropilCollection",
     "attach_synapses",
     "connections",
