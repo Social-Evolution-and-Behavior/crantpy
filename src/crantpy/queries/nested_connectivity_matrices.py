@@ -1,74 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Nested connectivity matrices, organized and plotted by cell type.
-
-``NestedMatrix`` builds a square neuron-by-neuron matrix whose neurons are
-grouped into contiguous cell type blocks, exposing both neuron-level and
-type-level views. ``DirectedNestedMatrix`` is the rectangular counterpart with
-independent source and target axes, for cases like ``ER_input -> ER`` without
-``ER -> ER``. ``from_synapses_by_neuropil()`` returns one matrix per ROI.
-
-Selecting vs. reading an axis
------------------------------
-``source_types`` / ``source_ids`` (and the ``target_`` pair) choose *which*
-neurons land on an axis. The resolved order is read back from
-``.source_neurons`` / ``.target_neurons``.
-
-Neuron order
-------------
-One ``order`` argument covers both levels -- ``order.types`` for the blocks,
-``order.within`` for the neurons inside them. See
-:class:`~crantpy.utils.ordering.NeuronOrder`.
-
-Typed and untyped neurons
--------------------------
-Each axis holds its typed neurons first, in the blocks described by
-``type_boundaries``, then any neurons without a cell type. On ``NestedMatrix``
-read them back as ``typed_neurons`` / ``untyped_neurons``; on
-``DirectedNestedMatrix`` every one of these accessors is per-axis and takes a
-``source_`` or ``target_`` prefix. ``type_boundaries`` covers the typed group
-only.
-
-Examples
---------
->>> import pandas as pd
->>> from crantpy.queries.nested_connectivity_matrices import (
-...     NestedMatrix, DirectedNestedMatrix
-... )
->>> from crantpy.utils.ordering import NeuronOrder, DEFAULT_WITHIN_TYPE_ORDER
->>>
->>> synapses_df = pd.DataFrame({
-...     'pre_pt_root_id': [1, 1, 2, 2],
-...     'post_pt_root_id': [3, 4, 3, 4],
-...     'Weight': [10, 20, 15, 25],
-...     'ctr_pt_position': [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 5, 9]],
-... })
->>> annotations_df = pd.DataFrame({
-...     'root_id': [1, 2, 3, 4],
-...     'cell_type': ['KC', 'KC', 'MB', 'MB'],
-... })
->>> matrix = NestedMatrix.from_synapses(
-...     synapses_df, annotations_df, weight_mode="column", weight_column="Weight"
-... )
->>> matrix.plot(level="neuron")
->>>
->>> # ROI-specific matrices from neuropil meshes
->>> matrices = NestedMatrix.from_synapses_by_neuropil(
-...     synapses_df, annotations_df, neuropil_names=["ellipsoid_body"]
-... )
->>>
->>> # Ordering: bare sequence is types-only shorthand
->>> NestedMatrix.from_synapses(synapses_df, annotations_df, order=["KC", "MB"])
->>> NestedMatrix.from_synapses(
-...     synapses_df, annotations_df, order=NeuronOrder(types="size", within="id")
-... )
->>>
->>> # Directed: select the axes, read the order back
->>> directed = DirectedNestedMatrix.from_synapses(
-...     synapses_df, annotations_df, source_types="KC", target_ids=[3, 4]
-... )
->>> directed.source_neurons, directed.target_neurons
-"""
 
 from __future__ import annotations
 
@@ -88,18 +18,13 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
 
 from crantpy.utils.ordering import (
-    DEFAULT_ORDER,
-    DEFAULT_WITHIN_TYPE_ORDER,
-    EB_COLUMN_ORDER,
     AxisOrdering,
-    ColumnOrderRule,
-    NeuronOrder,
-    NeuronOrderLike,
-    TypeRule,
-    as_neuron_order,
-    WithinTypeOrder,
-    WithinTypeRule,
+    MatrixOrder,
+    MatrixOrderLike,
+    as_matrix_order,
     build_axis_ordering,
+    by,
+    order,
     _find_duplicates,
     _is_missing_scalar,
     _normalize_id_values,
@@ -113,15 +38,6 @@ __all__ = [
     "DirectedNestedMatrix",
     "NeuropilCollection",
     "All",
-    "ColumnOrderRule",
-    "NeuronOrder",
-    "NeuronOrderLike",
-    "EB_COLUMN_ORDER",
-    "DEFAULT_ORDER",
-    "DEFAULT_WITHIN_TYPE_ORDER",
-    "TypeRule",
-    "WithinTypeOrder",
-    "WithinTypeRule",
 ]
 
 _ScalarSelector = str | bytes | int | float | bool | np.integer | np.floating | np.bool_
@@ -141,6 +57,7 @@ _DEFAULT_BOUNDARY_LINEWIDTHS = {
     "grid_dark": 2.5,
 }
 
+#we treat the matrix as immutable, so without an explicit deep copy its not possible to edit the integrity of the matrix
 _READ_ONLY_MESSAGE = "NestedMatrix data is immutable; call .copy() before editing"
 
 
@@ -336,10 +253,6 @@ class NeuropilCollection(dict):
 
 class NestedMatrix:
     """A square connectivity matrix with neurons grouped into cell type blocks.
-
-    Immutable after construction: public attributes are read-only views, so
-    copy before editing. Derived type matrices are cached.
-
     ``ordered_neurons`` is ``typed_neurons + untyped_neurons``, and only the
     typed prefix is covered by ``type_boundaries`` and ``neuron_to_type``.
 
@@ -366,6 +279,9 @@ class NestedMatrix:
     >>> type_matrix = matrix.sum_type_matrix
     >>> matrix.plot(level="type_mean")
     """
+
+    order = staticmethod(order)
+    by = staticmethod(by)
 
     def __init__(
         self,
@@ -556,7 +472,7 @@ class NestedMatrix:
         neuron_annotations: pd.DataFrame,
         cell_type_column: str = "cell_type",
         neuron_id_column: str = "root_id",
-        order: NeuronOrderLike = None,
+        order: MatrixOrderLike = None,
         annotation_scope: Literal["annotated_only", "all"] = "annotated_only",
     ) -> NestedMatrix:
         """Create a NestedMatrix from an adjacency matrix or edge list.
@@ -577,11 +493,10 @@ class NestedMatrix:
             Neuron annotations; needs at least the ID and cell type columns.
         cell_type_column, neuron_id_column : str
             Annotation column names.
-        order : NeuronOrder, mapping, sequence or None, optional
-            Neuron order for both levels; see
-            :class:`~crantpy.utils.ordering.NeuronOrder`. A bare sequence is
-            types-only shorthand. Defaults to
-            :data:`~crantpy.utils.ordering.DEFAULT_ORDER`.
+        order : NestedMatrix.order, sequence or None, optional
+            How to order cell type blocks and the neurons inside them. Build
+            one with ``NestedMatrix.order(...)`` or the chained builder; a
+            bare sequence is types-only shorthand.
         annotation_scope : {"annotated_only", "all"}, default "annotated_only"
             ``"annotated_only"`` keeps only annotated neurons; ``"all"`` keeps
             every neuron, appending the untyped ones after the typed blocks.
@@ -613,7 +528,7 @@ class NestedMatrix:
             neuron_id_column,
             annotation_scope,
         )
-        order = as_neuron_order(order)
+        order = as_matrix_order(order)
         logger.info("Requested neuron order: %s", order)
 
         adjacency = cls._coerce_to_adjacency(connections_df)
@@ -674,7 +589,7 @@ class NestedMatrix:
         weight_column: str | None = None,
         cell_type_column: str = "cell_type",
         neuron_id_column: str = "root_id",
-        order: NeuronOrderLike = None,
+        order: MatrixOrderLike = None,
         annotation_scope: Literal["annotated_only", "all"] = "annotated_only",
     ) -> NestedMatrix:
         """Create a NestedMatrix from a synapse dataframe.
@@ -701,11 +616,10 @@ class NestedMatrix:
             otherwise.
         cell_type_column, neuron_id_column : str
             Annotation column names.
-        order : NeuronOrder, mapping, sequence or None, optional
-            Neuron order for both levels; see
-            :class:`~crantpy.utils.ordering.NeuronOrder`. A bare sequence is
-            types-only shorthand. Defaults to
-            :data:`~crantpy.utils.ordering.DEFAULT_ORDER`.
+        order : NestedMatrix.order, sequence or None, optional
+            How to order cell type blocks and the neurons inside them. Build
+            one with ``NestedMatrix.order(...)`` or the chained builder; a
+            bare sequence is types-only shorthand.
         annotation_scope : {"annotated_only", "all"}, default "annotated_only"
             ``"annotated_only"`` keeps only rows whose pre and post neurons are
             both annotated; ``"all"`` keeps every row and appends the untyped
@@ -743,7 +657,7 @@ class NestedMatrix:
         logger = logging.getLogger(__name__)
         cls._validate_weighting(weight_mode, weight_column)
         cls._validate_annotation_scope(annotation_scope)
-        order = as_neuron_order(order)
+        order = as_matrix_order(order)
         logger.info(
             "Building NestedMatrix from synapses: synapse_rows=%d, "
             "annotation_rows=%d, pre_col=%s, post_col=%s, weight_mode=%s, "
@@ -807,7 +721,7 @@ class NestedMatrix:
         weight_column: str | None = None,
         cell_type_column: str = "cell_type",
         neuron_id_column: str = "root_id",
-        order: NeuronOrderLike = None,
+        order: MatrixOrderLike = None,
         annotation_scope: Literal["annotated_only", "all"] = "annotated_only",
         include_other: bool = True,
         voxel_offset: tuple[float, float, float] | None = None,
@@ -838,11 +752,10 @@ class NestedMatrix:
             As in ``from_synapses()``, applied within each ROI subset.
         cell_type_column, neuron_id_column : str
             Annotation column names.
-        order : NeuronOrder, mapping, sequence or None, optional
-            Neuron order for both levels; see
-            :class:`~crantpy.utils.ordering.NeuronOrder`. A bare sequence is
-            types-only shorthand. Defaults to
-            :data:`~crantpy.utils.ordering.DEFAULT_ORDER`.
+        order : NestedMatrix.order, sequence or None, optional
+            How to order cell type blocks and the neurons inside them. Build
+            one with ``NestedMatrix.order(...)`` or the chained builder; a
+            bare sequence is types-only shorthand.
         annotation_scope : {"annotated_only", "all"}, default "annotated_only"
             As in ``from_synapses()``, applied before ROI assignment.
         include_other : bool, default True
@@ -889,7 +802,7 @@ class NestedMatrix:
         logger = logging.getLogger(__name__)
         cls._validate_weighting(weight_mode, weight_column)
         cls._validate_annotation_scope(annotation_scope)
-        order = as_neuron_order(order)
+        order = as_matrix_order(order)
         logger.info(
             "Building NestedMatrix collection by neuropil: synapse_rows=%d, "
             "annotation_rows=%d, coordinates=%s, include_other=%s, "
@@ -1727,7 +1640,7 @@ class NestedMatrix:
         annotations: pd.DataFrame,
         id_col: str,
         type_col: str,
-        order: NeuronOrderLike,
+        order: MatrixOrderLike,
     ) -> tuple[list[str], dict[str, tuple[int, int]], dict[str, Any]]:
         matrix_ids = set(_normalize_id_values(adjacency.index)) | set(
             _normalize_id_values(adjacency.columns)
@@ -1763,6 +1676,9 @@ class DirectedNestedMatrix:
     <axis>_untyped_neurons``, and only the typed part is covered by
     ``<axis>_type_boundaries`` and ``<axis>_neuron_to_type``.
     """
+
+    order = NestedMatrix.order
+    by = NestedMatrix.by
 
     def __init__(
         self,
@@ -2027,21 +1943,21 @@ class DirectedNestedMatrix:
 
     @staticmethod
     def _resolve_axis_orders(
-        order: NeuronOrderLike,
-        source_order: NeuronOrderLike,
-        target_order: NeuronOrderLike,
-    ) -> tuple[NeuronOrder, NeuronOrder]:
+        order: MatrixOrderLike,
+        source_order: MatrixOrderLike,
+        target_order: MatrixOrderLike,
+    ) -> tuple[MatrixOrder, MatrixOrder]:
         """Coerce the shared and per-axis order specs, each spec exactly once.
 
         A spec object passed to more than one parameter is coerced once and
         shared, so handing the same one-shot iterable to both axes works.
         """
-        by_identity: dict[int, NeuronOrder] = {}
+        by_identity: dict[int, MatrixOrder] = {}
 
-        def coerce(spec: NeuronOrderLike) -> NeuronOrder:
+        def coerce(spec: MatrixOrderLike) -> MatrixOrder:
             key = id(spec)
             if key not in by_identity:
-                by_identity[key] = as_neuron_order(spec)
+                by_identity[key] = as_matrix_order(spec)
             return by_identity[key]
 
         shared = coerce(order)
@@ -2074,7 +1990,7 @@ class DirectedNestedMatrix:
         cell_type_column: str,
         selected_types: _Selector,
         selected_neurons: _Selector,
-        order: NeuronOrderLike = None,
+        order: MatrixOrderLike = None,
     ) -> AxisOrdering:
         axis_ids = NestedMatrix._select_axis_ids(
             available_ids=available_ids,
@@ -2103,9 +2019,9 @@ class DirectedNestedMatrix:
         target_ids: _Selector = None,
         cell_type_column: str = "cell_type",
         neuron_id_column: str = "root_id",
-        order: NeuronOrderLike = None,
-        source_order: NeuronOrderLike = None,
-        target_order: NeuronOrderLike = None,
+        order: MatrixOrderLike = None,
+        source_order: MatrixOrderLike = None,
+        target_order: MatrixOrderLike = None,
         annotation_scope: Literal["annotated_only", "all"] = "annotated_only",
     ) -> "DirectedNestedMatrix":
         """Create a rectangular directed nested matrix from connectivity data.
@@ -2124,9 +2040,8 @@ class DirectedNestedMatrix:
             available neuron on it.
         cell_type_column, neuron_id_column : str
             Annotation column names.
-        order : NeuronOrder, mapping, sequence or None, optional
-            Neuron order for both axes; see
-            :class:`~crantpy.utils.ordering.NeuronOrder`.
+        order : NestedMatrix.order, sequence or None, optional
+            Shared axis order; a bare sequence is types-only shorthand.
         source_order, target_order : optional
             Per-axis override of ``order``.
         annotation_scope : {"annotated_only", "all"}, default "annotated_only"
@@ -2200,9 +2115,9 @@ class DirectedNestedMatrix:
         normalization_scope: Literal["selected", "all"] = "selected",
         cell_type_column: str = "cell_type",
         neuron_id_column: str = "root_id",
-        order: NeuronOrderLike = None,
-        source_order: NeuronOrderLike = None,
-        target_order: NeuronOrderLike = None,
+        order: MatrixOrderLike = None,
+        source_order: MatrixOrderLike = None,
+        target_order: MatrixOrderLike = None,
         annotation_scope: Literal["annotated_only", "all"] = "annotated_only",
     ) -> "DirectedNestedMatrix":
         """Create a rectangular directed nested matrix from synapse rows.
@@ -2348,9 +2263,9 @@ class DirectedNestedMatrix:
         normalization_scope: Literal["selected", "all"] = "selected",
         cell_type_column: str = "cell_type",
         neuron_id_column: str = "root_id",
-        order: NeuronOrderLike = None,
-        source_order: NeuronOrderLike = None,
-        target_order: NeuronOrderLike = None,
+        order: MatrixOrderLike = None,
+        source_order: MatrixOrderLike = None,
+        target_order: MatrixOrderLike = None,
         annotation_scope: Literal["annotated_only", "all"] = "annotated_only",
         include_other: bool = True,
         voxel_offset: tuple[float, float, float] | None = None,

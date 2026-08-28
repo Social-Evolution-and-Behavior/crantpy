@@ -16,14 +16,21 @@ from matplotlib.colors import to_rgba
 
 from crantpy.utils import ordering
 from crantpy.queries.nested_connectivity_matrices import (
-    DEFAULT_WITHIN_TYPE_ORDER,
-    EB_COLUMN_ORDER,
-    ColumnOrderRule,
-    NeuronOrder,
     DirectedNestedMatrix,
     NestedMatrix,
     NeuropilCollection,
 )
+
+# The ellipsoid-body ring, spelled out by the caller: the library ships no
+# ordering constants.
+EB_RING = [
+    "R1", "L8", "R2", "L7", "R3", "L6", "R4", "L5",
+    "R5", "L4", "R6", "L3", "R7", "L2", "R8", "L1",
+]
+EB_BY = NestedMatrix.by(
+    "cell_instance", "cell_subtype", rank=EB_RING, na="raise"
+)
+EB_ORDER = NestedMatrix.order(within={"EPG/PEG": EB_BY})
 
 
 def _make_synapses(n: int = 6) -> pd.DataFrame:
@@ -1030,7 +1037,14 @@ def test_from_connectivity_orders_epg_by_cell_subtype_when_available() -> None:
         }
     )
 
-    matrix = NestedMatrix.from_connectivity(adjacency, annotations)
+    # The EB rule is opt-in, so it has to be asked for by name.
+    matrix = NestedMatrix.from_connectivity(
+        adjacency,
+        annotations,
+        order=NestedMatrix.order(
+            within={"EPG/PEG": NestedMatrix.by("cell_subtype", rank=EB_RING)}
+        ),
+    )
 
     assert list(matrix.matrix.index) == ["3", "4", "1", "2"]
     assert list(matrix.matrix.columns) == ["3", "4", "1", "2"]
@@ -1061,7 +1075,9 @@ def test_from_connectivity_epg_cell_instance_precedes_cell_subtype() -> None:
         }
     )
 
-    matrix = NestedMatrix.from_connectivity(adjacency, annotations)
+    matrix = NestedMatrix.from_connectivity(
+        adjacency, annotations, order=EB_ORDER
+    )
 
     assert list(matrix.matrix.index) == ["3", "1", "4", "2"]
     assert list(matrix.matrix.columns) == ["3", "1", "4", "2"]
@@ -1089,23 +1105,20 @@ def test_from_connectivity_columnar_rule_can_order_non_epg_type() -> None:
     matrix = NestedMatrix.from_connectivity(
         adjacency,
         annotations,
-        order={
-            "within": {
-                "columnar_test": ColumnOrderRule(
-                    order=EB_COLUMN_ORDER.order,
-                    label_columns=("cell_instance",),
+        order=NestedMatrix.order(
+            within={
+                "columnar_test": NestedMatrix.by(
+                    "cell_instance", rank=EB_RING, na="raise"
                 )
             }
-        },
+        ),
     )
 
     assert list(matrix.matrix.index) == ["2", "3", "4", "1"]
     assert list(matrix.matrix.columns) == ["2", "3", "4", "1"]
 
 
-def test_from_connectivity_unranked_columnar_rows_keep_annotation_order(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
+def test_from_connectivity_unranked_columnar_rows_keep_annotation_order() -> None:
     adjacency = pd.DataFrame(
         np.zeros((4, 4)),
         index=["1", "2", "3", "4"],
@@ -1120,14 +1133,193 @@ def test_from_connectivity_unranked_columnar_rows_keep_annotation_order(
         }
     )
 
-    caplog.set_level("WARNING", logger="crantpy.utils.ordering")
-    matrix = NestedMatrix.from_connectivity(adjacency, annotations)
+    matrix = NestedMatrix.from_connectivity(
+        adjacency,
+        annotations,
+        order=NestedMatrix.order(
+            within={"EPG/PEG": NestedMatrix.by("cell_instance", "cell_subtype", rank=EB_RING)}
+        ),
+    )
 
+    # Unrankable neurons trail the ranked ones and keep annotation row order.
     assert list(matrix.matrix.index) == ["2", "4", "1", "3"]
     assert list(matrix.matrix.columns) == ["2", "4", "1", "3"]
-    assert "Could not resolve a ranked column label for neuron 1" in caplog.text
-    assert "Could not resolve a ranked column label for neuron 3" in caplog.text
-    assert {r.name for r in caplog.records} == {"crantpy.utils.ordering"}
+
+
+def _columnar_fixture(**annotation_columns: object) -> tuple[pd.DataFrame, pd.DataFrame]:
+    ids = ["1", "2"]
+    adjacency = pd.DataFrame(np.zeros((2, 2)), index=ids, columns=ids)
+    annotations = pd.DataFrame(
+        {"root_id": ids, "cell_type": ["EPG/PEG", "EPG/PEG"], **annotation_columns}
+    )
+    return adjacency, annotations
+
+
+def test_within_key_matching_no_cell_type_warns(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    adjacency, annotations = _columnar_fixture(
+        cell_instance=["EPG/PEG_R1", "EPG/PEG_L8"]
+    )
+
+    caplog.set_level("WARNING", logger="crantpy.utils.ordering")
+    matrix = NestedMatrix.from_connectivity(
+        adjacency,
+        annotations,
+        order=NestedMatrix.order(within={"Delta7": "id"}),
+    )
+
+    # The rule is inert, so the build still succeeds on the default ordering...
+    assert list(matrix.matrix.index) == ["1", "2"]
+    # ...but no longer silently.
+    assert "order.within names ['Delta7']" in caplog.text
+    assert "match no cell type" in caplog.text
+
+
+def test_the_default_order_applies_no_within_type_rule(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    ids = ["1"]
+    adjacency = pd.DataFrame(np.zeros((1, 1)), index=ids, columns=ids)
+    annotations = pd.DataFrame({"root_id": ids, "cell_type": ["ER1"]})
+
+    caplog.set_level("WARNING", logger="crantpy.utils.ordering")
+    NestedMatrix.from_connectivity(adjacency, annotations)
+
+    # The default order names no cell type at all, so there is nothing to
+    # complain about even though this matrix holds no EPG/PEG.
+    assert NestedMatrix.order().within_rules is None
+    assert "match no cell type" not in caplog.text
+
+
+def test_explicit_column_rule_raises_on_missing_label_column() -> None:
+    adjacency, annotations = _columnar_fixture()
+    rule = NestedMatrix.by("cell_instnace", rank=["R1"], na="raise")
+
+    with pytest.raises(ValueError, match="have none of those columns"):
+        NestedMatrix.from_connectivity(
+            adjacency,
+            annotations,
+            order=NestedMatrix.order(within={"EPG/PEG": rule}),
+        )
+
+
+def test_explicit_column_rule_raises_on_unrankable_neuron() -> None:
+    adjacency, annotations = _columnar_fixture(
+        cell_instance=["EPG/PEG_R1", "no_column_here"]
+    )
+    rule = NestedMatrix.by("cell_instance", rank=["R1", "L8"], na="raise")
+
+    with pytest.raises(ValueError, match="Could not resolve a ranked column label"):
+        NestedMatrix.from_connectivity(
+            adjacency,
+            annotations,
+            order=NestedMatrix.order(within={"EPG/PEG": rule}),
+        )
+
+
+def test_na_last_downgrades_the_same_failure() -> None:
+    adjacency, annotations = _columnar_fixture(
+        cell_instance=["EPG/PEG_R1", "no_column_here"]
+    )
+    rule = NestedMatrix.by("cell_instance", rank=["R1", "L8"])
+
+    matrix = NestedMatrix.from_connectivity(
+        adjacency,
+        annotations,
+        order=NestedMatrix.order(within={"EPG/PEG": rule}),
+    )
+
+    # The ranked neuron leads; the unrankable one keeps row order behind it.
+    assert list(matrix.matrix.index) == ["1", "2"]
+
+
+def test_missing_label_column_always_raises() -> None:
+    adjacency, annotations = _columnar_fixture()
+    rule = NestedMatrix.by("cell_instnace", rank=["R1"])
+
+    with pytest.raises(ValueError, match="have none of those columns"):
+        NestedMatrix.from_connectivity(
+            adjacency,
+            annotations,
+            order=NestedMatrix.order(within={"EPG/PEG": rule}),
+        )
+
+
+def test_by_na_is_validated_and_defaults_to_last() -> None:
+    assert NestedMatrix.by("cell_instance").na == "last"
+    assert EB_BY.na == "raise"
+
+    with pytest.raises(ValueError, match="must be 'last', 'first', or 'raise'"):
+        NestedMatrix.by("cell_instance", na="ignore")  # type: ignore[arg-type]
+
+    rule = NestedMatrix.by("cell_instance", rank=["R1"])
+    with pytest.raises(Exception):
+        rule.na = "raise"  # type: ignore[misc]
+    assert rule != NestedMatrix.by("cell_instance", rank=["R1"], na="raise")
+
+
+def test_types_entry_matching_no_cell_type_warns(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    adjacency, annotations = _columnar_fixture()
+
+    caplog.set_level("WARNING", logger="crantpy.utils.ordering")
+    matrix = NestedMatrix.from_connectivity(
+        adjacency, annotations, order=["EPG/PEG", "Delta7"]
+    )
+
+    # The entry is inert, so the present types still lay out normally...
+    assert list(matrix.type_boundaries) == ["EPG/PEG"]
+    # ...but no longer silently.
+    assert "order.types names 1 cell type(s)" in caplog.text
+    assert "['Delta7']" in caplog.text
+
+
+def test_one_type_order_is_reusable_across_differing_type_sets(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    # The idiom the module advertises: read one matrix's block order back and
+    # hand it to another whose type set is only part of it.
+    annotations = pd.DataFrame(
+        {"root_id": ["1", "2", "3"], "cell_type": ["KC", "KC", "MB"]}
+    )
+    ids = list(annotations.root_id)
+    full = NestedMatrix.from_connectivity(
+        pd.DataFrame(np.zeros((3, 3)), index=ids, columns=ids), annotations
+    )
+    assert list(full.type_boundaries) == ["KC", "MB"]
+
+    kc_only = annotations[annotations.cell_type == "KC"]
+    kc_ids = list(kc_only.root_id)
+
+    caplog.set_level("WARNING", logger="crantpy.utils.ordering")
+    subset = NestedMatrix.from_connectivity(
+        pd.DataFrame(np.zeros((2, 2)), index=kc_ids, columns=kc_ids),
+        kc_only,
+        order=list(full.type_boundaries),
+    )
+
+    assert list(subset.type_boundaries) == ["KC"]
+    assert "no neuron on this axis has" in caplog.text
+
+
+def test_a_shared_type_order_spans_both_axes_of_a_directed_matrix() -> None:
+    # A directed matrix fans one `order` out to both axes, which rarely hold
+    # the same types; the shared order must not blow up on either of them.
+    annotations = pd.DataFrame(
+        {"root_id": ["1", "2"], "cell_type": ["KC", "MB"]}
+    )
+    synapses = pd.DataFrame(
+        {"pre_pt_root_id": ["1"], "post_pt_root_id": ["2"]}
+    )
+
+    directed = DirectedNestedMatrix.from_synapses(
+        synapses, annotations, order=["KC", "MB"]
+    )
+
+    assert list(directed.source_type_boundaries) == ["KC"]
+    assert list(directed.target_type_boundaries) == ["MB"]
 
 
 def test_init_rejects_matrix_axis_mismatch() -> None:
@@ -1785,7 +1977,7 @@ def test_plot_suppresses_dense_centered_type_labels_and_batches_boundaries() -> 
 
 
 # ---------------------------------------------------------------------------
-# order.within: the EB rule is a visible, overridable default
+# order.within: every rule is the caller's, none is implicit
 # ---------------------------------------------------------------------------
 
 
@@ -1807,9 +1999,18 @@ def _columnar_adjacency() -> pd.DataFrame:
     )
 
 
-def test_order_within_defaults_to_eb_column_rule() -> None:
-    matrix = NestedMatrix.from_connectivity(
+def test_order_within_defaults_to_annotation_row_order() -> None:
+    default = NestedMatrix.from_connectivity(
         _columnar_adjacency(), _columnar_annotations()
+    )
+
+    # No EB rule is applied unless asked for, so the rows come back untouched.
+    assert list(default.ordered_neurons) == ["40", "7", "33"]
+
+
+def test_eb_column_order_reorders_a_columnar_block() -> None:
+    matrix = NestedMatrix.from_connectivity(
+        _columnar_adjacency(), _columnar_annotations(), order=EB_ORDER
     )
 
     # R1, L8, R2 is the EB ring order, so 7 -> 40 -> 33 -- which is neither the
@@ -1817,9 +2018,23 @@ def test_order_within_defaults_to_eb_column_rule() -> None:
     assert list(matrix.ordered_neurons) == ["7", "40", "33"]
 
 
+def test_eb_column_order_is_strict_like_any_other_explicit_rule() -> None:
+    # An EPG/PEG neuron the rule cannot rank is an error.
+    adjacency, annotations = _columnar_fixture(
+        cell_subtype=["EPG/PEG_R1", "no_column_here"]
+    )
+
+    with pytest.raises(ValueError, match="Could not resolve a ranked column label"):
+        NestedMatrix.from_connectivity(
+            adjacency, annotations, order=EB_ORDER
+        )
+
+
 def test_order_within_none_keeps_annotation_row_order() -> None:
     matrix = NestedMatrix.from_connectivity(
-        _columnar_adjacency(), _columnar_annotations(), order={"within": None}
+        _columnar_adjacency(),
+        _columnar_annotations(),
+        order=NestedMatrix.order(default=None),
     )
 
     assert list(matrix.ordered_neurons) == ["40", "7", "33"]
@@ -1829,7 +2044,7 @@ def test_order_within_annotation_string_matches_none() -> None:
     matrix = NestedMatrix.from_connectivity(
         _columnar_adjacency(),
         _columnar_annotations(),
-        order={"within": "annotation"},
+        order=NestedMatrix.order(default="annotation"),
     )
 
     assert list(matrix.ordered_neurons) == ["40", "7", "33"]
@@ -1837,31 +2052,38 @@ def test_order_within_annotation_string_matches_none() -> None:
 
 def test_order_within_id_sorts_numerically() -> None:
     matrix = NestedMatrix.from_connectivity(
-        _columnar_adjacency(), _columnar_annotations(), order={"within": "id"}
+        _columnar_adjacency(),
+        _columnar_annotations(),
+        order=NestedMatrix.order(default="id"),
     )
 
     assert list(matrix.ordered_neurons) == ["7", "33", "40"]
 
 
-def test_order_within_accepts_label_sequence_shorthand() -> None:
+def test_order_within_ranks_with_by() -> None:
     matrix = NestedMatrix.from_connectivity(
         _columnar_adjacency(),
         _columnar_annotations(),
-        order={"within": {"EPG/PEG": ["R2", "L8", "R1"]}},
+        order=NestedMatrix.order(
+            within={
+                "EPG/PEG": NestedMatrix.by(
+                    "cell_subtype", rank=["R2", "L8", "R1"], na="raise"
+                )
+            }
+        ),
     )
 
     assert list(matrix.ordered_neurons) == ["33", "40", "7"]
 
 
 def test_order_within_accepts_callable() -> None:
-    def reverse_annotation_order(type_name, type_rows, neuron_id_column):
-        assert type_name == "EPG/PEG"
-        return list(reversed(type_rows[neuron_id_column].tolist()))
+    def reverse_annotation_order(type_rows):
+        return type_rows.iloc[::-1]
 
     matrix = NestedMatrix.from_connectivity(
         _columnar_adjacency(),
         _columnar_annotations(),
-        order={"within": reverse_annotation_order},
+        order=NestedMatrix.order(default=reverse_annotation_order),
     )
 
     assert list(matrix.ordered_neurons) == ["33", "7", "40"]
@@ -1879,14 +2101,14 @@ def test_order_within_mapping_only_affects_named_types() -> None:
     )
 
     matrix = NestedMatrix.from_connectivity(
-        adjacency, annotations, order={"within": {"A": "id"}}
+        adjacency, annotations, order=NestedMatrix.order(within={"A": "id"})
     )
 
     # "A" sorts by ID, "B" keeps annotation row order.
     assert list(matrix.ordered_neurons) == ["1", "3", "4", "2"]
 
 
-def test_order_within_extends_the_documented_default() -> None:
+def test_order_default_plus_within_override() -> None:
     annotations = pd.DataFrame(
         {
             "root_id": ["10", "2", "5", "6"],
@@ -1901,20 +2123,24 @@ def test_order_within_extends_the_documented_default() -> None:
     matrix = NestedMatrix.from_connectivity(
         adjacency,
         annotations,
-        order=NeuronOrder(
-            types=["EPG/PEG", "PEN"],
-            within={**DEFAULT_WITHIN_TYPE_ORDER, "PEN": ["R1", "L1"]},
+        order=(
+            NestedMatrix.order()
+            .types(["EPG/PEG", "PEN"])
+            .within("EPG/PEG", EB_BY)
+            .within("PEN", NestedMatrix.by("cell_subtype", rank=["R1", "L1"], na="raise"))
         ),
     )
 
-    # EPG/PEG still uses the default EB order; PEN uses the added rule.
+    # EPG/PEG uses the EB ring; PEN uses its own rank list.
     assert list(matrix.ordered_neurons) == ["2", "10", "6", "5"]
 
 
 def test_order_within_rejects_unknown_string() -> None:
     with pytest.raises(ValueError, match="'annotation' or 'id'"):
         NestedMatrix.from_connectivity(
-            _columnar_adjacency(), _columnar_annotations(), order={"within": "alpha"}
+            _columnar_adjacency(),
+            _columnar_annotations(),
+            order=NestedMatrix.order(default="alpha"),
         )
 
 
@@ -1923,7 +2149,7 @@ def test_order_within_rejects_sorter_that_drops_neurons() -> None:
         NestedMatrix.from_connectivity(
             _columnar_adjacency(),
             _columnar_annotations(),
-            order={"within": lambda name, rows, id_col: rows[id_col].tolist()[:1]},
+            order=NestedMatrix.order(default=lambda rows: rows["root_id"].tolist()[:1]),
         )
 
 
@@ -1945,8 +2171,8 @@ def test_directed_within_type_order_can_differ_per_axis() -> None:
         synapses,
         annotations,
         weight_mode="count",
-        source_order={"within": "id"},
-        target_order={"within": None},
+        source_order=NestedMatrix.order(default="id"),
+        target_order=NestedMatrix.order(default=None),
     )
 
     # Source sorts by ID; the target keeps annotation row order (40 before 30),
@@ -1955,39 +2181,193 @@ def test_directed_within_type_order_can_differ_per_axis() -> None:
     assert list(matrix.target_neurons) == ["40", "30"]
 
 
-def test_column_order_rule_normalizes_its_fields() -> None:
-    rule = ColumnOrderRule(order=["R1", "L1", "R2"])
+def test_by_normalizes_its_fields() -> None:
+    rule = NestedMatrix.by("cell_instance", "cell_subtype", rank=["R1", "L1", "R2"])
 
-    assert rule.order == ("R1", "L1", "R2")
-    assert rule.label_columns == ("cell_instance", "cell_subtype")
+    assert rule.columns == ("cell_instance", "cell_subtype")
+    assert rule.rank == ("R1", "L1", "R2")
 
 
-def test_eb_column_order_comes_from_config() -> None:
-    from crantpy.utils.config import EB_COLUMN_LABELS, EB_COLUMNAR_CELL_TYPES
+# ---------------------------------------------------------------------------
+# NestedMatrix.by: sort a block by an annotation column's own values
+# ---------------------------------------------------------------------------
 
-    # Spelled out literally: comparing against the constant it is built from
-    # would move with any edit to it, leaving the anatomical ring unpinned.
-    assert list(EB_COLUMN_ORDER.order) == [
-        "R1",
-        "L8",
-        "R2",
-        "L7",
-        "R3",
-        "L6",
-        "R4",
-        "L5",
-        "R5",
-        "L4",
-        "R6",
-        "L3",
-        "R7",
-        "L2",
-        "R8",
-        "L1",
+
+def _grouped_inputs(**columns: object) -> tuple[pd.DataFrame, pd.DataFrame]:
+    ids = ["1", "2", "3", "4"]
+    adjacency = pd.DataFrame(np.zeros((4, 4)), index=ids, columns=ids)
+    annotations = pd.DataFrame(
+        {"root_id": ids, "cell_type": ["ER1"] * 4, **columns}
+    )
+    return adjacency, annotations
+
+
+def test_by_sorts_digit_runs_numerically() -> None:
+    adjacency, annotations = _grouped_inputs(
+        cell_instance=["ER1_g10", "ER1_g2", "ER1_g1", "ER1_g20"]
+    )
+
+    matrix = NestedMatrix.from_connectivity(
+        adjacency,
+        annotations,
+        order=NestedMatrix.order(default=NestedMatrix.by("cell_instance")),
+    )
+
+    # _g2 before _g10 -- a plain string sort gives g1, g10, g2, g20 instead.
+    assert list(matrix.ordered_neurons) == ["3", "2", "1", "4"]
+    assert sorted(["ER1_g10", "ER1_g2", "ER1_g1", "ER1_g20"]) == [
+        "ER1_g1",
+        "ER1_g10",
+        "ER1_g2",
+        "ER1_g20",
     ]
-    assert list(EB_COLUMN_LABELS) == list(EB_COLUMN_ORDER.order)
-    assert tuple(EB_COLUMNAR_CELL_TYPES) == ("EPG/PEG",)
-    assert list(DEFAULT_WITHIN_TYPE_ORDER) == ["EPG/PEG"]
+
+
+def test_by_accepts_a_custom_key() -> None:
+    adjacency, annotations = _grouped_inputs(side=["b", "A", "a", "B"])
+
+    natural = NestedMatrix.from_connectivity(
+        adjacency,
+        annotations,
+        order=NestedMatrix.order(default=NestedMatrix.by("side")),
+    )
+    reversed_key = NestedMatrix.from_connectivity(
+        adjacency,
+        annotations,
+        order=NestedMatrix.order(
+            default=NestedMatrix.by("side", key=lambda v: -ord(v.lower()))
+        ),
+    )
+
+    # The default key folds case, so ties keep annotation row order: A, a then
+    # b, B -- and the custom key reverses the groups while keeping row order
+    # inside each of them.
+    assert list(natural.ordered_neurons) == ["2", "3", "1", "4"]
+    assert list(reversed_key.ordered_neurons) == ["1", "4", "2", "3"]
+
+
+def test_by_places_nulls_last_by_default() -> None:
+    adjacency, annotations = _grouped_inputs(
+        cell_instance=["ER1_g2", None, "ER1_g1", None]
+    )
+
+    last = NestedMatrix.from_connectivity(
+        adjacency,
+        annotations,
+        order=NestedMatrix.order(default=NestedMatrix.by("cell_instance")),
+    )
+    first = NestedMatrix.from_connectivity(
+        adjacency,
+        annotations,
+        order=NestedMatrix.order(default=NestedMatrix.by("cell_instance", na="first")),
+    )
+
+    # Nulls keep annotation row order within their own group either way.
+    assert list(last.ordered_neurons) == ["3", "1", "2", "4"]
+    assert list(first.ordered_neurons) == ["2", "4", "3", "1"]
+
+
+def test_by_raises_on_a_missing_column() -> None:
+    adjacency, annotations = _grouped_inputs(cell_instance=["a", "b", "c", "d"])
+
+    with pytest.raises(ValueError, match="have none of those columns"):
+        NestedMatrix.from_connectivity(
+            adjacency,
+            annotations,
+            order=NestedMatrix.order(default=NestedMatrix.by("cell_instnace")),
+        )
+
+
+def test_by_is_usable_per_cell_type() -> None:
+    annotations = pd.DataFrame(
+        {
+            "root_id": ["1", "2", "3", "4"],
+            "cell_type": ["ER1", "ER1", "PEN", "PEN"],
+            "cell_instance": ["ER1_g10", "ER1_g2", "PEN_g10", "PEN_g2"],
+        }
+    )
+    adjacency = pd.DataFrame(
+        np.zeros((4, 4)), index=annotations.root_id, columns=annotations.root_id
+    )
+
+    matrix = NestedMatrix.from_connectivity(
+        adjacency,
+        annotations,
+        order=NestedMatrix.order(within={"ER1": NestedMatrix.by("cell_instance")}),
+    )
+
+    # ER1 is sorted; PEN is not named, so it keeps annotation row order.
+    assert list(matrix.ordered_neurons) == ["2", "1", "3", "4"]
+
+
+def test_by_validates_its_arguments() -> None:
+    with pytest.raises(TypeError, match="column name strings"):
+        NestedMatrix.by(("cell_instance",))  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="never match"):
+        NestedMatrix.by(b"cell_instance")  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="must be callable"):
+        NestedMatrix.by("cell_instance", key="natural")  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="at least one"):
+        NestedMatrix.by()
+
+
+def test_by_sorter_pickles_and_compares_by_value() -> None:
+    import copy
+    import pickle
+
+    built = NestedMatrix.order(within={"ER1": NestedMatrix.by("cell_instance")})
+
+    assert pickle.loads(pickle.dumps(built)) == built
+    assert copy.deepcopy(built) == built
+    assert NestedMatrix.by("cell_instance") == NestedMatrix.by("cell_instance")
+    assert NestedMatrix.by("cell_instance") != NestedMatrix.by("side")
+    assert pickle.loads(pickle.dumps(EB_ORDER)) == EB_ORDER
+
+
+def test_by_on_an_empty_block_is_silent() -> None:
+    empty = pd.DataFrame({"root_id": [], "cell_instance": []})
+
+    assert NestedMatrix.by("cell_instance")("ER1", empty, "root_id") == []
+
+
+def test_by_rank_uses_the_leftmost_label_in_the_cell() -> None:
+    adjacency = pd.DataFrame(
+        np.zeros((2, 2)), index=["1", "2"], columns=["1", "2"]
+    )
+    annotations = pd.DataFrame(
+        {
+            "root_id": ["1", "2"],
+            "cell_type": ["delta7", "delta7"],
+            "cell_instance": ["Δ7_L8R1R9", "Δ7_R1L9"],
+        }
+    )
+    pb = [f"L{n}" for n in range(9, 0, -1)] + [f"R{n}" for n in range(1, 10)]
+    matrix = NestedMatrix.from_connectivity(
+        adjacency,
+        annotations,
+        order=NestedMatrix.order(
+            within={"delta7": NestedMatrix.by("cell_instance", rank=pb, na="raise")}
+        ),
+    )
+    # L8 (from Δ7_L8R1R9) is left of R1 (from Δ7_R1L9) in the PB list.
+    assert list(matrix.ordered_neurons) == ["1", "2"]
+
+
+def test_builder_and_nested_call_are_the_same_object_type() -> None:
+    nested = NestedMatrix.order(
+        types=["B", "A"],
+        default="id",
+        within={"A": NestedMatrix.by("cell_instance")},
+    )
+    built = (
+        NestedMatrix.order()
+        .types(["B", "A"])
+        .default("id")
+        .within("A", NestedMatrix.by("cell_instance"))
+    )
+    assert nested == built
+    assert DirectedNestedMatrix.order is NestedMatrix.order
+    assert DirectedNestedMatrix.by is NestedMatrix.by
 
 
 # ---------------------------------------------------------------------------
@@ -2130,14 +2510,14 @@ def test_order_types_size_puts_largest_block_first() -> None:
     adjacency, annotations = _two_block_inputs()
 
     by_size = NestedMatrix.from_connectivity(
-        adjacency, annotations, order={"types": "size"}
+        adjacency, annotations, order=NestedMatrix.order(types="size")
     )
     assert list(by_size.type_boundaries) == ["B", "A"]
 
     # Flip the sizes and the order flips with them.
     annotations = annotations.assign(cell_type=["B", "A", "A", "A"])
     by_size = NestedMatrix.from_connectivity(
-        adjacency, annotations, order={"types": "size"}
+        adjacency, annotations, order=NestedMatrix.order(types="size")
     )
     assert list(by_size.type_boundaries) == ["A", "B"]
 
@@ -2148,7 +2528,7 @@ def test_order_types_accepts_callable() -> None:
     matrix = NestedMatrix.from_connectivity(
         adjacency,
         annotations,
-        order={"types": lambda names, rows, col: sorted(names, reverse=True)},
+        order=NestedMatrix.order(types=lambda names: sorted(names, reverse=True)),
     )
 
     assert list(matrix.type_boundaries) == ["B", "A"]
@@ -2159,7 +2539,7 @@ def test_order_types_rejects_unknown_string() -> None:
 
     with pytest.raises(ValueError, match="'label' or 'size'"):
         NestedMatrix.from_connectivity(
-            adjacency, annotations, order={"types": "alphabetical"}
+            adjacency, annotations, order=NestedMatrix.order(types="alphabetical")
         )
 
 
@@ -2168,7 +2548,7 @@ def test_order_types_rejects_sorter_that_drops_a_block() -> None:
 
     with pytest.raises(ValueError, match="exactly once"):
         NestedMatrix.from_connectivity(
-            adjacency, annotations, order={"types": lambda names, rows, col: names[:1]}
+            adjacency, annotations, order=NestedMatrix.order(types=lambda names: names[:1])
         )
 
 
@@ -2182,31 +2562,30 @@ def test_order_bare_sequence_is_types_shorthand() -> None:
 
     shorthand = NestedMatrix.from_connectivity(adjacency, annotations, order=["B", "A"])
     explicit = NestedMatrix.from_connectivity(
-        adjacency, annotations, order=NeuronOrder(types=["B", "A"])
+        adjacency, annotations, order=NestedMatrix.order(types=["B", "A"])
     )
 
     assert list(shorthand.type_boundaries) == ["B", "A"]
     assert shorthand.ordered_neurons == explicit.ordered_neurons
 
 
-def test_order_mapping_and_neuron_order_agree() -> None:
+def test_order_nested_call_and_builder_agree() -> None:
     annotations = pd.DataFrame(
         {"root_id": ["30", "4", "200", "1"], "cell_type": ["A", "A", "A", "B"]}
     )
     adjacency = pd.DataFrame(
         np.zeros((4, 4)), index=annotations.root_id, columns=annotations.root_id
     )
-    spec = {"types": ["B", "A"], "within": "id"}
+    nested = NestedMatrix.order(types=["B", "A"], default="id")
+    built = NestedMatrix.order().types(["B", "A"]).default("id")
 
-    as_mapping = NestedMatrix.from_connectivity(adjacency, annotations, order=spec)
-    as_object = NestedMatrix.from_connectivity(
-        adjacency, annotations, order=NeuronOrder(**spec)
-    )
+    as_nested = NestedMatrix.from_connectivity(adjacency, annotations, order=nested)
+    as_built = NestedMatrix.from_connectivity(adjacency, annotations, order=built)
     default = NestedMatrix.from_connectivity(adjacency, annotations)
 
-    assert as_mapping.ordered_neurons == as_object.ordered_neurons
+    assert as_nested.ordered_neurons == as_built.ordered_neurons
     # ...and both differ from the default, so this cannot pass if order= is ignored.
-    assert as_mapping.ordered_neurons == ("1", "4", "30", "200")
+    assert as_nested.ordered_neurons == ("1", "4", "30", "200")
     assert default.ordered_neurons == ("30", "4", "200", "1")
 
 
@@ -2221,10 +2600,10 @@ def test_order_none_is_the_default_order() -> None:
     )
 
 
-def test_order_mapping_rejects_unknown_keys() -> None:
+def test_order_mapping_is_rejected() -> None:
     adjacency, annotations = _two_block_inputs()
 
-    with pytest.raises(ValueError, match="only 'types' and 'within'"):
+    with pytest.raises(TypeError, match="no longer accepts a mapping"):
         NestedMatrix.from_connectivity(
             adjacency, annotations, order={"EPG/PEG": ["R1", "L1"]}
         )
@@ -2237,12 +2616,10 @@ def test_order_bare_string_is_rejected_as_ambiguous() -> None:
         NestedMatrix.from_connectivity(adjacency, annotations, order="id")
 
 
-def test_order_partial_mapping_keeps_the_other_default() -> None:
-    from crantpy.utils.ordering import DEFAULT_ORDER, as_neuron_order
-
-    assert as_neuron_order({"types": "size"}).within == DEFAULT_ORDER.within
-    assert as_neuron_order({"within": None}).types == DEFAULT_ORDER.types
-    assert as_neuron_order({"within": None}).within is None
+def test_order_partial_kwargs_keep_the_other_default() -> None:
+    assert NestedMatrix.order(types="size").default_rule is None
+    assert NestedMatrix.order(default=None).type_rule == "label"
+    assert NestedMatrix.order(within=None).within_rules is None
 
 
 def test_retired_ordering_arguments_are_rejected() -> None:
@@ -2278,7 +2655,7 @@ def test_untyped_neurons_include_null_types_under_default_scope() -> None:
     assert matrix.typed_neurons == ("1", "2")
 
 
-def test_partial_within_mapping_overlays_the_default_rules() -> None:
+def test_partial_within_mapping_leaves_unnamed_types_alone() -> None:
     annotations = pd.DataFrame(
         {
             "root_id": ["10", "2", "5", "6"],
@@ -2293,14 +2670,20 @@ def test_partial_within_mapping_overlays_the_default_rules() -> None:
     matrix = NestedMatrix.from_connectivity(
         adjacency,
         annotations,
-        order={"types": ["EPG/PEG", "PEN"], "within": {"PEN": ["R1", "L1"]}},
+        order=NestedMatrix.order(
+            types=["EPG/PEG", "PEN"],
+            within={
+                "PEN": NestedMatrix.by("cell_subtype", rank=["R1", "L1"], na="raise")
+            },
+        ),
     )
 
-    # PEN uses the added rule; EPG/PEG keeps the built-in EB order (R1 before L8).
-    assert list(matrix.ordered_neurons) == ["2", "10", "6", "5"]
+    # PEN uses the rule it was given; EPG/PEG is not named, so it keeps
+    # annotation row order (10 before 2) rather than picking up an EB rule.
+    assert list(matrix.ordered_neurons) == ["10", "2", "6", "5"]
 
 
-def test_within_mapping_can_override_a_default_rule_by_name() -> None:
+def test_within_mapping_entry_can_pin_annotation_order_explicitly() -> None:
     annotations = pd.DataFrame(
         {
             "root_id": ["10", "2"],
@@ -2313,10 +2696,12 @@ def test_within_mapping_can_override_a_default_rule_by_name() -> None:
     )
 
     overridden = NestedMatrix.from_connectivity(
-        adjacency, annotations, order={"within": {"EPG/PEG": "annotation"}}
+        adjacency,
+        annotations,
+        order=NestedMatrix.order(within={"EPG/PEG": "annotation"}),
     )
     disabled = NestedMatrix.from_connectivity(
-        adjacency, annotations, order={"within": None}
+        adjacency, annotations, order=NestedMatrix.order(default=None)
     )
 
     assert list(overridden.ordered_neurons) == ["10", "2"]
@@ -2346,30 +2731,36 @@ def test_order_accepts_a_one_shot_iterable() -> None:
 
 
 def test_neuron_order_snapshots_a_one_shot_types_rule() -> None:
-    order = NeuronOrder(types=reversed(["A", "B"]))
+    built = NestedMatrix.order(types=reversed(["A", "B"]))
 
     # The iterator is materialized at construction, not on first use.
-    assert order.types == ("B", "A")
+    assert built.type_rule == ("B", "A")
 
     adjacency, annotations = _ab_inputs()
-    first = NestedMatrix.from_connectivity(adjacency, annotations, order=order)
-    second = NestedMatrix.from_connectivity(adjacency, annotations, order=order)
+    first = NestedMatrix.from_connectivity(adjacency, annotations, order=built)
+    second = NestedMatrix.from_connectivity(adjacency, annotations, order=built)
 
-    # Reusing the same NeuronOrder must give the same answer both times.
+    # Reusing the same order must give the same answer both times.
     assert list(first.type_boundaries) == ["B", "A"]
     assert list(second.type_boundaries) == ["B", "A"]
 
 
 def test_neuron_order_snapshots_a_one_shot_within_rule() -> None:
-    order = NeuronOrder(within={"EPG/PEG": iter(["R2", "L8", "R1"])})
+    built = NestedMatrix.order(
+        within={
+            "EPG/PEG": NestedMatrix.by(
+                "cell_subtype", rank=iter(["R2", "L8", "R1"]), na="raise"
+            )
+        }
+    )
 
-    assert order.within["EPG/PEG"] == ("R2", "L8", "R1")
+    assert built.within_rules["EPG/PEG"].rank == ("R2", "L8", "R1")
 
     first = NestedMatrix.from_connectivity(
-        _columnar_adjacency(), _columnar_annotations(), order=order
+        _columnar_adjacency(), _columnar_annotations(), order=built
     )
     second = NestedMatrix.from_connectivity(
-        _columnar_adjacency(), _columnar_annotations(), order=order
+        _columnar_adjacency(), _columnar_annotations(), order=built
     )
 
     assert list(first.ordered_neurons) == ["33", "40", "7"]
@@ -2407,7 +2798,15 @@ def test_directed_one_shot_within_mapping_reaches_both_axes() -> None:
         synapses,
         annotations,
         weight_mode="count",
-        order={"within": {"A": (label for label in ["R1", "L1"])}},
+        order=NestedMatrix.order(
+            within={
+                "A": NestedMatrix.by(
+                    "cell_subtype",
+                    rank=(label for label in ["R1", "L1"]),
+                    na="raise",
+                )
+            }
+        ),
     )
 
     assert matrix.source_neurons == ("1", "2")
@@ -2418,8 +2817,10 @@ def test_directed_one_shot_within_mapping_reaches_both_axes() -> None:
     "make_order",
     [
         lambda: {"B", "A"},
-        lambda: NeuronOrder(types={"B", "A"}),
-        lambda: {"within": {"A": {"R1", "L1"}}},
+        lambda: NestedMatrix.order(types={"B", "A"}),
+        lambda: NestedMatrix.order(
+            within={"A": NestedMatrix.by("cell_subtype", rank={"R1", "L1"})}
+        ),
     ],
 )
 def test_order_rejects_unordered_set_rules(make_order) -> None:
@@ -2429,35 +2830,25 @@ def test_order_rejects_unordered_set_rules(make_order) -> None:
         NestedMatrix.from_connectivity(adjacency, annotations, order=make_order())
 
 
-def test_column_order_rule_rejects_unordered_sets() -> None:
+def test_by_rejects_unordered_sets() -> None:
     with pytest.raises(TypeError, match="ordered iterable"):
-        ColumnOrderRule(order={"R1", "L1"})
+        NestedMatrix.by("cell_subtype", rank={"R1", "L1"})
 
 
-def test_column_order_rule_rejects_bare_strings() -> None:
+def test_by_rejects_bare_strings_as_rank() -> None:
     # tuple("R1") == ("R", "1"): the intended label would silently never rank.
     with pytest.raises(TypeError, match="not a bare string"):
-        ColumnOrderRule(order="R1")
-    with pytest.raises(TypeError, match="not a bare string"):
-        ColumnOrderRule(order=["R1"], label_columns="cell_subtype")
+        NestedMatrix.by("cell_subtype", rank="R1")
 
 
 def test_within_rejects_a_mapping_nested_under_one_cell_type() -> None:
-    adjacency, annotations = _ab_inputs()
-
-    with pytest.raises(TypeError, match="belongs at the top of order.within"):
-        NestedMatrix.from_connectivity(
-            adjacency, annotations, order={"within": {"B": {"order": ["R1"]}}}
-        )
+    with pytest.raises(TypeError, match="belongs on order.within"):
+        NestedMatrix.order(within={"B": {"order": ["R1"]}})
 
 
 def test_types_rejects_a_mapping() -> None:
-    adjacency, annotations = _ab_inputs()
-
     with pytest.raises(TypeError, match="not a mapping"):
-        NestedMatrix.from_connectivity(
-            adjacency, annotations, order={"types": {"B": 1}}
-        )
+        NestedMatrix.order(types={"B": 1})
 
 
 # ---------------------------------------------------------------------------
@@ -2569,6 +2960,7 @@ def test_directed_one_shot_selector_survives_every_roi(mock_load: MagicMock) -> 
         lambda: ordering._resolve_type_rule({"B", "A"}),
         lambda: ordering._resolve_within_type_rule({"R1", "L1"}),
         lambda: ordering._resolve_within_type_order({"EPG/PEG": {"R1", "L1"}}),
+        lambda: NestedMatrix.by("cell_subtype", rank={"R1", "L1"}),
     ],
     ids=[
         "_sort_cell_types",
@@ -2576,10 +2968,11 @@ def test_directed_one_shot_selector_survives_every_roi(mock_load: MagicMock) -> 
         "type_rule",
         "within_rule",
         "within_order",
+        "by_rank",
     ],
 )
 def test_ordering_helpers_reject_sets(call) -> None:
-    with pytest.raises(TypeError, match="ordered iterable|not a set"):
+    with pytest.raises(TypeError, match="ordered iterable|bare label sequence"):
         call()
 
 
@@ -2626,17 +3019,17 @@ def test_order_objects_survive_pickle_and_deepcopy_after_use() -> None:
     import copy
     import pickle
 
-    from crantpy.utils.ordering import DEFAULT_ORDER, EB_COLUMN_ORDER
-
-    # Using the module-level singletons in a build must not make them
-    # unpicklable.
+    # Using an order in a build must not make it unpicklable.
     NestedMatrix.from_connectivity(_columnar_adjacency(), _columnar_annotations())
 
-    assert pickle.loads(pickle.dumps(EB_COLUMN_ORDER)) == EB_COLUMN_ORDER
-    assert pickle.loads(pickle.dumps(DEFAULT_ORDER)) == DEFAULT_ORDER
-    assert copy.deepcopy(DEFAULT_ORDER) == DEFAULT_ORDER
+    assert pickle.loads(pickle.dumps(EB_BY)) == EB_BY
+    assert pickle.loads(pickle.dumps(EB_ORDER)) == EB_ORDER
+    assert copy.deepcopy(EB_ORDER) == EB_ORDER
 
-    custom = NeuronOrder(types=["B", "A"], within={"A": ["R1", "L1"]})
+    custom = NestedMatrix.order(
+        types=["B", "A"],
+        within={"A": NestedMatrix.by("cell_subtype", rank=["R1", "L1"])},
+    )
     assert pickle.loads(pickle.dumps(custom)) == custom
 
 
@@ -2645,17 +3038,12 @@ def test_key_views_are_accepted_at_every_guard() -> None:
 
     labels = {"R1": 0, "L1": 1}.keys()
 
-    # Every guard in the module must treat a key view the same way.
-    assert ordering.ColumnOrderRule(order=labels).order == ("R1", "L1")
-    assert ordering.ColumnOrderRule(
-        order=["R1"], label_columns=labels
-    ).label_columns == ("R1", "L1")
-    # Assert what they resolve TO: `is not None` would hold for any callable.
+    assert NestedMatrix.by("cell_subtype", rank=labels).rank == ("R1", "L1")
     rank_labels = {"R2": 0, "R1": 1, "L1": 2}.keys()
     within_rows = pd.DataFrame(
         {"root_id": ["2", "7", "10"], "cell_subtype": ["A_L1", "A_R1", "A_R2"]}
     )
-    assert ordering._resolve_within_type_rule(rank_labels)(
+    assert NestedMatrix.by("cell_subtype", rank=rank_labels, na="raise")(
         "A", within_rows, "root_id"
     ) == [
         "10",
@@ -2663,7 +3051,6 @@ def test_key_views_are_accepted_at_every_guard() -> None:
         "2",
     ]  # ranked R2, R1, L1 -- differs from annotation, numeric-ID and string order
 
-    # A key view naming the cell types themselves, so it can actually reorder.
     type_labels = {"B": 0, "A": 1}.keys()
     type_rows = pd.DataFrame({"cell_type": ["A", "A", "B"]})
     assert ordering._resolve_type_rule(type_labels)(
@@ -2671,25 +3058,23 @@ def test_key_views_are_accepted_at_every_guard() -> None:
     ) == [
         "B",
         "A",
-    ]  # preferred order from the key view, not label or size order
+    ]
 
-    # ...and a real set is still rejected at each of them.
     for call in (
-        lambda: ordering.ColumnOrderRule(order={"R1", "L1"}),
-        lambda: ordering.ColumnOrderRule(order=["R1"], label_columns={"a", "b"}),
+        lambda: NestedMatrix.by("cell_subtype", rank={"R1", "L1"}),
         lambda: ordering._resolve_within_type_rule({"R1", "L1"}),
         lambda: ordering._resolve_type_rule({"R1", "L1"}),
     ):
-        with pytest.raises(TypeError, match="ordered iterable"):
+        with pytest.raises(TypeError, match="ordered iterable|bare label sequence"):
             call()
 
 
 def test_non_scalar_rule_entries_are_rejected() -> None:
     # A list entry would stringify to "['x']" and silently never match.
     with pytest.raises(TypeError, match="scalar labels"):
-        NeuronOrder(types=[["x"]])
-    with pytest.raises(TypeError, match="scalar labels"):
-        NeuronOrder(within={"A": [["x"]]})
+        NestedMatrix.order(types=[["x"]])
+    with pytest.raises(TypeError, match="strings"):
+        NestedMatrix.by("cell_subtype", rank=[["x"]])
 
 
 def test_unhashable_callable_rules_are_accepted() -> None:
@@ -2700,33 +3085,25 @@ def test_unhashable_callable_rules_are_accepted() -> None:
     class MutableSorter:
         calls: list = field(default_factory=list)
 
-        def __call__(self, type_names, typed_annotations, type_col):
+        def __call__(self, type_names):
             self.calls.append(list(type_names))
             return list(reversed(type_names))
 
     adjacency, annotations = _two_block_inputs()
     matrix = NestedMatrix.from_connectivity(
-        adjacency, annotations, order=NeuronOrder(types=MutableSorter())
+        adjacency, annotations, order=NestedMatrix.order(types=MutableSorter())
     )
     assert list(matrix.type_boundaries) == ["B", "A"]
 
 
-def test_mutating_one_order_leaves_the_defaults_alone() -> None:
-    from crantpy.utils.ordering import (
-        DEFAULT_WITHIN_TYPE_ORDER,
-        EB_COLUMN_ORDER,
-        as_neuron_order,
-    )
-
-    # The module-level default table itself stays read-only...
+def test_mutating_one_order_leaves_the_callers_mapping_alone() -> None:
+    caller = {"EPG/PEG": EB_BY}
+    built = NestedMatrix.order(within=caller)
     with pytest.raises(TypeError):
-        DEFAULT_WITHIN_TYPE_ORDER["written"] = "through"  # type: ignore[index]
+        built.within_rules["EPG/PEG"] = "id"  # type: ignore[index]
 
-    # ...and every order snapshots its own copy of it, so editing one order
-    # cannot poison the defaults a later build resolves.
-    order = as_neuron_order(None)
-    order.within["EPG/PEG"] = "id"  # type: ignore[index]
-    assert as_neuron_order(None).within["EPG/PEG"] is EB_COLUMN_ORDER
+    assert built.within_rules["EPG/PEG"] is EB_BY
+    assert built.within_rules is not caller
 
 
 def test_order_accepts_a_key_view_but_still_rejects_a_set() -> None:
@@ -2788,11 +3165,16 @@ def test_order_within_bare_sequence_applies_to_every_type() -> None:
     matrix = NestedMatrix.from_connectivity(
         adjacency,
         annotations,
-        order={"types": ["EPG/PEG", "PEN"], "within": ["L8", "R1"]},
+        order=NestedMatrix.order(
+            types=["EPG/PEG", "PEN"],
+            default=NestedMatrix.by(
+                "cell_subtype", rank=["L8", "R1"], na="raise"
+            ),
+        ),
     )
 
-    # L8 before R1 in *both* blocks: it overrides the EB default for EPG/PEG,
-    # and it reverses PEN's annotation row order (which is R1 first).
+    # L8 before R1 in *both* blocks: default covers every type, and
+    # it reverses PEN's annotation row order (which is R1 first).
     assert list(matrix.ordered_neurons) == ["40", "7", "6", "5"]
 
 
@@ -2858,29 +3240,24 @@ def test_colliding_within_keys_survive_the_snapshot() -> None:
     # 1 and "1" are distinct dict keys; _snapshot must keep them distinct so
     # the build-time duplicate-key guard above still sees both when the
     # mapping arrives through order= rather than a direct call.
-    assert NeuronOrder(within={1: "id", "1": "annotation"}) == NeuronOrder(
-        within={"1": "annotation", 1: "id"}
-    )
+    with pytest.raises(ValueError, match="naming the same cell type"):
+        NestedMatrix.order(within={1: "id", "1": "annotation"})
+    with pytest.raises(ValueError, match="naming the same cell type"):
+        NestedMatrix.order(within={"1": "annotation", 1: "id"})
 
     adjacency = pd.DataFrame([[0]], index=["30"], columns=["30"])
     annotations = pd.DataFrame({"root_id": ["30"], "cell_type": ["1"]})
     with pytest.raises(ValueError, match="naming the same cell type"):
         NestedMatrix.from_connectivity(
-            adjacency, annotations, order={"within": {1: "id", "1": "annotation"}}
+            adjacency,
+            annotations,
+            order=NestedMatrix.order(within={1: "id", "1": "annotation"}),
         )
 
 
-def test_order_with_a_nested_mapping_still_round_trips() -> None:
-    import copy
-    import pickle
-
-    # _snapshot copies every level to plain containers, so the object pickles
-    # without custom hooks.
-    order = NeuronOrder(within={"A": {"B": 1}})
-
-    restored = pickle.loads(pickle.dumps(order))
-    assert restored == order
-    assert copy.deepcopy(order) == order
+def test_nested_mapping_within_rule_is_rejected() -> None:
+    with pytest.raises(TypeError, match="belongs on order.within"):
+        NestedMatrix.order(within={"A": {"B": 1}})
 
 
 # ---------------------------------------------------------------------------
@@ -2889,21 +3266,34 @@ def test_order_with_a_nested_mapping_still_round_trips() -> None:
 
 
 def test_column_rule_skips_a_matching_but_unranked_column() -> None:
-    from crantpy.utils.ordering import ColumnOrderRule, _extract_ranked_label
-
-    # A column matching the pattern but absent from `order` is skipped and
-    # the next column tried.
-    rule = ColumnOrderRule(order=["R1", "L1"])
-    rank = {"R1": 0, "L1": 1}
-    row = pd.Series({"cell_instance": "X_R9", "cell_subtype": "X_L1", "root_id": "1"})
-
-    assert _extract_ranked_label(row, rule, "root_id", rank) == "L1"
-
-    # ...and with no ranked label anywhere, the neuron stays unranked.
-    unranked = pd.Series(
-        {"cell_instance": "X_R9", "cell_subtype": "X_R8", "root_id": "1"}
+    # A column whose extracted label is absent from rank is skipped and the
+    # next column tried.
+    rows = pd.DataFrame(
+        {
+            "root_id": ["1", "2"],
+            "cell_instance": ["X_R9", "X_R9"],
+            "cell_subtype": ["X_L1", "X_R8"],
+        }
     )
-    assert _extract_ranked_label(unranked, rule, "root_id", rank) is None
+    rule = NestedMatrix.by(
+        "cell_instance",
+        "cell_subtype",
+        extract=r"([LR]\d+)",
+        rank=["R1", "L1"],
+    )
+    assert rule("T", rows.iloc[[0]], "root_id") == ["1"]
+    assert rule._label_for(
+        rows.iloc[0], ["cell_instance", "cell_subtype"], {"R1": 0, "L1": 1}, "root_id"
+    ) == "L1"
+    assert (
+        rule._label_for(
+            rows.iloc[1],
+            ["cell_instance", "cell_subtype"],
+            {"R1": 0, "L1": 1},
+            "root_id",
+        )
+        is None
+    )
 
 
 def test_preferred_entries_match_exactly() -> None:
@@ -2917,7 +3307,9 @@ def test_preferred_entries_match_exactly() -> None:
         "ER2",
     ]
 
-    # ...even when it is also a prefix of other types.
+    # ...and being a mere prefix of other types is not a match at all: the
+    # entry does nothing (loudly -- see the warning test above) rather than
+    # pulling the whole family forward or failing the build.
     assert _sort_cell_types(["ER1", "ER2", "AB3"], preferred=["ER"]) == [
         "AB3",
         "ER1",
@@ -3005,23 +3397,15 @@ def test_order_types_size_agrees_across_cell_type_dtypes() -> None:
         np.zeros((4, 4)), index=annotations.root_id, columns=annotations.root_id
     )
     matrix = NestedMatrix.from_connectivity(
-        adjacency, annotations, order={"types": "size"}
+        adjacency, annotations, order=NestedMatrix.order(types="size")
     )
     assert list(matrix.type_boundaries) == ["2", "1"]
 
 
-def test_order_with_a_mapping_types_rule_still_round_trips() -> None:
-    import copy
-    import pickle
-
-    # A mapping is not a legal `types` rule, but the object is constructible
-    # and must still pickle and deep-copy.
-    order = NeuronOrder(types={"a": 1})
-
-    restored = pickle.loads(pickle.dumps(order))
-    assert restored == order
-    assert copy.deepcopy(order) == order
-    assert NeuronOrder(types=["B", "A"]).types == ("B", "A")
+def test_order_with_a_mapping_types_rule_is_rejected() -> None:
+    with pytest.raises(TypeError, match="not a mapping"):
+        NestedMatrix.order(types={"a": 1})
+    assert NestedMatrix.order(types=["B", "A"]).type_rule == ("B", "A")
 
 
 def test_feeding_a_block_order_back_reproduces_it_exactly() -> None:
@@ -3038,7 +3422,7 @@ def test_feeding_a_block_order_back_reproduces_it_exactly() -> None:
         np.zeros((6, 6)), index=annotations.root_id, columns=annotations.root_id
     )
     first = NestedMatrix.from_connectivity(
-        adjacency, annotations, order={"types": "size"}
+        adjacency, annotations, order=NestedMatrix.order(types="size")
     )
     assert list(first.type_boundaries) == ["ER", "AB1", "ER1", "ER2"]
 
@@ -3119,14 +3503,10 @@ def test_min_neurons_for_plot_applies_only_at_neuron_level() -> None:
 def test_column_rule_on_an_empty_block_is_silent(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    from crantpy.utils.ordering import EB_COLUMN_ORDER, _order_by_column_rule
-
-    # pandas calls DataFrame.apply(axis=1) once on an all-NaN dummy row when the
-    # frame is empty, which used to warn about a nonexistent "neuron nan".
     caplog.set_level("WARNING", logger="crantpy.utils.ordering")
     empty = pd.DataFrame({"root_id": [], "cell_subtype": []})
 
-    assert _order_by_column_rule(EB_COLUMN_ORDER)("EPG/PEG", empty, "root_id") == []
+    assert EB_BY("EPG/PEG", empty, "root_id") == []
     assert caplog.records == []
 
 
@@ -3197,7 +3577,7 @@ def test_type_sorter_mutating_its_input_cannot_bypass_the_check() -> None:
     # A sorter editing the list it receives in place used to edit the expected
     # set too, so both sides of the comparison matched and blocks were dropped
     # silently.
-    def dropping_sorter(type_names, typed_annotations, type_col):
+    def dropping_sorter(type_names, typed_annotations=None, type_col=None):
         type_names.remove("B")
         return type_names
 
@@ -3231,7 +3611,7 @@ def test_pipeline_normalizes_the_neuron_id_column_too() -> None:
     for ids in ([10.0, 9.0, 100.0], [10, 9, 100], ["10", "9", "100"]):
         annotations = pd.DataFrame({"root_id": ids, "cell_type": ["A", "A", "A"]})
         assert ordering.build_ordered_neurons(
-            annotations, "cell_type", ["A"], "root_id", within="id"
+            annotations, "cell_type", ["A"], "root_id", default="id"
         ) == (["9", "10", "100"], {"A": (0, 3)}), ids
 
     # _order_by_id on its own honours the same normalization.
@@ -3247,7 +3627,7 @@ def test_pipeline_normalizes_the_neuron_id_column_too() -> None:
         {"root_id": [10.0, 9.0, 100.0], "cell_type": ["A", "A", "A"]}
     )
     assert NestedMatrix.from_connectivity(
-        adjacency, float_ids, order={"within": "id"}
+        adjacency, float_ids, order=NestedMatrix.order(default="id")
     ).ordered_neurons == ("9", "10", "100")
 
 
@@ -3284,23 +3664,15 @@ def test_is_missing_scalar_is_false_for_non_scalars() -> None:
     ) == {"B", "['x']"}
 
 
-def test_unresolvable_label_warning_names_the_neuron_or_says_unknown(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    from crantpy.utils.ordering import ColumnOrderRule, _extract_ranked_label
+def test_unresolvable_label_error_names_the_neuron_or_says_unknown() -> None:
+    rule = NestedMatrix.by("cell_subtype", rank=["R1"], na="raise")
+    rows = pd.DataFrame({"root_id": ["77"], "cell_subtype": ["x"]})
+    with pytest.raises(ValueError, match="neuron '77'"):
+        rule("T", rows, "root_id")
 
-    rule = ColumnOrderRule(order=["R1"])
-    caplog.set_level("WARNING", logger="crantpy.utils.ordering")
-
-    _extract_ranked_label(
-        pd.Series({"root_id": "77", "cell_subtype": "x"}), rule, "root_id", {"R1": 0}
-    )
-    assert "for neuron 77" in caplog.text
-
-    caplog.clear()
-    # A row without the ID column at all falls back to the placeholder.
-    _extract_ranked_label(pd.Series({"cell_subtype": "x"}), rule, "root_id", {"R1": 0})
-    assert "for neuron <unknown>" in caplog.text
+    missing_id = pd.DataFrame({"cell_subtype": ["x"]})
+    with pytest.raises(ValueError, match="neuron '<unknown>'"):
+        rule("T", missing_id, "root_id")
 
 
 # ---------------------------------------------------------------------------
@@ -3742,33 +4114,31 @@ def test_directed_include_other_collects_unassigned_synapses(
 def test_bytes_order_rules_are_rejected_not_silently_ignored() -> None:
     from crantpy.utils.ordering import (
         _sort_cell_types,
-        as_neuron_order,
+        as_matrix_order,
         build_ordered_neurons,
     )
 
     # bytes iterate as integers, so b"ER" would silently become (69, 82) and
     # the requested order would be dropped without an error.
     with pytest.raises(TypeError, match="yields integers"):
-        NeuronOrder(types=b"ER")
+        NestedMatrix.order(types=b"ER")
     with pytest.raises(TypeError, match="yields integers"):
-        NeuronOrder(types=bytearray(b"ER"))
+        NestedMatrix.order(types=bytearray(b"ER"))
+    with pytest.raises(TypeError, match="bare label sequence|yields integers"):
+        NestedMatrix.order(within={"A": b"R1"})
     with pytest.raises(TypeError, match="yields integers"):
-        NeuronOrder(within={"A": b"R1"})
+        as_matrix_order(b"PEN")
     with pytest.raises(TypeError, match="yields integers"):
-        as_neuron_order(b"PEN")
+        NestedMatrix.by("cell_subtype", rank=b"R1")
+    with pytest.raises(TypeError, match="never match"):
+        NestedMatrix.by(bytearray(b"c"), rank=["R1"])
     with pytest.raises(TypeError, match="yields integers"):
-        ColumnOrderRule(order=b"R1")
-    with pytest.raises(TypeError, match="yields integers"):
-        ColumnOrderRule(order=["R1"], label_columns=bytearray(b"c"))
-    with pytest.raises(TypeError, match="yields integers"):
-        NeuronOrder(types=memoryview(b"ER"))
+        NestedMatrix.order(types=memoryview(b"ER"))
 
-    # ...and one nesting level down: entries and mapping keys, where the bytes
-    # would stringify to "b'ER'" and silently never match.
     with pytest.raises(TypeError, match="never match"):
-        NeuronOrder(types=[b"ER"])
+        NestedMatrix.order(types=[b"ER"])
     with pytest.raises(TypeError, match="never match"):
-        NeuronOrder(within={b"ER1": "id"})
+        NestedMatrix.order(within={b"ER1": "id"})
     with pytest.raises(TypeError, match="never match"):
         build_ordered_neurons(
             pd.DataFrame({"root_id": ["1"], "cell_type": ["A"]}),
@@ -3778,7 +4148,7 @@ def test_bytes_order_rules_are_rejected_not_silently_ignored() -> None:
             within={b"A": "id"},
         )
     with pytest.raises(TypeError, match="must be strings"):
-        ColumnOrderRule(order=[b"R1"])
+        NestedMatrix.by("cell_subtype", rank=[b"R1"])
     with pytest.raises(TypeError, match="never match"):
         _sort_cell_types(["ER"], preferred=[b"ER"])
 
@@ -3787,33 +4157,31 @@ def test_column_rule_pattern_must_have_a_capture_group() -> None:
     import re
 
     with pytest.raises(ValueError, match="capture group"):
-        ColumnOrderRule(order=["R1"], pattern=re.compile(r"[LR]\d+\s*$"))
+        NestedMatrix.by("cell_subtype", extract=re.compile(r"[LR]\d+\s*$"))
     with pytest.raises(ValueError, match="capture group"):
-        ColumnOrderRule(order=["R1"], pattern=r"[LR]\d+\s*$")
+        NestedMatrix.by("cell_subtype", extract=r"[LR]\d+\s*$")
 
-    # A plain string is compiled; bytes patterns and non-patterns are rejected
-    # at construction instead of crashing inside DataFrame.apply.
-    compiled = ColumnOrderRule(order=["R1"], pattern=r"([LR]\d+)\s*$")
-    assert compiled.pattern.search("X_R1").group(1) == "R1"
+    compiled = NestedMatrix.by("cell_subtype", extract=r"([LR]\d+)\s*$")
+    assert compiled.extract.search("X_R1").group(1) == "R1"
     with pytest.raises(TypeError, match="str regex"):
-        ColumnOrderRule(order=["R1"], pattern=re.compile(rb"([LR]\d+)$"))
+        NestedMatrix.by("cell_subtype", extract=re.compile(rb"([LR]\d+)$"))
     with pytest.raises(TypeError, match="str regex"):
-        ColumnOrderRule(order=["R1"], pattern=None)  # type: ignore[arg-type]
+        NestedMatrix.by("cell_subtype", extract=123)  # type: ignore[arg-type]
 
 
 def test_within_sorters_receive_a_normalized_type_column() -> None:
     from crantpy.utils.ordering import build_ordered_neurons
 
-    # The WithinTypeSorter doc says the frame arrives with its ID and cell
-    # type columns already normalized, so a sorter filtering on the type
-    # column must work even when the caller's frame holds raw values.
+    # The frame arrives with its ID and cell type columns already normalized,
+    # so a sorter filtering on the type column must work even when the
+    # caller's frame holds raw values.
     annotations = pd.DataFrame({"root_id": [2, 1], "cell_type": [1, 1]})
 
-    def sorter(name: str, rows: pd.DataFrame, id_col: str) -> list[str]:
-        return sorted(rows.loc[rows["cell_type"] == name, id_col])
+    def sorter(rows: pd.DataFrame) -> list[str]:
+        return sorted(rows.loc[rows["cell_type"] == "1", "root_id"])
 
     ordered, boundaries = build_ordered_neurons(
-        annotations, "cell_type", ["1"], "root_id", within=sorter
+        annotations, "cell_type", ["1"], "root_id", default=sorter
     )
     assert ordered == ["1", "2"]
     assert boundaries == {"1": (0, 2)}

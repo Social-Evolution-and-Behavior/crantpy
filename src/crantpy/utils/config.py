@@ -91,30 +91,6 @@ SEARCH_EXCLUDED_ANNOTATION_FIELDS = [
     "root_position",
 ]
 
-# Ellipsoid-body column labels, in anatomical order around the ring. Used to
-# order columnar neurons inside a cell type block; see crantpy.utils.ordering.
-EB_COLUMN_LABELS = [
-    "R1",
-    "L8",
-    "R2",
-    "L7",
-    "R3",
-    "L6",
-    "R4",
-    "L5",
-    "R5",
-    "L4",
-    "R6",
-    "L3",
-    "R7",
-    "L2",
-    "R8",
-    "L1",
-]
-
-# Cell types whose neurons are ordered by EB_COLUMN_LABELS by default.
-EB_COLUMNAR_CELL_TYPES = ("EPG/PEG",)
-
 # Voxel resolution in nm
 SCALE_X, SCALE_Y, SCALE_Z = 8, 8, 42
 
