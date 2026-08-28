@@ -1,0 +1,1472 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>crantpy.queries.nested_connectivity_matrices module &#8212; CRANTpy Documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=1ae7504c"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/crantpy.queries.nested_connectivity_matrices';</script>
+    <link rel="icon" href="../_static/logo.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="crantpy.queries.neurons module" href="crantpy.queries.neurons.html" />
+    <link rel="prev" title="crantpy.queries.connections module" href="crantpy.queries.connections.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">📚 Tutorials available! Check out the Deep Dive Gallery.</div>
+</aside>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="CRANTpy Documentation - Home"/>
+    <script>document.write(`<img src="../_static/logo.png" class="logo__image only-dark" alt="CRANTpy Documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation &amp; Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Quickstart Tutorial</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/visualization.html">Plotting Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/morphology.html">Working with Neuron Morphology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/connectivity.html">Analyzing Connectivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../deep_dive/ngllink.html">From CRANTpy to Neuroglancer</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="modules.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="crantpy.html">crantpy package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3 current active has-children"><a class="reference internal" href="crantpy.queries.html">crantpy.queries package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="crantpy.queries.connections.html">crantpy.queries.connections module</a></li>
+<li class="toctree-l4 current active"><a class="current reference internal" href="#">crantpy.queries.nested_connectivity_matrices module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.queries.neurons.html">crantpy.queries.neurons module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.queries.neuropils.html">crantpy.queries.neuropils module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="crantpy.utils.html">crantpy.utils package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.utils.cave.html">crantpy.utils.cave package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.utils.config.html">crantpy.utils.config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.utils.decorators.html">crantpy.utils.decorators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.utils.exceptions.html">crantpy.utils.exceptions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.utils.helpers.html">crantpy.utils.helpers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.utils.neuroglancer.html">crantpy.utils.neuroglancer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.utils.ordering.html">crantpy.utils.ordering module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.utils.seatable.html">crantpy.utils.seatable module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.utils.types.html">crantpy.utils.types module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="crantpy.viz.html">crantpy.viz package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.viz.l1.html">crantpy.viz.l1 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.viz.l2.html">crantpy.viz.l2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.viz.mesh.html">crantpy.viz.mesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="crantpy.viz.skeletonize.html">crantpy.viz.skeletonize module</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy/edit/main/docs/api/crantpy.queries.nested_connectivity_matrices.rst" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy/issues/new?title=Issue%20on%20page%20%2Fapi/crantpy.queries.nested_connectivity_matrices.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/api/crantpy.queries.nested_connectivity_matrices.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>crantpy.queries.nested_connectivity_matrices module</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.by"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.by()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.from_connectivity"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.from_connectivity()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.from_synapses"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.from_synapses()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.from_synapses_by_neuropil"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.from_synapses_by_neuropil()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.get_relative_weights"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.get_relative_weights()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.matrix"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.mean_type_matrix"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.mean_type_matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.order"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.order()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.plot"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.plot()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_neuron_to_type"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.source_neuron_to_type</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_neurons"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.source_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_type_boundaries"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.source_type_boundaries</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_typed_neurons"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.source_typed_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_untyped_neurons"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.source_untyped_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.sum_type_matrix"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.sum_type_matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_neuron_to_type"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.target_neuron_to_type</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_neurons"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.target_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_type_boundaries"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.target_type_boundaries</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_typed_neurons"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.target_typed_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_untyped_neurons"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.target_untyped_neurons</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix"><code class="docutils literal notranslate"><span class="pre">NestedMatrix</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.matrix"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.type_boundaries"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.type_boundaries</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.ordered_neurons"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.ordered_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.neuron_to_type"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.neuron_to_type</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.by"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.by()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.from_connectivity"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.from_connectivity()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.from_synapses"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.from_synapses()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.from_synapses_by_neuropil"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.from_synapses_by_neuropil()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.get_relative_weights"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.get_relative_weights()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id0"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.mean_type_matrix"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.mean_type_matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.neuron_to_type</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.order"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.order()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.ordered_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.plot"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.plot()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.sum_type_matrix"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.sum_type_matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.type_boundaries</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.typed_neurons"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.typed_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.untyped_neurons"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.untyped_neurons</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NeuropilCollection"><code class="docutils literal notranslate"><span class="pre">NeuropilCollection</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NeuropilCollection.plot"><code class="docutils literal notranslate"><span class="pre">NeuropilCollection.plot()</span></code></a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-crantpy.queries.nested_connectivity_matrices">
+<span id="crantpy-queries-nested-connectivity-matrices-module"></span><h1>crantpy.queries.nested_connectivity_matrices module<a class="headerlink" href="#module-crantpy.queries.nested_connectivity_matrices" title="Link to this heading">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">crantpy.queries.nested_connectivity_matrices.</span></span><span class="sig-name descname"><span class="pre">DirectedNestedMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_neurons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_neurons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_type_boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_type_boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_neuron_to_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_neuron_to_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#DirectedNestedMatrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A rectangular nested connectivity matrix with independent axes.</p>
+<p>Rows are presynaptic/source neurons, columns postsynaptic/target. Unlike
+<code class="docutils literal notranslate"><span class="pre">NestedMatrix</span></code> the matrix may be rectangular and the two cell type sets
+may differ.</p>
+<p>Constructors take <code class="docutils literal notranslate"><span class="pre">source_types</span></code>/<code class="docutils literal notranslate"><span class="pre">source_ids</span></code> (and the <code class="docutils literal notranslate"><span class="pre">target_</span></code>
+pair) to select an axis; the resolved order is read back from
+<code class="docutils literal notranslate"><span class="pre">.source_neurons</span></code>/<code class="docutils literal notranslate"><span class="pre">.target_neurons</span></code>. Type and ID selectors on one axis
+are unioned; leaving <em>both</em> of them <code class="docutils literal notranslate"><span class="pre">None</span></code> keeps every available neuron
+on that axis.</p>
+<p>Per axis, <code class="docutils literal notranslate"><span class="pre">&lt;axis&gt;_neurons</span></code> is <code class="docutils literal notranslate"><span class="pre">&lt;axis&gt;_typed_neurons</span> <span class="pre">+</span>
+<span class="pre">&lt;axis&gt;_untyped_neurons</span></code>, and only the typed part is covered by
+<code class="docutils literal notranslate"><span class="pre">&lt;axis&gt;_type_boundaries</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;axis&gt;_neuron_to_type</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> (<em>pd.DataFrame</em>)</p></li>
+<li><p><strong>source_neurons</strong> (<em>Iterable</em><em>[</em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>target_neurons</strong> (<em>Iterable</em><em>[</em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>source_type_boundaries</strong> (<em>Mapping</em><em>[</em><em>Any</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>target_type_boundaries</strong> (<em>Mapping</em><em>[</em><em>Any</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>source_neuron_to_type</strong> (<em>Mapping</em><em>[</em><em>Any</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>target_neuron_to_type</strong> (<em>Mapping</em><em>[</em><em>Any</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.by">
+<span class="sig-name descname"><span class="pre">by</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extract</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'last'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.by" title="Link to this definition">#</a></dt>
+<dd><p>Sort a cell type’s neurons by annotation column(s).</p>
+<p>A string at the order layer is only a named rule (<code class="docutils literal notranslate"><span class="pre">&quot;id&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;annotation&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;label&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;size&quot;</span></code>). Column names live here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>columns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Annotation columns to read, in priority order. The first column that
+yields a usable value wins.</p></li>
+<li><p><strong>rank</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Explicit label order. Without <em>extract</em>, the leftmost <em>rank</em> label
+that appears in the cell is used, so <code class="docutils literal notranslate"><span class="pre">&quot;EPG/PEG_R1&quot;</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&quot;Δ7_L8R1R9&quot;</span></code> both rank without a regex.</p></li>
+<li><p><strong>extract</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><em>compiled pattern</em><em>, </em><em>optional</em>) – Regex whose first group is the label. A plain string is compiled.</p></li>
+<li><p><strong>key</strong> (<em>callable</em><em>, </em><em>optional</em>) – <code class="docutils literal notranslate"><span class="pre">value</span> <span class="pre">-&gt;</span> <span class="pre">sort</span> <span class="pre">key</span></code> when <em>rank</em> is omitted. Defaults to a natural
+sort, so <code class="docutils literal notranslate"><span class="pre">&quot;ER_g2&quot;</span></code> precedes <code class="docutils literal notranslate"><span class="pre">&quot;ER_g10&quot;</span></code>.</p></li>
+<li><p><strong>na</strong> (<em>{&quot;last&quot;</em><em>, </em><em>&quot;first&quot;</em><em>, </em><em>&quot;raise&quot;}</em><em>, </em><em>default &quot;last&quot;</em>) – What an unrankable or null value costs. <code class="docutils literal notranslate"><span class="pre">&quot;raise&quot;</span></code> errors; the
+others put those neurons after or before the ranked ones, keeping
+annotation row order inside that group.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="crantpy.utils.ordering.html#crantpy.utils.ordering.By" title="crantpy.utils.ordering.By"><em>By</em></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">NestedMatrix</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="s2">&quot;cell_instance&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">NestedMatrix</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="s2">&quot;cell_instance&quot;</span><span class="p">,</span> <span class="s2">&quot;cell_subtype&quot;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">EB_RING</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">NestedMatrix</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="s2">&quot;cell_instance&quot;</span><span class="p">,</span> <span class="n">extract</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;([LR]\d+)&quot;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">PB</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.from_connectivity">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_connectivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connections_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_annotations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_type_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cell_type'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_id_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotation_scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'annotated_only'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#DirectedNestedMatrix.from_connectivity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.from_connectivity" title="Link to this definition">#</a></dt>
+<dd><p>Create a rectangular directed nested matrix from connectivity data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>connections_df</strong> (<em>pd.DataFrame</em>) – Any format accepted by <code class="docutils literal notranslate"><span class="pre">NestedMatrix.from_connectivity()</span></code>.</p></li>
+<li><p><strong>neuron_annotations</strong> (<em>pd.DataFrame</em>) – Neuron ID and cell type columns.</p></li>
+<li><p><strong>source_types</strong> (<em>selector</em><em>, </em><em>optional</em>) – Keep only these cell types on the row / column axis.</p></li>
+<li><p><strong>target_types</strong> (<em>selector</em><em>, </em><em>optional</em>) – Keep only these cell types on the row / column axis.</p></li>
+<li><p><strong>source_ids</strong> (<em>selector</em><em>, </em><em>optional</em>) – Keep only these neuron IDs, unioned with the same axis’ type
+selector. Leaving both selectors for an axis <code class="docutils literal notranslate"><span class="pre">None</span></code> keeps every
+available neuron on it.</p></li>
+<li><p><strong>target_ids</strong> (<em>selector</em><em>, </em><em>optional</em>) – Keep only these neuron IDs, unioned with the same axis’ type
+selector. Leaving both selectors for an axis <code class="docutils literal notranslate"><span class="pre">None</span></code> keeps every
+available neuron on it.</p></li>
+<li><p><strong>cell_type_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Annotation column names.</p></li>
+<li><p><strong>neuron_id_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Annotation column names.</p></li>
+<li><p><strong>order</strong> (<em>NestedMatrix.order</em><em>, </em><em>sequence</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Shared axis order; a bare sequence is types-only shorthand.</p></li>
+<li><p><strong>source_order</strong> (<em>optional</em>) – Per-axis override of <code class="docutils literal notranslate"><span class="pre">order</span></code>.</p></li>
+<li><p><strong>target_order</strong> (<em>optional</em>) – Per-axis override of <code class="docutils literal notranslate"><span class="pre">order</span></code>.</p></li>
+<li><p><strong>annotation_scope</strong> (<em>{&quot;annotated_only&quot;</em><em>, </em><em>&quot;all&quot;}</em><em>, </em><em>default &quot;annotated_only&quot;</em>) – Which neurons to retain before axis selection.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix" title="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix">DirectedNestedMatrix</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.from_synapses">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_synapses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">synapses_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_annotations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pre_pt_root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'post_pt_root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'relative_outgoing'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'selected'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_type_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cell_type'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_id_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotation_scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'annotated_only'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#DirectedNestedMatrix.from_synapses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.from_synapses" title="Link to this definition">#</a></dt>
+<dd><p>Create a rectangular directed nested matrix from synapse rows.</p>
+<p>Axis selection and ordering work as in <code class="docutils literal notranslate"><span class="pre">from_connectivity()</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">normalization_scope=&quot;selected&quot;</span></code> (the default) normalizes relative
+weights after axis filtering; <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code> normalizes by every partner
+first, then restricts to the selected axes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>synapses_df</strong> (<a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.5)"><em>pandas.DataFrame</em></a>)</p></li>
+<li><p><strong>neuron_annotations</strong> (<a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.5)"><em>pandas.DataFrame</em></a>)</p></li>
+<li><p><strong>source_types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><em>bytes</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.integer" title="(in NumPy v2.5)"><em>integer</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.floating" title="(in NumPy v2.5)"><em>floating</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>target_types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><em>bytes</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.integer" title="(in NumPy v2.5)"><em>integer</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.floating" title="(in NumPy v2.5)"><em>floating</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>source_ids</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><em>bytes</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.integer" title="(in NumPy v2.5)"><em>integer</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.floating" title="(in NumPy v2.5)"><em>floating</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>target_ids</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><em>bytes</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.integer" title="(in NumPy v2.5)"><em>integer</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.floating" title="(in NumPy v2.5)"><em>floating</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>pre_col</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>post_col</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>weight_mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><em>Literal</em></a><em>[</em><em>'relative_outgoing'</em><em>, </em><em>'relative_incoming'</em><em>, </em><em>'count'</em><em>, </em><em>'column'</em><em>]</em>)</p></li>
+<li><p><strong>weight_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>normalization_scope</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><em>Literal</em></a><em>[</em><em>'selected'</em><em>, </em><em>'all'</em><em>]</em>)</p></li>
+<li><p><strong>cell_type_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>neuron_id_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>order</strong> (<a class="reference internal" href="crantpy.utils.ordering.html#crantpy.utils.ordering.MatrixOrder" title="crantpy.utils.ordering.MatrixOrder"><em>MatrixOrder</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>source_order</strong> (<a class="reference internal" href="crantpy.utils.ordering.html#crantpy.utils.ordering.MatrixOrder" title="crantpy.utils.ordering.MatrixOrder"><em>MatrixOrder</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>target_order</strong> (<a class="reference internal" href="crantpy.utils.ordering.html#crantpy.utils.ordering.MatrixOrder" title="crantpy.utils.ordering.MatrixOrder"><em>MatrixOrder</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>annotation_scope</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><em>Literal</em></a><em>[</em><em>'annotated_only'</em><em>, </em><em>'all'</em><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix" title="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix"><em>DirectedNestedMatrix</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.from_synapses_by_neuropil">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_synapses_by_neuropil</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">synapses_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_annotations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuropil_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctr_pt_position'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pre_pt_root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'post_pt_root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'relative_outgoing'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'selected'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_type_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cell_type'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_id_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotation_scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'annotated_only'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_other</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#DirectedNestedMatrix.from_synapses_by_neuropil"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.from_synapses_by_neuropil" title="Link to this definition">#</a></dt>
+<dd><p>Create one DirectedNestedMatrix per neuropil, by mesh containment.</p>
+<p>Arguments match <code class="docutils literal notranslate"><span class="pre">from_synapses()</span></code> and apply independently inside each
+ROI. ROIs empty on either axis are skipped.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>synapses_df</strong> (<a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.5)"><em>pandas.DataFrame</em></a>)</p></li>
+<li><p><strong>neuron_annotations</strong> (<a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.5)"><em>pandas.DataFrame</em></a>)</p></li>
+<li><p><strong>neuropil_names</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>coordinates</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>position_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>source_types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><em>bytes</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.integer" title="(in NumPy v2.5)"><em>integer</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.floating" title="(in NumPy v2.5)"><em>floating</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>target_types</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><em>bytes</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.integer" title="(in NumPy v2.5)"><em>integer</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.floating" title="(in NumPy v2.5)"><em>floating</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>source_ids</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><em>bytes</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.integer" title="(in NumPy v2.5)"><em>integer</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.floating" title="(in NumPy v2.5)"><em>floating</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>target_ids</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><em>bytes</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.integer" title="(in NumPy v2.5)"><em>integer</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.floating" title="(in NumPy v2.5)"><em>floating</em></a><em> | </em><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.5)"><em>bool</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>pre_col</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>post_col</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>weight_mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><em>Literal</em></a><em>[</em><em>'relative_outgoing'</em><em>, </em><em>'relative_incoming'</em><em>, </em><em>'count'</em><em>, </em><em>'column'</em><em>]</em>)</p></li>
+<li><p><strong>weight_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>normalization_scope</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><em>Literal</em></a><em>[</em><em>'selected'</em><em>, </em><em>'all'</em><em>]</em>)</p></li>
+<li><p><strong>cell_type_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>neuron_id_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>order</strong> (<a class="reference internal" href="crantpy.utils.ordering.html#crantpy.utils.ordering.MatrixOrder" title="crantpy.utils.ordering.MatrixOrder"><em>MatrixOrder</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>source_order</strong> (<a class="reference internal" href="crantpy.utils.ordering.html#crantpy.utils.ordering.MatrixOrder" title="crantpy.utils.ordering.MatrixOrder"><em>MatrixOrder</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>target_order</strong> (<a class="reference internal" href="crantpy.utils.ordering.html#crantpy.utils.ordering.MatrixOrder" title="crantpy.utils.ordering.MatrixOrder"><em>MatrixOrder</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>annotation_scope</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><em>Literal</em></a><em>[</em><em>'annotated_only'</em><em>, </em><em>'all'</em><em>]</em>)</p></li>
+<li><p><strong>include_other</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>voxel_offset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#crantpy.queries.nested_connectivity_matrices.NeuropilCollection" title="crantpy.queries.nested_connectivity_matrices.NeuropilCollection"><em>NeuropilCollection</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.get_relative_weights">
+<span class="sig-name descname"><span class="pre">get_relative_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">by_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#DirectedNestedMatrix.get_relative_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.get_relative_weights" title="Link to this definition">#</a></dt>
+<dd><p>Calculate row-normalized source-to-target weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>by_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.5)">pandas.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.matrix">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">matrix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.5)"><span class="pre">pandas.DataFrame</span></a></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.matrix" title="Link to this definition">#</a></dt>
+<dd><p>Read-only source-to-target neuron connectivity matrix.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.mean_type_matrix">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mean_type_matrix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.5)"><span class="pre">pandas.DataFrame</span></a></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.mean_type_matrix" title="Link to this definition">#</a></dt>
+<dd><p>Mean source-to-target connectivity by source and target cell type.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.order">
+<span class="sig-name descname"><span class="pre">order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">within</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.order" title="Link to this definition">#</a></dt>
+<dd><p>Build a reusable neuron order for a nested matrix axis.</p>
+<p>Nested call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">NestedMatrix</span><span class="o">.</span><span class="n">order</span><span class="p">(</span>
+    <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ER2&quot;</span><span class="p">,</span> <span class="s2">&quot;EPG/PEG&quot;</span><span class="p">,</span> <span class="s2">&quot;delta7&quot;</span><span class="p">],</span>
+    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span>
+    <span class="n">within</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;EPG/PEG&quot;</span><span class="p">:</span> <span class="n">NestedMatrix</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="s2">&quot;cell_instance&quot;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">EB_RING</span><span class="p">)},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Builder:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">NestedMatrix</span><span class="o">.</span><span class="n">order</span><span class="p">()</span><span class="o">.</span><span class="n">types</span><span class="p">([</span><span class="s2">&quot;ER2&quot;</span><span class="p">,</span> <span class="s2">&quot;EPG/PEG&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">within</span><span class="p">(</span>
+    <span class="s2">&quot;EPG/PEG&quot;</span><span class="p">,</span> <span class="n">NestedMatrix</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="s2">&quot;cell_instance&quot;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">EB_RING</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>A bare sequence passed as <code class="docutils literal notranslate"><span class="pre">order=</span></code> to a matrix constructor is still
+types-only shorthand for <code class="docutils literal notranslate"><span class="pre">NestedMatrix.order(types=...)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>types</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>default</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>within</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="crantpy.utils.ordering.html#crantpy.utils.ordering.MatrixOrder" title="crantpy.utils.ordering.MatrixOrder"><em>MatrixOrder</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'neuron'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(16,</span> <span class="pre">14)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_neuron_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin_percentile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax_percentile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_neurons_for_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#DirectedNestedMatrix.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.plot" title="Link to this definition">#</a></dt>
+<dd><p>Plot the rectangular directed connectivity matrix as a heatmap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>level</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><em>Literal</em></a><em>[</em><em>'neuron'</em><em>, </em><em>'type_mean'</em><em>, </em><em>'type_sum'</em><em>]</em>)</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em>)</p></li>
+<li><p><strong>show_neuron_labels</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p></li>
+<li><p><strong>vmin_percentile</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>vmax_percentile</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+<li><p><strong>min_neurons_for_plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>linewidth_scale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<em>Figure</em>, <em>Axes</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_neuron_to_type">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">source_neuron_to_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_neuron_to_type" title="Link to this definition">#</a></dt>
+<dd><p>Read-only mapping from source neuron ID to cell type.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_neurons">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">source_neurons</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_neurons" title="Link to this definition">#</a></dt>
+<dd><p>Resolved row order (not a filter – select with <code class="docutils literal notranslate"><span class="pre">source_types</span></code>/<code class="docutils literal notranslate"><span class="pre">source_ids</span></code>).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_type_boundaries">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">source_type_boundaries</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_type_boundaries" title="Link to this definition">#</a></dt>
+<dd><p>Read-only mapping from source cell type to its row slice.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_typed_neurons">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">source_typed_neurons</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_typed_neurons" title="Link to this definition">#</a></dt>
+<dd><p>Row neurons carrying a cell type.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_untyped_neurons">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">source_untyped_neurons</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_untyped_neurons" title="Link to this definition">#</a></dt>
+<dd><p>Row neurons with no cell type, appended after the blocks.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.sum_type_matrix">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sum_type_matrix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.5)"><span class="pre">pandas.DataFrame</span></a></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.sum_type_matrix" title="Link to this definition">#</a></dt>
+<dd><p>Sum source-to-target connectivity by source and target cell type.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_neuron_to_type">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target_neuron_to_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_neuron_to_type" title="Link to this definition">#</a></dt>
+<dd><p>Read-only mapping from target neuron ID to cell type.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_neurons">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target_neurons</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_neurons" title="Link to this definition">#</a></dt>
+<dd><p>Resolved column order (not a filter – select with <code class="docutils literal notranslate"><span class="pre">target_types</span></code>/<code class="docutils literal notranslate"><span class="pre">target_ids</span></code>).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_type_boundaries">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target_type_boundaries</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_type_boundaries" title="Link to this definition">#</a></dt>
+<dd><p>Read-only mapping from target cell type to its column slice.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_typed_neurons">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target_typed_neurons</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_typed_neurons" title="Link to this definition">#</a></dt>
+<dd><p>Column neurons carrying a cell type.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_untyped_neurons">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target_untyped_neurons</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_untyped_neurons" title="Link to this definition">#</a></dt>
+<dd><p>Column neurons with no cell type, appended after the blocks.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">crantpy.queries.nested_connectivity_matrices.</span></span><span class="sig-name descname"><span class="pre">NestedMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_boundaries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_neurons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_to_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#NestedMatrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A square connectivity matrix with neurons grouped into cell type blocks.
+<code class="docutils literal notranslate"><span class="pre">ordered_neurons</span></code> is <code class="docutils literal notranslate"><span class="pre">typed_neurons</span> <span class="pre">+</span> <span class="pre">untyped_neurons</span></code>, and only the
+typed prefix is covered by <code class="docutils literal notranslate"><span class="pre">type_boundaries</span></code> and <code class="docutils literal notranslate"><span class="pre">neuron_to_type</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> (<em>pd.DataFrame</em>)</p></li>
+<li><p><strong>type_boundaries</strong> (<em>Mapping</em><em>[</em><em>Any</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>]</em>)</p></li>
+<li><p><strong>ordered_neurons</strong> (<em>Iterable</em><em>[</em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>neuron_to_type</strong> (<em>Mapping</em><em>[</em><em>Any</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.matrix">
+<span class="sig-name descname"><span class="pre">matrix</span></span><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.matrix" title="Link to this definition">#</a></dt>
+<dd><p>Neuron-by-neuron connectivity, ordered by type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.type_boundaries">
+<span class="sig-name descname"><span class="pre">type_boundaries</span></span><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.type_boundaries" title="Link to this definition">#</a></dt>
+<dd><p>Cell type -&gt; half-open <code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">end)</span></code> slice into <code class="docutils literal notranslate"><span class="pre">ordered_neurons</span></code>.
+Contiguous from 0, covering <code class="docutils literal notranslate"><span class="pre">typed_neurons</span></code> only.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.ordered_neurons">
+<span class="sig-name descname"><span class="pre">ordered_neurons</span></span><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.ordered_neurons" title="Link to this definition">#</a></dt>
+<dd><p>Neuron IDs in matrix order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, …]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">typed_neurons,</span> <span class="pre">untyped_neurons</span></span></dt>
+<dd><p>The typed prefix and the untyped tail of <code class="docutils literal notranslate"><span class="pre">ordered_neurons</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, …]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.neuron_to_type">
+<span class="sig-name descname"><span class="pre">neuron_to_type</span></span><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.neuron_to_type" title="Link to this definition">#</a></dt>
+<dd><p>Neuron ID -&gt; cell type, for <code class="docutils literal notranslate"><span class="pre">typed_neurons</span></code> only.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">NestedMatrix</span><span class="o">.</span><span class="n">from_connectivity</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">connections_df</span><span class="o">=</span><span class="n">adjacency_df</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">neuron_annotations</span><span class="o">=</span><span class="n">annotations_df</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">type_matrix</span> <span class="o">=</span> <span class="n">matrix</span><span class="o">.</span><span class="n">sum_type_matrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;type_mean&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.by">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">by</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">columns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extract</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'last'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.by" title="Link to this definition">#</a></dt>
+<dd><p>Sort a cell type’s neurons by annotation column(s).</p>
+<p>A string at the order layer is only a named rule (<code class="docutils literal notranslate"><span class="pre">&quot;id&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;annotation&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;label&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;size&quot;</span></code>). Column names live here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>columns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Annotation columns to read, in priority order. The first column that
+yields a usable value wins.</p></li>
+<li><p><strong>rank</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Explicit label order. Without <em>extract</em>, the leftmost <em>rank</em> label
+that appears in the cell is used, so <code class="docutils literal notranslate"><span class="pre">&quot;EPG/PEG_R1&quot;</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&quot;Δ7_L8R1R9&quot;</span></code> both rank without a regex.</p></li>
+<li><p><strong>extract</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><em>compiled pattern</em><em>, </em><em>optional</em>) – Regex whose first group is the label. A plain string is compiled.</p></li>
+<li><p><strong>key</strong> (<em>callable</em><em>, </em><em>optional</em>) – <code class="docutils literal notranslate"><span class="pre">value</span> <span class="pre">-&gt;</span> <span class="pre">sort</span> <span class="pre">key</span></code> when <em>rank</em> is omitted. Defaults to a natural
+sort, so <code class="docutils literal notranslate"><span class="pre">&quot;ER_g2&quot;</span></code> precedes <code class="docutils literal notranslate"><span class="pre">&quot;ER_g10&quot;</span></code>.</p></li>
+<li><p><strong>na</strong> (<em>{&quot;last&quot;</em><em>, </em><em>&quot;first&quot;</em><em>, </em><em>&quot;raise&quot;}</em><em>, </em><em>default &quot;last&quot;</em>) – What an unrankable or null value costs. <code class="docutils literal notranslate"><span class="pre">&quot;raise&quot;</span></code> errors; the
+others put those neurons after or before the ranked ones, keeping
+annotation row order inside that group.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="crantpy.utils.ordering.html#crantpy.utils.ordering.By" title="crantpy.utils.ordering.By"><em>By</em></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">NestedMatrix</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="s2">&quot;cell_instance&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">NestedMatrix</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="s2">&quot;cell_instance&quot;</span><span class="p">,</span> <span class="s2">&quot;cell_subtype&quot;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">EB_RING</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">NestedMatrix</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="s2">&quot;cell_instance&quot;</span><span class="p">,</span> <span class="n">extract</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;([LR]\d+)&quot;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">PB</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.from_connectivity">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_connectivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connections_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_annotations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_type_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cell_type'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_id_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotation_scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'annotated_only'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#NestedMatrix.from_connectivity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.from_connectivity" title="Link to this definition">#</a></dt>
+<dd><p>Create a NestedMatrix from an adjacency matrix or edge list.</p>
+<p>Accepts the output of <code class="docutils literal notranslate"><span class="pre">cp.get_connectivity()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>connections_df</strong> (<em>pd.DataFrame</em>) – <p>Connectivity data in one of the following formats:
+- Adjacency matrix (index and columns are neuron IDs)
+- Edge list with columns [‘type.from’, ‘type.to’, ‘weight’]
+- Edge list with columns [‘pre’, ‘post’, ‘weight’]
+- Edge list with columns [‘source’, ‘target’, ‘weight’] or [‘source’, ‘target’, ‘n_syn’]</p>
+<blockquote>
+<div><p>where each row is already aggregated to a unique source-target pair,
+such as the output of <code class="docutils literal notranslate"><span class="pre">cp.get_connectivity()</span></code></p>
+</div></blockquote>
+</p></li>
+<li><p><strong>neuron_annotations</strong> (<em>pd.DataFrame</em>) – Neuron annotations; needs at least the ID and cell type columns.</p></li>
+<li><p><strong>cell_type_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Annotation column names.</p></li>
+<li><p><strong>neuron_id_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Annotation column names.</p></li>
+<li><p><strong>order</strong> (<em>NestedMatrix.order</em><em>, </em><em>sequence</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – How to order cell type blocks and the neurons inside them. Build
+one with <code class="docutils literal notranslate"><span class="pre">NestedMatrix.order(...)</span></code> or the chained builder; a
+bare sequence is types-only shorthand.</p></li>
+<li><p><strong>annotation_scope</strong> (<em>{&quot;annotated_only&quot;</em><em>, </em><em>&quot;all&quot;}</em><em>, </em><em>default &quot;annotated_only&quot;</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;annotated_only&quot;</span></code> keeps only annotated neurons; <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code> keeps
+every neuron, appending the untyped ones after the typed blocks.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix" title="crantpy.queries.nested_connectivity_matrices.NestedMatrix">NestedMatrix</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">adjacency</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+<span class="gp">... </span>    <span class="mi">1</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="mi">3</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">annotations</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+<span class="gp">... </span>    <span class="s1">&#39;root_id&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s1">&#39;cell_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;ER&#39;</span><span class="p">,</span> <span class="s1">&#39;ER&#39;</span><span class="p">,</span> <span class="s1">&#39;Pbt&#39;</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">NestedMatrix</span><span class="o">.</span><span class="n">from_connectivity</span><span class="p">(</span><span class="n">adjacency</span><span class="p">,</span> <span class="n">annotations</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.from_synapses">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_synapses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">synapses_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_annotations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pre_pt_root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'post_pt_root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'relative_outgoing'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_type_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cell_type'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_id_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotation_scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'annotated_only'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#NestedMatrix.from_synapses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.from_synapses" title="Link to this definition">#</a></dt>
+<dd><p>Create a NestedMatrix from a synapse dataframe.</p>
+<p>Returns one matrix over all supplied synapses. For ROI-specific
+output, pre-filter <code class="docutils literal notranslate"><span class="pre">synapses_df</span></code> or use
+<code class="docutils literal notranslate"><span class="pre">from_synapses_by_neuropil()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>synapses_df</strong> (<em>pd.DataFrame</em>) – Synapse rows, with pre- and postsynaptic ID columns.</p></li>
+<li><p><strong>neuron_annotations</strong> (<em>pd.DataFrame</em>) – Neuron annotations; needs at least the ID and cell type columns.</p></li>
+<li><p><strong>pre_col</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Pre- and postsynaptic ID columns in <code class="docutils literal notranslate"><span class="pre">synapses_df</span></code>.</p></li>
+<li><p><strong>post_col</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Pre- and postsynaptic ID columns in <code class="docutils literal notranslate"><span class="pre">synapses_df</span></code>.</p></li>
+<li><p><strong>weight_mode</strong> (<em>{&quot;relative_outgoing&quot;</em><em>, </em><em>&quot;relative_incoming&quot;</em><em>, </em><em>&quot;count&quot;</em><em>, </em><em>&quot;column&quot;}</em><em>, </em><em>default &quot;relative_outgoing&quot;</em>) – Edge weights per pre/post pair: raw synapse <code class="docutils literal notranslate"><span class="pre">&quot;count&quot;</span></code>, that count
+normalized so each row (<code class="docutils literal notranslate"><span class="pre">&quot;relative_outgoing&quot;</span></code>) or column
+(<code class="docutils literal notranslate"><span class="pre">&quot;relative_incoming&quot;</span></code>) sums to 1, or the sum of
+<code class="docutils literal notranslate"><span class="pre">weight_column</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;column&quot;</span></code>).</p></li>
+<li><p><strong>weight_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Column to sum. Required for <code class="docutils literal notranslate"><span class="pre">weight_mode=&quot;column&quot;</span></code>, rejected
+otherwise.</p></li>
+<li><p><strong>cell_type_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Annotation column names.</p></li>
+<li><p><strong>neuron_id_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Annotation column names.</p></li>
+<li><p><strong>order</strong> (<em>NestedMatrix.order</em><em>, </em><em>sequence</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – How to order cell type blocks and the neurons inside them. Build
+one with <code class="docutils literal notranslate"><span class="pre">NestedMatrix.order(...)</span></code> or the chained builder; a
+bare sequence is types-only shorthand.</p></li>
+<li><p><strong>annotation_scope</strong> (<em>{&quot;annotated_only&quot;</em><em>, </em><em>&quot;all&quot;}</em><em>, </em><em>default &quot;annotated_only&quot;</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;annotated_only&quot;</span></code> keeps only rows whose pre and post neurons are
+both annotated; <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code> keeps every row and appends the untyped
+neurons after the typed blocks.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix" title="crantpy.queries.nested_connectivity_matrices.NestedMatrix">NestedMatrix</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">synapses</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+<span class="gp">... </span>    <span class="s1">&#39;pre_pt_root_id&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s1">&#39;post_pt_root_id&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s1">&#39;Weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">15</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">annotations</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+<span class="gp">... </span>    <span class="s1">&#39;root_id&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s1">&#39;cell_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;KC&#39;</span><span class="p">,</span> <span class="s1">&#39;KC&#39;</span><span class="p">,</span> <span class="s1">&#39;MB&#39;</span><span class="p">,</span> <span class="s1">&#39;MB&#39;</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">NestedMatrix</span><span class="o">.</span><span class="n">from_synapses</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">synapses</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">annotations</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">weight_mode</span><span class="o">=</span><span class="s2">&quot;column&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">weight_column</span><span class="o">=</span><span class="s2">&quot;Weight&quot;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">relative</span> <span class="o">=</span> <span class="n">NestedMatrix</span><span class="o">.</span><span class="n">from_synapses</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">synapses</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">annotations</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">weight_mode</span><span class="o">=</span><span class="s2">&quot;relative_outgoing&quot;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># For neuropil ROI-specific matrices, use:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># NestedMatrix.from_synapses_by_neuropil(...)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.from_synapses_by_neuropil">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_synapses_by_neuropil</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">synapses_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_annotations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuropil_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctr_pt_position'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pre_pt_root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'post_pt_root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'relative_outgoing'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_type_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cell_type'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_id_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'root_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotation_scope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'annotated_only'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_other</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#NestedMatrix.from_synapses_by_neuropil"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.from_synapses_by_neuropil" title="Link to this definition">#</a></dt>
+<dd><p>Create NestedMatrix instances per neuropil using mesh containment.</p>
+<p>Assigns each synapse to ROIs by testing its coordinates against the
+neuropil meshes, then builds one matrix per ROI that holds synapses.
+All other arguments match <code class="docutils literal notranslate"><span class="pre">from_synapses()</span></code> and apply independently
+inside each ROI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>synapses_df</strong> (<em>pd.DataFrame</em>) – Synapse rows, with the position and pre/post ID columns.</p></li>
+<li><p><strong>neuron_annotations</strong> (<em>pd.DataFrame</em>) – Neuron annotations; needs at least the ID and cell type columns.</p></li>
+<li><p><strong>neuropil_names</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em><em>, </em><em>optional</em>) – Mesh names from <code class="docutils literal notranslate"><span class="pre">NEUROPIL_MESH_DICT</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> uses all of them.</p></li>
+<li><p><strong>coordinates</strong> (<em>{&quot;nm&quot;</em><em>, </em><em>&quot;pixels&quot;}</em><em>, </em><em>default &quot;nm&quot;</em>) – Units of <code class="docutils literal notranslate"><span class="pre">position_column</span></code>. Meshes are in nm; <code class="docutils literal notranslate"><span class="pre">&quot;pixels&quot;</span></code> is
+converted using the configured scale factors.</p></li>
+<li><p><strong>position_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default &quot;ctr_pt_position&quot;</em>) – Column holding <code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">y,</span> <span class="pre">z]</span></code> coordinates.</p></li>
+<li><p><strong>pre_col</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Pre- and postsynaptic ID columns in <code class="docutils literal notranslate"><span class="pre">synapses_df</span></code>.</p></li>
+<li><p><strong>post_col</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Pre- and postsynaptic ID columns in <code class="docutils literal notranslate"><span class="pre">synapses_df</span></code>.</p></li>
+<li><p><strong>weight_mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><em>Literal</em></a><em>[</em><em>'relative_outgoing'</em><em>, </em><em>'relative_incoming'</em><em>, </em><em>'count'</em><em>, </em><em>'column'</em><em>]</em>) – As in <code class="docutils literal notranslate"><span class="pre">from_synapses()</span></code>, applied within each ROI subset.</p></li>
+<li><p><strong>weight_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>) – As in <code class="docutils literal notranslate"><span class="pre">from_synapses()</span></code>, applied within each ROI subset.</p></li>
+<li><p><strong>cell_type_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Annotation column names.</p></li>
+<li><p><strong>neuron_id_column</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Annotation column names.</p></li>
+<li><p><strong>order</strong> (<em>NestedMatrix.order</em><em>, </em><em>sequence</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – How to order cell type blocks and the neurons inside them. Build
+one with <code class="docutils literal notranslate"><span class="pre">NestedMatrix.order(...)</span></code> or the chained builder; a
+bare sequence is types-only shorthand.</p></li>
+<li><p><strong>annotation_scope</strong> (<em>{&quot;annotated_only&quot;</em><em>, </em><em>&quot;all&quot;}</em><em>, </em><em>default &quot;annotated_only&quot;</em>) – As in <code class="docutils literal notranslate"><span class="pre">from_synapses()</span></code>, applied before ROI assignment.</p></li>
+<li><p><strong>include_other</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default True</em>) – Collect synapses outside every mesh under an <code class="docutils literal notranslate"><span class="pre">&quot;other&quot;</span></code> key.</p></li>
+<li><p><strong>voxel_offset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>] </em><em>| </em><em>None</em><em>, </em><em>optional</em>) – Added to pixel coordinates before nm conversion, to align them with
+the meshes. Only used when <code class="docutils literal notranslate"><span class="pre">coordinates=&quot;pixels&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict-like, mapping ROI name (plus <code class="docutils literal notranslate"><span class="pre">&quot;other&quot;</span></code>) to a NestedMatrix.
+Supports <code class="docutils literal notranslate"><span class="pre">collection.plot(name,</span> <span class="pre">...)</span></code> and attribute access.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#crantpy.queries.nested_connectivity_matrices.NeuropilCollection" title="crantpy.queries.nested_connectivity_matrices.NeuropilCollection">NeuropilCollection</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – On an unknown neuropil name or <code class="docutils literal notranslate"><span class="pre">coordinates</span></code> value.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrices</span> <span class="o">=</span> <span class="n">NestedMatrix</span><span class="o">.</span><span class="n">from_synapses_by_neuropil</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">synapses_df</span><span class="o">=</span><span class="n">synapses</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">neuron_annotations</span><span class="o">=</span><span class="n">annotations</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">neuropil_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;antennal_lobe_left&quot;</span><span class="p">,</span> <span class="s2">&quot;mushroom_body_pedunculus_and_lobes_left&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">coordinates</span><span class="o">=</span><span class="s2">&quot;nm&quot;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">mat</span> <span class="ow">in</span> <span class="n">matrices</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">mat</span><span class="o">.</span><span class="n">sum_type_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.get_relative_weights">
+<span class="sig-name descname"><span class="pre">get_relative_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">by_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#NestedMatrix.get_relative_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.get_relative_weights" title="Link to this definition">#</a></dt>
+<dd><p>Row-normalized weights: each source’s share of output per target.</p>
+<p>Each row is divided by its own sum, so rows sum to 1.0 – except a row
+whose weights sum to zero, which is left unchanged. That covers rows
+with no output, and also rows whose positive and negative weights
+cancel. Set <em>by_type</em> to compute this at the cell type level instead of
+the neuron level.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>by_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.5)">pandas.DataFrame</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">matrix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.5)"><span class="pre">pandas.DataFrame</span></a></em><a class="headerlink" href="#id0" title="Link to this definition">#</a></dt>
+<dd><p>Read-only neuron-to-neuron connectivity matrix.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.mean_type_matrix">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mean_type_matrix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.5)"><span class="pre">pandas.DataFrame</span></a></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.mean_type_matrix" title="Link to this definition">#</a></dt>
+<dd><p>Mean weight across each type-pair block (read-only view).</p>
+<p>Zero entries count towards the mean, so large cell types don’t dominate
+just by having more neurons.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id1">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">neuron_to_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id1" title="Link to this definition">#</a></dt>
+<dd><p>Read-only neuron ID -&gt; cell type, for <code class="docutils literal notranslate"><span class="pre">typed_neurons</span></code> only.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.order">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'label'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">within</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.order" title="Link to this definition">#</a></dt>
+<dd><p>Build a reusable neuron order for a nested matrix axis.</p>
+<p>Nested call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">NestedMatrix</span><span class="o">.</span><span class="n">order</span><span class="p">(</span>
+    <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ER2&quot;</span><span class="p">,</span> <span class="s2">&quot;EPG/PEG&quot;</span><span class="p">,</span> <span class="s2">&quot;delta7&quot;</span><span class="p">],</span>
+    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span>
+    <span class="n">within</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;EPG/PEG&quot;</span><span class="p">:</span> <span class="n">NestedMatrix</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="s2">&quot;cell_instance&quot;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">EB_RING</span><span class="p">)},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Builder:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">NestedMatrix</span><span class="o">.</span><span class="n">order</span><span class="p">()</span><span class="o">.</span><span class="n">types</span><span class="p">([</span><span class="s2">&quot;ER2&quot;</span><span class="p">,</span> <span class="s2">&quot;EPG/PEG&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">within</span><span class="p">(</span>
+    <span class="s2">&quot;EPG/PEG&quot;</span><span class="p">,</span> <span class="n">NestedMatrix</span><span class="o">.</span><span class="n">by</span><span class="p">(</span><span class="s2">&quot;cell_instance&quot;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">EB_RING</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>A bare sequence passed as <code class="docutils literal notranslate"><span class="pre">order=</span></code> to a matrix constructor is still
+types-only shorthand for <code class="docutils literal notranslate"><span class="pre">NestedMatrix.order(types=...)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>types</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>)</p></li>
+<li><p><strong>default</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>within</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="crantpy.utils.ordering.html#crantpy.utils.ordering.MatrixOrder" title="crantpy.utils.ordering.MatrixOrder"><em>MatrixOrder</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id2">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ordered_neurons</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id2" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">typed_neurons</span> <span class="pre">+</span> <span class="pre">untyped_neurons</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Neuron order for both axes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'neuron'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(16,</span> <span class="pre">14)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_neuron_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin_percentile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax_percentile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_neurons_for_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#NestedMatrix.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.plot" title="Link to this definition">#</a></dt>
+<dd><p>Plot the connectivity matrix as a heatmap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Save the figure here, creating the directory if needed.</p></li>
+<li><p><strong>level</strong> (<em>{&quot;neuron&quot;</em><em>, </em><em>&quot;type_mean&quot;</em><em>, </em><em>&quot;type_sum&quot;}</em><em>, </em><em>default &quot;neuron&quot;</em>) – Plot the neuron-level matrix with nested type boundaries, or
+<code class="docutils literal notranslate"><span class="pre">mean_type_matrix</span></code> / <code class="docutils literal notranslate"><span class="pre">sum_type_matrix</span></code>.</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>, </em><em>default</em><em> (</em><em>16</em><em>, </em><em>14</em><em>)</em>) – Figure size in inches.</p></li>
+<li><p><strong>show_neuron_labels</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default False</em>) – Label axes with neuron IDs instead of type names. <code class="docutils literal notranslate"><span class="pre">level=&quot;neuron&quot;</span></code>
+only.</p></li>
+<li><p><strong>vmin_percentile</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default 0.0 and 100.0</em>) – Color scale range, as percentiles over the strictly positive values
+– so zeros always map to the bottom, and any negative weights are
+excluded from the range and clipped. (Negatives reach the matrix
+through <code class="docutils literal notranslate"><span class="pre">from_connectivity()</span></code>, which passes weights through
+unchanged, or through <code class="docutils literal notranslate"><span class="pre">weight_mode=&quot;column&quot;</span></code>.) A vmax below 100
+clips the strongest connections, making mid-range weights visible.</p></li>
+<li><p><strong>vmax_percentile</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default 0.0 and 100.0</em>) – Color scale range, as percentiles over the strictly positive values
+– so zeros always map to the bottom, and any negative weights are
+excluded from the range and clipped. (Negatives reach the matrix
+through <code class="docutils literal notranslate"><span class="pre">from_connectivity()</span></code>, which passes weights through
+unchanged, or through <code class="docutils literal notranslate"><span class="pre">weight_mode=&quot;column&quot;</span></code>.) A vmax below 100
+clips the strongest connections, making mid-range weights visible.</p></li>
+<li><p><strong>min_neurons_for_plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default 1</em>) – Drop types with fewer neurons than this. <code class="docutils literal notranslate"><span class="pre">level=&quot;neuron&quot;</span></code> only;
+the type-level matrices are plotted whole.</p></li>
+<li><p><strong>linewidth_scale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default 1.0</em>) – Multiplier on the default boundary line widths.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[plt.Figure, plt.Axes]</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">matrix</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;type_mean&quot;</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="s1">&#39;conn.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.sum_type_matrix">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sum_type_matrix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.5)"><span class="pre">pandas.DataFrame</span></a></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.sum_type_matrix" title="Link to this definition">#</a></dt>
+<dd><p>Total weight between each pair of cell types (read-only view).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span><span class="o">.</span><span class="n">sum_type_matrix</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;KC&#39;</span><span class="p">,</span> <span class="s1">&#39;MB&#39;</span><span class="p">]</span>  
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id3">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">type_boundaries</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id3" title="Link to this definition">#</a></dt>
+<dd><p>Read-only mapping from cell type to its matrix slice.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.typed_neurons">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">typed_neurons</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.typed_neurons" title="Link to this definition">#</a></dt>
+<dd><p>Neurons carrying a cell type – exactly those inside <code class="docutils literal notranslate"><span class="pre">type_boundaries</span></code>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NestedMatrix.untyped_neurons">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">untyped_neurons</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.untyped_neurons" title="Link to this definition">#</a></dt>
+<dd><p>Neurons with no cell type, appended after every block.</p>
+<p>Present in <code class="docutils literal notranslate"><span class="pre">matrix</span></code> but excluded from type-level aggregation. Ordered
+as neurons whose annotation row has a null cell type – which survive
+the default <code class="docutils literal notranslate"><span class="pre">annotation_scope=&quot;annotated_only&quot;</span></code> – then, under
+<code class="docutils literal notranslate"><span class="pre">annotation_scope=&quot;all&quot;</span></code>, neurons with no annotation row at all, each
+group sorted by neuron ID as a string (so <code class="docutils literal notranslate"><span class="pre">&quot;30&quot;</span></code> precedes <code class="docutils literal notranslate"><span class="pre">&quot;7&quot;</span></code>).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NeuropilCollection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">crantpy.queries.nested_connectivity_matrices.</span></span><span class="sig-name descname"><span class="pre">NeuropilCollection</span></span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#NeuropilCollection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NeuropilCollection" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+<p>Dict subclass mapping neuropil names to nested matrix instances.</p>
+<p>Provides convenience methods for accessing and plotting individual
+neuropil/ROI matrices with cleaner syntax.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrices</span> <span class="o">=</span> <span class="n">NestedMatrix</span><span class="o">.</span><span class="n">from_synapses_by_neuropil</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrices</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s2">&quot;protocerebral_bridge&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;neuron&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrices</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">All</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrices</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">All</span><span class="o">.</span><span class="n">minus</span><span class="p">(</span><span class="s2">&quot;fan_shaped_body&quot;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrices</span><span class="o">.</span><span class="n">protocerebral_bridge</span><span class="o">.</span><span class="n">sum_type_matrix</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="crantpy.queries.nested_connectivity_matrices.NeuropilCollection.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/crantpy/queries/nested_connectivity_matrices.html#NeuropilCollection.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#crantpy.queries.nested_connectivity_matrices.NeuropilCollection.plot" title="Link to this definition">#</a></dt>
+<dd><p>Plot connectivity matrix/matrices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> or </em><em>All selector</em>) – A single neuropil name, or <code class="docutils literal notranslate"><span class="pre">All</span></code> / <code class="docutils literal notranslate"><span class="pre">All.minus(...)</span></code> to
+plot multiple neuropils at once.</p></li>
+<li><p><strong>**kwargs</strong> – Forwarded to the contained matrix object’s <code class="docutils literal notranslate"><span class="pre">plot()</span></code> method.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>tuple[Figure, Axes]</em> – When <em>name</em> is a single neuropil string.</p></li>
+<li><p><em>dict[str, tuple[Figure, Axes]]</em> – When <em>name</em> is an <code class="docutils literal notranslate"><span class="pre">All</span></code> selector.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<em>Figure</em>, <em>Axes</em>] | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<em>Figure</em>, <em>Axes</em>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./api"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="crantpy.queries.connections.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">crantpy.queries.connections module</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="crantpy.queries.neurons.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">crantpy.queries.neurons module</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.by"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.by()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.from_connectivity"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.from_connectivity()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.from_synapses"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.from_synapses()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.from_synapses_by_neuropil"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.from_synapses_by_neuropil()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.get_relative_weights"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.get_relative_weights()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.matrix"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.mean_type_matrix"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.mean_type_matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.order"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.order()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.plot"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.plot()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_neuron_to_type"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.source_neuron_to_type</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_neurons"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.source_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_type_boundaries"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.source_type_boundaries</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_typed_neurons"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.source_typed_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.source_untyped_neurons"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.source_untyped_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.sum_type_matrix"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.sum_type_matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_neuron_to_type"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.target_neuron_to_type</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_neurons"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.target_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_type_boundaries"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.target_type_boundaries</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_typed_neurons"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.target_typed_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.DirectedNestedMatrix.target_untyped_neurons"><code class="docutils literal notranslate"><span class="pre">DirectedNestedMatrix.target_untyped_neurons</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix"><code class="docutils literal notranslate"><span class="pre">NestedMatrix</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.matrix"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.type_boundaries"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.type_boundaries</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.ordered_neurons"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.ordered_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.neuron_to_type"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.neuron_to_type</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.by"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.by()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.from_connectivity"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.from_connectivity()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.from_synapses"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.from_synapses()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.from_synapses_by_neuropil"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.from_synapses_by_neuropil()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.get_relative_weights"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.get_relative_weights()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id0"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.mean_type_matrix"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.mean_type_matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.neuron_to_type</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.order"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.order()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.ordered_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.plot"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.plot()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.sum_type_matrix"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.sum_type_matrix</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.type_boundaries</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.typed_neurons"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.typed_neurons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NestedMatrix.untyped_neurons"><code class="docutils literal notranslate"><span class="pre">NestedMatrix.untyped_neurons</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NeuropilCollection"><code class="docutils literal notranslate"><span class="pre">NeuropilCollection</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crantpy.queries.nested_connectivity_matrices.NeuropilCollection.plot"><code class="docutils literal notranslate"><span class="pre">NeuropilCollection.plot()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By CRANTb Community
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

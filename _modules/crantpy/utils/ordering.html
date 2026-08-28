@@ -1,0 +1,1583 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>crantpy.utils.ordering &#8212; CRANTpy Documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../../_static/togglebutton.js?v=1ae7504c"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/crantpy/utils/ordering';</script>
+    <link rel="icon" href="../../../_static/logo.png"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">📚 Tutorials available! Check out the Deep Dive Gallery.</div>
+</aside>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/logo.png" class="logo__image only-light" alt="CRANTpy Documentation - Home"/>
+    <script>document.write(`<img src="../../../_static/logo.png" class="logo__image only-dark" alt="CRANTpy Documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation &amp; Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">Quickstart Tutorial</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/advanced_queries.html">Advanced Neuron Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/visualization.html">Plotting Neurons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/morphology.html">Working with Neuron Morphology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/connectivity.html">Analyzing Connectivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/segmentation.html">Using EM Segmentation Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_dive/ngllink.html">From CRANTpy to Neuroglancer</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/modules.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/crantpy.html">crantpy package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/crantpy.queries.html">crantpy.queries package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.queries.connections.html">crantpy.queries.connections module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.queries.nested_connectivity_matrices.html">crantpy.queries.nested_connectivity_matrices module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.queries.neurons.html">crantpy.queries.neurons module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.queries.neuropils.html">crantpy.queries.neuropils module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/crantpy.utils.html">crantpy.utils package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.cave.html">crantpy.utils.cave package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.config.html">crantpy.utils.config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.decorators.html">crantpy.utils.decorators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.exceptions.html">crantpy.utils.exceptions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.helpers.html">crantpy.utils.helpers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.neuroglancer.html">crantpy.utils.neuroglancer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.ordering.html">crantpy.utils.ordering module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.seatable.html">crantpy.utils.seatable module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.utils.types.html">crantpy.utils.types module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/crantpy.viz.html">crantpy.viz package</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.viz.l1.html">crantpy.viz.l1 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.viz.l2.html">crantpy.viz.l2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.viz.mesh.html">crantpy.viz.mesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/crantpy.viz.skeletonize.html">crantpy.viz.skeletonize module</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contribute.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../acknowledgements.html">Acknowledgements</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/Social-Evolution-and-Behavior/crantpy/issues/new?title=Issue%20on%20page%20%2F_modules/crantpy/utils/ordering.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for crantpy.utils.ordering</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;Private axis-ordering engine for :class:`~crantpy.queries.nested_connectivity_matrices.NestedMatrix`.</span>
+
+<span class="sd">The public surface is ``NestedMatrix.order`` / ``NestedMatrix.by`` (and the</span>
+<span class="sd">same names on ``DirectedNestedMatrix``). This module is not a user-facing</span>
+<span class="sd">toolkit.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">Iterable</span><span class="p">,</span>
+    <span class="n">KeysView</span><span class="p">,</span>
+    <span class="n">Mapping</span><span class="p">,</span>
+    <span class="n">Set</span> <span class="k">as</span> <span class="n">AbstractSet</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MappingProxyType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">NamedTuple</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;AxisOrdering&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;By&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MatrixOrder&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MatrixOrderLike&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ResolvedAnnotations&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;as_matrix_order&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;build_axis_ordering&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;build_ordered_neurons&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;by&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;order&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;resolve_relevant_annotations&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;resolve_type_order&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">_NA_POLICIES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;last&quot;</span><span class="p">,</span> <span class="s2">&quot;first&quot;</span><span class="p">,</span> <span class="s2">&quot;raise&quot;</span><span class="p">)</span>
+<span class="n">_TYPE_STRINGS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;size&quot;</span><span class="p">)</span>
+<span class="n">_WITHIN_STRINGS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;annotation&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Neuron ID normalization</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_missing_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return True when *value* is a scalar null (None, NaN, NaT).&quot;&quot;&quot;</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">missing</span><span class="p">,</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_stringify_id_value</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize a neuron ID or label to a string; ``1``, ``1.0``, ``&quot;1&quot;`` -&gt; ``&quot;1&quot;``.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">)):</span>
+        <span class="n">value_float</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">value_float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value_float</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value_float</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_stringify_id_axis</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">axis_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize an axis of neuron IDs, rejecting nulls.&quot;&quot;&quot;</span>
+    <span class="n">ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_is_missing_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">axis_name</span><span class="si">}</span><span class="s2"> contains null neuron IDs&quot;</span><span class="p">)</span>
+        <span class="n">ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_stringify_id_value</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize_id_values</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize neuron IDs, silently dropping nulls.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">_stringify_id_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_missing_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_find_duplicates</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the values that appear more than once, in first-repeat order.&quot;&quot;&quot;</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">duplicates</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">duplicate_seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">seen</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">duplicate_seen</span><span class="p">:</span>
+            <span class="n">duplicates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">duplicate_seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">duplicates</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_reject_unordered</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reject rule iterables that cannot work: sets and bytes.</span>
+
+<span class="sd">    Sets iterate in an order that varies between interpreter runs. Key views</span>
+<span class="sd">    (``dict.keys()``, and so ``matrix.type_boundaries.keys()``) are ``Set``</span>
+<span class="sd">    instances but iterate in insertion order, so they are allowed. Iterating</span>
+<span class="sd">    bytes yields integers, so no string label would ever match.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">,</span> <span class="nb">memoryview</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> must be an iterable of string labels, not &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">; iterating </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2"> yields integers&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">AbstractSet</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">KeysView</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> must be an ordered iterable; set and frozenset are not &quot;</span>
+            <span class="s2">&quot;supported because their order is not stable&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_reject_bytes_like</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reject bytes-like labels, which could only silently never match.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">,</span> <span class="nb">memoryview</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> must be a string, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2"> can never match a label&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_freeze_label_sequence</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Materialize an ordered sequence of string labels.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> takes an iterable of labels, not a bare string; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;wrap it: [</span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">]&quot;</span>
+        <span class="p">)</span>
+    <span class="n">_reject_unordered</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">what</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> must be an iterable of string labels&quot;</span><span class="p">)</span>
+    <span class="n">entries</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> entries must be strings; got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">entry</span><span class="si">!r}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">_reject_bytes_like</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">what</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">entries</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># by(): sort or rank a block by annotation column(s)</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="c1">#: Splits a string into digit and non-digit runs, for :func:`by`.</span>
+<span class="n">_NATURAL_CHUNKS</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(\d+)&quot;</span><span class="p">)</span>
+
+<span class="c1">#: Sort key standing in for a null value, never compared against a real key.</span>
+<span class="n">_MISSING_SORT_KEY</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_natural_sort_key</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Key that sorts digit runs numerically: ``_g2`` before ``_g10``.&quot;&quot;&quot;</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">_is_missing_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">else</span> <span class="n">_stringify_id_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk</span><span class="p">),</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">index</span> <span class="o">%</span> <span class="mi">2</span> <span class="k">else</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">chunk</span><span class="o">.</span><span class="n">casefold</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">_NATURAL_CHUNKS</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compile_extract</span><span class="p">(</span><span class="n">extract</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">re</span><span class="o">.</span><span class="n">Pattern</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and compile a ``by(..., extract=)`` pattern.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">extract</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">extract</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">extract</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">extract</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">Pattern</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">extract</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;by(extract=...) must be a str regex or a compiled str pattern &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;(a bytes pattern cannot match); got </span><span class="si">{</span><span class="n">extract</span><span class="si">!r}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">extract</span><span class="o">.</span><span class="n">groups</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;by(extract=...) needs a capture group for the label; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">extract</span><span class="o">.</span><span class="n">pattern</span><span class="si">!r}</span><span class="s2"> has none&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">extract</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_leftmost_rank_label</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rank</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the leftmost *rank* label in *text*.</span>
+
+<span class="sd">    A label that ends in a digit is not allowed to match as a prefix of a</span>
+<span class="sd">    longer digit run, so ``&quot;R1&quot;`` does not rank ``&quot;EPG_R10&quot;``. At the same</span>
+<span class="sd">    start index, the longer label wins.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">best_start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">best_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">rank</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">label</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">label</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="ow">and</span> <span class="n">end</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="ow">and</span> <span class="n">text</span><span class="p">[</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">best_start</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">or</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="n">best_start</span>
+                <span class="ow">or</span> <span class="p">(</span><span class="n">idx</span> <span class="o">==</span> <span class="n">best_start</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">best_label</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="p">):</span>
+                <span class="n">best_start</span> <span class="o">=</span> <span class="n">idx</span>
+                <span class="n">best_label</span> <span class="o">=</span> <span class="n">label</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">best_label</span>
+
+
+<div class="viewcode-block" id="By">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.By">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">By</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The rule :func:`by` returns. Construct it through :func:`by`.&quot;&quot;&quot;</span>
+
+    <span class="n">columns</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">rank</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">extract</span><span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">Pattern</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">key</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">na</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;last&quot;</span><span class="p">,</span> <span class="s2">&quot;first&quot;</span><span class="p">,</span> <span class="s2">&quot;raise&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;last&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">repr</span><span class="p">(</span><span class="n">column</span><span class="p">)</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;rank=</span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;extract=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">extract</span><span class="o">.</span><span class="n">pattern</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;key=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">na</span> <span class="o">!=</span> <span class="s2">&quot;last&quot;</span><span class="p">:</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;na=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">na</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;by(</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_rows</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">neuron_id_column</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">type_rows</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="n">present</span> <span class="o">=</span> <span class="p">[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">type_rows</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">present</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;order.within for cell type </span><span class="si">{</span><span class="n">type_name</span><span class="si">!r}</span><span class="s2"> reads its labels from &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="si">}</span><span class="s2">, but the annotations have none of those &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;columns; available columns are &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">[</span><span class="n">c</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">type_rows</span><span class="o">.</span><span class="n">columns</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">c</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;__&#39;</span><span class="p">)]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">rank_index</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">{</span><span class="n">label</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">)}</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="n">sort_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_natural_sort_key</span>
+        <span class="n">labels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">type_rows</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_label_for</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">present</span><span class="p">,</span> <span class="n">rank_index</span><span class="p">,</span> <span class="n">neuron_id_column</span><span class="p">))</span>
+
+        <span class="n">missing_rank</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">na</span> <span class="o">!=</span> <span class="s2">&quot;first&quot;</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">type_rows</span><span class="p">[</span><span class="n">neuron_id_column</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_MISSING_SORT_KEY</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">rank_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rank_index</span><span class="p">[</span><span class="n">label</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sort_key</span><span class="p">(</span><span class="n">label</span><span class="p">))</span>
+
+        <span class="n">positions</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)),</span>
+            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">(</span>
+                <span class="n">missing_rank</span> <span class="k">if</span> <span class="n">missing</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">else</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">missing_rank</span><span class="p">,</span>
+                <span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">i</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_label_for</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">row</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
+        <span class="n">present</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">rank_index</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">neuron_id_column</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">seen</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">present</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">column</span><span class="p">]</span>
+            <span class="n">seen</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">if</span> <span class="n">_is_missing_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">rank_index</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">rank_index</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">label</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">rank_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">_leftmost_rank_label</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span> <span class="ow">or</span> <span class="p">())</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">label</span>
+                <span class="k">continue</span>
+            <span class="k">return</span> <span class="n">value</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">na</span> <span class="o">==</span> <span class="s2">&quot;raise&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Could not resolve a ranked column label for neuron &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">neuron_id_column</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&lt;unknown&gt;&#39;</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> from columns &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">seen</span><span class="si">!r}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="by">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.by">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">by</span><span class="p">(</span>
+    <span class="o">*</span><span class="n">columns</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">rank</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">extract</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">Pattern</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">key</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">na</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;last&quot;</span><span class="p">,</span> <span class="s2">&quot;first&quot;</span><span class="p">,</span> <span class="s2">&quot;raise&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;last&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">By</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sort a cell type&#39;s neurons by annotation column(s).</span>
+
+<span class="sd">    A string at the order layer is only a named rule (``&quot;id&quot;``,</span>
+<span class="sd">    ``&quot;annotation&quot;``, ``&quot;label&quot;``, ``&quot;size&quot;``). Column names live here.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    columns : str</span>
+<span class="sd">        Annotation columns to read, in priority order. The first column that</span>
+<span class="sd">        yields a usable value wins.</span>
+<span class="sd">    rank : sequence of str, optional</span>
+<span class="sd">        Explicit label order. Without *extract*, the leftmost *rank* label</span>
+<span class="sd">        that appears in the cell is used, so ``&quot;EPG/PEG_R1&quot;`` and</span>
+<span class="sd">        ``&quot;Δ7_L8R1R9&quot;`` both rank without a regex.</span>
+<span class="sd">    extract : str or compiled pattern, optional</span>
+<span class="sd">        Regex whose first group is the label. A plain string is compiled.</span>
+<span class="sd">    key : callable, optional</span>
+<span class="sd">        ``value -&gt; sort key`` when *rank* is omitted. Defaults to a natural</span>
+<span class="sd">        sort, so ``&quot;ER_g2&quot;`` precedes ``&quot;ER_g10&quot;``.</span>
+<span class="sd">    na : {&quot;last&quot;, &quot;first&quot;, &quot;raise&quot;}, default &quot;last&quot;</span>
+<span class="sd">        What an unrankable or null value costs. ``&quot;raise&quot;`` errors; the</span>
+<span class="sd">        others put those neurons after or before the ranked ones, keeping</span>
+<span class="sd">        annotation row order inside that group.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; NestedMatrix.by(&quot;cell_instance&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; NestedMatrix.by(&quot;cell_instance&quot;, &quot;cell_subtype&quot;, rank=EB_RING)</span>
+<span class="sd">    &gt;&gt;&gt; NestedMatrix.by(&quot;cell_instance&quot;, extract=r&quot;([LR]\\d+)&quot;, rank=PB)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">columns</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;by() needs at least one annotation column name&quot;</span><span class="p">)</span>
+    <span class="n">frozen_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+        <span class="n">_reject_bytes_like</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="s2">&quot;by() columns&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;by() columns must be column name strings, got &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">column</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">column</span><span class="si">!r}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">frozen_columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">na</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_NA_POLICIES</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;by(na=...) must be &#39;last&#39;, &#39;first&#39;, or &#39;raise&#39;, got </span><span class="si">{</span><span class="n">na</span><span class="si">!r}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;by(key=...) must be callable, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;by(key=...) cannot be combined with rank=&quot;</span><span class="p">)</span>
+    <span class="n">frozen_rank</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">rank</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_freeze_label_sequence</span><span class="p">(</span><span class="n">rank</span><span class="p">,</span> <span class="s2">&quot;by(rank=...)&quot;</span><span class="p">)</span>
+    <span class="n">compiled</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">extract</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_compile_extract</span><span class="p">(</span><span class="n">extract</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">By</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">frozen_columns</span><span class="p">),</span>
+        <span class="n">rank</span><span class="o">=</span><span class="n">frozen_rank</span><span class="p">,</span>
+        <span class="n">extract</span><span class="o">=</span><span class="n">compiled</span><span class="p">,</span>
+        <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+        <span class="n">na</span><span class="o">=</span><span class="n">na</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Snapshots</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_snapshot_scalar_sequence</span><span class="p">(</span><span class="n">rule</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+    <span class="n">_reject_unordered</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">what</span><span class="p">)</span>
+    <span class="n">entries</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+        <span class="n">_reject_bytes_like</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> entries&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;order rule entries must be scalar labels; got &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">entry</span><span class="si">!r}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">entries</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_snapshot_type_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">rule</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">rule</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_TYPE_STRINGS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;order.types string must be &#39;label&#39; or &#39;size&#39;, got </span><span class="si">{</span><span class="n">rule</span><span class="si">!r}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">rule</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">rule</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">rule</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;order.types takes a flat sequence of cell type labels, not a &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;mapping; got </span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span><span class="si">!r}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_snapshot_scalar_sequence</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="s2">&quot;order.types&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_snapshot_within_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">rule</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">rule</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_WITHIN_STRINGS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> string must be &#39;annotation&#39; or &#39;id&#39;, got </span><span class="si">{</span><span class="n">rule</span><span class="si">!r}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">rule</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">By</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">rule</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">rule</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">rule</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;a per-cell-type mapping belongs on order.within, not as </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span><span class="si">!r}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="n">_reject_unordered</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">what</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> no longer accepts a bare label sequence; wrap it: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;NestedMatrix.by(&#39;cell_instance&#39;, rank=</span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span><span class="si">!r}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> must be &#39;annotation&#39;, &#39;id&#39;, NestedMatrix.by(...), &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;or a callable; got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_snapshot_within_mapping</span><span class="p">(</span><span class="n">within</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MappingProxyType</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">within</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">within</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;order.within must be a {{cell_type: rule}} mapping; a rule that &quot;</span>
+            <span class="s2">&quot;applies to every type belongs in default= (or .default(...)); &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">within</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="n">snapshotted</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">within</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">_reject_bytes_like</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;order.within cell type keys&quot;</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">_stringify_id_value</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;order.within has two keys naming the same cell type &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">seen</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> and </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">seen</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">snapshotted</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_snapshot_within_rule</span><span class="p">(</span>
+            <span class="n">rule</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;order.within[</span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">]&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">MappingProxyType</span><span class="p">(</span><span class="n">snapshotted</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_thaw</span><span class="p">(</span><span class="n">rule</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Undo read-only wrappers, which do not pickle.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">_thaw</span><span class="p">(</span><span class="n">nested</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">nested</span> <span class="ow">in</span> <span class="n">rule</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">return</span> <span class="n">rule</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># MatrixOrder: nested call + builder</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="MatrixOrder">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.MatrixOrder">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MatrixOrder</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;How one matrix axis is ordered, at both of its levels.</span>
+
+<span class="sd">    Construct through :func:`order` (``NestedMatrix.order``). ``types``</span>
+<span class="sd">    orders the cell type blocks; ``default`` orders neurons inside a block</span>
+<span class="sd">    that ``within`` does not name; ``within`` is a per-type override.</span>
+<span class="sd">    Neither can move a neuron across a block boundary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">type_rule</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;label&quot;</span>
+    <span class="n">default_rule</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">within_rules</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;type_rule&quot;</span><span class="p">,</span> <span class="n">_snapshot_type_rule</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type_rule</span><span class="p">))</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="s2">&quot;default_rule&quot;</span><span class="p">,</span>
+            <span class="n">_snapshot_within_rule</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_rule</span><span class="p">,</span> <span class="s2">&quot;order.default&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;within_rules&quot;</span><span class="p">,</span> <span class="n">_snapshot_within_mapping</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">within_rules</span><span class="p">)</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="MatrixOrder.types">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.MatrixOrder.types">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rule</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MatrixOrder</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a copy with a new block-order rule.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">MatrixOrder</span><span class="p">(</span>
+            <span class="n">type_rule</span><span class="o">=</span><span class="n">rule</span><span class="p">,</span>
+            <span class="n">default_rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_rule</span><span class="p">,</span>
+            <span class="n">within_rules</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">within_rules</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MatrixOrder.default">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.MatrixOrder.default">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rule</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MatrixOrder</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a copy whose unnamed types use *rule*.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">MatrixOrder</span><span class="p">(</span>
+            <span class="n">type_rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">type_rule</span><span class="p">,</span>
+            <span class="n">default_rule</span><span class="o">=</span><span class="n">rule</span><span class="p">,</span>
+            <span class="n">within_rules</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">within_rules</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MatrixOrder.within">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.MatrixOrder.within">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">within</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell_type</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">rule</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MatrixOrder</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a copy with a per-type override.</span>
+
+<span class="sd">        ``.within(&quot;EPG/PEG&quot;, NestedMatrix.by(...))`` sets one type.</span>
+<span class="sd">        ``.within({&quot;EPG/PEG&quot;: ..., &quot;delta7&quot;: ...})`` merges a mapping.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">rule</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cell_type</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s2">&quot;within(cell_type, rule) sets one type; &quot;</span>
+                    <span class="s2">&quot;within({cell_type: rule, ...}) merges a mapping&quot;</span>
+                <span class="p">)</span>
+            <span class="n">merged</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">within_rules</span> <span class="ow">or</span> <span class="p">{})</span>
+            <span class="n">merged</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cell_type</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">merged</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">within_rules</span> <span class="ow">or</span> <span class="p">{})</span>
+            <span class="n">merged</span><span class="p">[</span><span class="n">cell_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">rule</span>
+        <span class="k">return</span> <span class="n">MatrixOrder</span><span class="p">(</span>
+            <span class="n">type_rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">type_rule</span><span class="p">,</span>
+            <span class="n">default_rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_rule</span><span class="p">,</span>
+            <span class="n">within_rules</span><span class="o">=</span><span class="n">merged</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">within</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">within_rules</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">within_rules</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;MatrixOrder(types=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type_rule</span><span class="si">!r}</span><span class="s2">, default=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">default_rule</span><span class="si">!r}</span><span class="s2">, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;within=</span><span class="si">{</span><span class="n">within</span><span class="si">!r}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;type_rule&quot;</span><span class="p">:</span> <span class="n">_thaw</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type_rule</span><span class="p">),</span>
+            <span class="s2">&quot;default_rule&quot;</span><span class="p">:</span> <span class="n">_thaw</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_rule</span><span class="p">),</span>
+            <span class="s2">&quot;within_rules&quot;</span><span class="p">:</span> <span class="n">_thaw</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">within_rules</span><span class="p">),</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;type_rule&quot;</span><span class="p">,</span> <span class="n">_snapshot_type_rule</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;type_rule&quot;</span><span class="p">])</span>
+        <span class="p">)</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="s2">&quot;default_rule&quot;</span><span class="p">,</span>
+            <span class="n">_snapshot_within_rule</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;default_rule&quot;</span><span class="p">],</span> <span class="s2">&quot;order.default&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;within_rules&quot;</span><span class="p">,</span> <span class="n">_snapshot_within_mapping</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;within_rules&quot;</span><span class="p">])</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="order">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">order</span><span class="p">(</span>
+    <span class="n">types</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;label&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">within</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MatrixOrder</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a reusable neuron order for a nested matrix axis.</span>
+
+<span class="sd">    Nested call::</span>
+
+<span class="sd">        NestedMatrix.order(</span>
+<span class="sd">            types=[&quot;ER2&quot;, &quot;EPG/PEG&quot;, &quot;delta7&quot;],</span>
+<span class="sd">            default=&quot;id&quot;,</span>
+<span class="sd">            within={&quot;EPG/PEG&quot;: NestedMatrix.by(&quot;cell_instance&quot;, rank=EB_RING)},</span>
+<span class="sd">        )</span>
+
+<span class="sd">    Builder::</span>
+
+<span class="sd">        NestedMatrix.order().types([&quot;ER2&quot;, &quot;EPG/PEG&quot;]).default(&quot;id&quot;).within(</span>
+<span class="sd">            &quot;EPG/PEG&quot;, NestedMatrix.by(&quot;cell_instance&quot;, rank=EB_RING)</span>
+<span class="sd">        )</span>
+
+<span class="sd">    A bare sequence passed as ``order=`` to a matrix constructor is still</span>
+<span class="sd">    types-only shorthand for ``NestedMatrix.order(types=...)``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">MatrixOrder</span><span class="p">(</span><span class="n">type_rule</span><span class="o">=</span><span class="n">types</span><span class="p">,</span> <span class="n">default_rule</span><span class="o">=</span><span class="n">default</span><span class="p">,</span> <span class="n">within_rules</span><span class="o">=</span><span class="n">within</span><span class="p">)</span></div>
+
+
+
+<span class="n">MatrixOrderLike</span> <span class="o">=</span> <span class="n">MatrixOrder</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="as_matrix_order">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.as_matrix_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">as_matrix_order</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">MatrixOrderLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MatrixOrder</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Coerce an ``order=`` argument into a :class:`MatrixOrder`.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">MatrixOrder</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">MatrixOrder</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">spec</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;order= no longer accepts a mapping; use NestedMatrix.order(&quot;</span>
+            <span class="s2">&quot;types=..., default=..., within=...) or the builder &quot;</span>
+            <span class="s2">&quot;NestedMatrix.order().types(...).default(...).within(...)&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;order=</span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2"> is ambiguous: say which level it applies to, e.g. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;order=NestedMatrix.order(types=</span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">) or &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;order=NestedMatrix.order(default=</span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">MatrixOrder</span><span class="p">(</span><span class="n">type_rule</span><span class="o">=</span><span class="n">spec</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+        <span class="s2">&quot;order must be NestedMatrix.order(...), a sequence of cell type &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;labels, or None; got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Cell type block ordering</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_type_label</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^([A-Za-z]+)(\d*)(.*)$&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">prefix</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">suffix</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="nb">int</span><span class="p">(</span><span class="n">number</span><span class="p">)</span> <span class="k">if</span> <span class="n">number</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span> <span class="n">suffix</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sort_cell_types</span><span class="p">(</span>
+    <span class="n">types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">preferred</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Order cell type labels, honouring *preferred* where it applies.&quot;&quot;&quot;</span>
+    <span class="n">_reject_unordered</span><span class="p">(</span><span class="n">preferred</span><span class="p">,</span> <span class="s2">&quot;_sort_cell_types(preferred=...)&quot;</span><span class="p">)</span>
+    <span class="n">unique</span> <span class="o">=</span> <span class="p">{</span><span class="n">_stringify_id_value</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">types</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_missing_scalar</span><span class="p">(</span><span class="n">t</span><span class="p">)}</span>
+
+    <span class="n">parsed</span> <span class="o">=</span> <span class="p">{</span><span class="n">label</span><span class="p">:</span> <span class="n">_parse_type_label</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">unique</span><span class="p">}</span>
+    <span class="n">generic_order</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unique</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="o">*</span><span class="n">parsed</span><span class="p">[</span><span class="n">x</span><span class="p">][:</span><span class="mi">2</span><span class="p">],</span> <span class="n">x</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">preferred</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">generic_order</span>
+
+    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">remaining</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">generic_order</span><span class="p">)</span>
+    <span class="n">unmatched</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">preferred_value</span> <span class="ow">in</span> <span class="n">preferred</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_is_missing_scalar</span><span class="p">(</span><span class="n">preferred_value</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">_reject_bytes_like</span><span class="p">(</span><span class="n">preferred_value</span><span class="p">,</span> <span class="s2">&quot;preferred cell type entries&quot;</span><span class="p">)</span>
+        <span class="n">wanted</span> <span class="o">=</span> <span class="n">_stringify_id_value</span><span class="p">(</span><span class="n">preferred_value</span><span class="p">)</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">generic_order</span> <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="n">wanted</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
+            <span class="n">unmatched</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wanted</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">remaining</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
+                <span class="n">remaining</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">unmatched</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;order.types names </span><span class="si">%d</span><span class="s2"> cell type(s) that no neuron on this axis &quot;</span>
+            <span class="s2">&quot;has: </span><span class="si">%s</span><span class="s2">, so those entries did nothing; matching is exact and &quot;</span>
+            <span class="s2">&quot;case-sensitive. Present types: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">unmatched</span><span class="p">),</span>
+            <span class="n">unmatched</span><span class="p">,</span>
+            <span class="n">generic_order</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">generic_order</span> <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">remaining</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_order_types_by_label</span><span class="p">(</span>
+    <span class="n">type_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">typed_annotations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">type_col</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">_sort_cell_types</span><span class="p">(</span><span class="n">type_names</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_order_types_by_size</span><span class="p">(</span>
+    <span class="n">type_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">typed_annotations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">type_col</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">typed_annotations</span><span class="p">[</span><span class="n">type_col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_stringify_id_value</span><span class="p">)</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+    <span class="n">by_label</span> <span class="o">=</span> <span class="n">_sort_cell_types</span><span class="p">(</span><span class="n">type_names</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="n">by_label</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">name</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="n">by_label</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_order_types_by_preferred</span><span class="p">(</span><span class="n">preferred</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Any</span><span class="p">]):</span>
+    <span class="n">_reject_unordered</span><span class="p">(</span><span class="n">preferred</span><span class="p">,</span> <span class="s2">&quot;_order_types_by_preferred(preferred=...)&quot;</span><span class="p">)</span>
+    <span class="n">preferred</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">preferred</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">sorter</span><span class="p">(</span>
+        <span class="n">type_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">typed_annotations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">type_col</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">_sort_cell_types</span><span class="p">(</span><span class="n">type_names</span><span class="p">,</span> <span class="n">preferred</span><span class="o">=</span><span class="n">preferred</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sorter</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_type_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">rule</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">rule</span> <span class="o">==</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_order_types_by_label</span>
+    <span class="k">if</span> <span class="n">rule</span> <span class="o">==</span> <span class="s2">&quot;size&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_order_types_by_size</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;order.types string must be &#39;label&#39; or &#39;size&#39;, got </span><span class="si">{</span><span class="n">rule</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">rule</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">sorter</span><span class="p">(</span>
+            <span class="n">type_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">typed_annotations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">type_col</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">rule</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">type_names</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">sorter</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;order.types takes a flat sequence of cell type labels, not a &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;mapping; got </span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span><span class="si">!r}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="n">_reject_unordered</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="s2">&quot;order.types&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_order_types_by_preferred</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+        <span class="s2">&quot;order.types must be &#39;label&#39;, &#39;size&#39;, a sequence of cell type labels, &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;or a callable; got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_apply_type_sorter</span><span class="p">(</span>
+    <span class="n">sorter</span><span class="p">,</span>
+    <span class="n">type_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">typed_annotations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">type_col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">type_names</span><span class="p">)</span>
+    <span class="n">ordered</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">sorter</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">type_names</span><span class="p">),</span> <span class="n">typed_annotations</span><span class="p">,</span> <span class="n">type_col</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ordered</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">expected</span><span class="p">):</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">expected</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">ordered</span><span class="p">))</span>
+        <span class="n">unexpected</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ordered</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">expected</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;order.types must return each of the </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">expected</span><span class="p">)</span><span class="si">}</span><span class="s2"> present cell &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;type(s) exactly once, but returned </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ordered</span><span class="p">)</span><span class="si">}</span><span class="s2">; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;missing=</span><span class="si">{</span><span class="n">missing</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span><span class="si">}</span><span class="s2">, unexpected=</span><span class="si">{</span><span class="n">unexpected</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ordered</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Within-type ordering</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_order_by_annotation</span><span class="p">(</span>
+    <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_rows</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">neuron_id_column</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">type_rows</span><span class="p">[</span><span class="n">neuron_id_column</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_order_by_id</span><span class="p">(</span>
+    <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_rows</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">neuron_id_column</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sort by neuron ID, numerically when every ID is a non-negative integer.&quot;&quot;&quot;</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">_stringify_id_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">type_rows</span><span class="p">[</span><span class="n">neuron_id_column</span><span class="p">]]</span>
+    <span class="k">if</span> <span class="n">ids</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">isdecimal</span><span class="p">()</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_adapt_within_callable</span><span class="p">(</span><span class="n">rule</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">],</span> <span class="n">Any</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sorter</span><span class="p">(</span>
+        <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_rows</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">neuron_id_column</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">rule</span><span class="p">(</span><span class="n">type_rows</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="n">neuron_id_column</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sorter</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_within_type_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">rule</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">rule</span> <span class="o">==</span> <span class="s2">&quot;annotation&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_order_by_annotation</span>
+    <span class="k">if</span> <span class="n">rule</span> <span class="o">==</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_order_by_id</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;order.within string must be &#39;annotation&#39; or &#39;id&#39;, got </span><span class="si">{</span><span class="n">rule</span><span class="si">!r}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">By</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">rule</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">rule</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_adapt_within_callable</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;a per-cell-type mapping belongs at the top of order.within, not &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;nested inside it; got </span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> as one type&#39;s rule&quot;</span>
+        <span class="p">)</span>
+    <span class="n">_reject_unordered</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="s2">&quot;order.within&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;order.within no longer accepts a bare label sequence; wrap it: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;NestedMatrix.by(&#39;cell_instance&#39;, rank=</span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span><span class="si">!r}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+        <span class="s2">&quot;order.within rules must be &#39;annotation&#39;, &#39;id&#39;, NestedMatrix.by(...), &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;or a callable; got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_within_type_keys</span><span class="p">(</span><span class="n">within</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">_stringify_id_value</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">within</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_within_type_order</span><span class="p">(</span>
+    <span class="n">within</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="n">default_sorter</span> <span class="o">=</span> <span class="n">_resolve_within_type_rule</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">within</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="k">lambda</span> <span class="n">type_name</span><span class="p">:</span> <span class="n">default_sorter</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">within</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;order.within must be a {cell_type: rule} mapping; a rule that &quot;</span>
+            <span class="s2">&quot;applies to every type belongs in default=&quot;</span>
+        <span class="p">)</span>
+    <span class="n">by_type</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">within</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">_reject_bytes_like</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;order.within cell type keys&quot;</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">_stringify_id_value</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;order.within has two keys naming the same cell type &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">seen</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">!r}</span><span class="s2"> and </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">seen</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">by_type</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_resolve_within_type_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">type_name</span><span class="p">:</span> <span class="n">by_type</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">type_name</span><span class="p">,</span> <span class="n">default_sorter</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_apply_within_type_sorter</span><span class="p">(</span>
+    <span class="n">sorter</span><span class="p">,</span>
+    <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">type_rows</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">neuron_id_column</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">type_rows</span><span class="p">[</span><span class="n">neuron_id_column</span><span class="p">]]</span>
+    <span class="n">ordered</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">sorter</span><span class="p">(</span><span class="n">type_name</span><span class="p">,</span> <span class="n">type_rows</span><span class="p">,</span> <span class="n">neuron_id_column</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ordered</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">expected</span><span class="p">):</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">expected</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">ordered</span><span class="p">))</span>
+        <span class="n">unexpected</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ordered</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">expected</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;order.within for cell type </span><span class="si">{</span><span class="n">type_name</span><span class="si">!r}</span><span class="s2"> must return each of &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;its </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">expected</span><span class="p">)</span><span class="si">}</span><span class="s2"> neuron ID(s) exactly once, but returned &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ordered</span><span class="p">)</span><span class="si">}</span><span class="s2">; missing=</span><span class="si">{</span><span class="n">missing</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span><span class="si">}</span><span class="s2">, unexpected=</span><span class="si">{</span><span class="n">unexpected</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ordered</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Annotation resolution and axis assembly</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="ResolvedAnnotations">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.ResolvedAnnotations">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResolvedAnnotations</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Result of resolving neuron annotations against one axis&#39; neuron IDs.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="n">typed</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="n">id_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">untyped_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">missing_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="AxisOrdering">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.AxisOrdering">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AxisOrdering</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ordered neurons and type metadata for one matrix axis.&quot;&quot;&quot;</span>
+
+    <span class="n">ordered_neurons</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">type_boundaries</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span>
+    <span class="n">neuron_to_type</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="resolve_relevant_annotations">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.resolve_relevant_annotations">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_relevant_annotations</span><span class="p">(</span>
+    <span class="n">matrix_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">annotations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">id_col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">type_col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResolvedAnnotations</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Narrow *annotations* to *matrix_ids*, de-duplicating by neuron.&quot;&quot;&quot;</span>
+    <span class="n">valid_ids</span> <span class="o">=</span> <span class="n">annotations</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">value</span><span class="p">:</span> <span class="ow">not</span> <span class="n">_is_missing_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="n">normalized</span> <span class="o">=</span> <span class="n">annotations</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">valid_ids</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ann_ids</span> <span class="o">=</span> <span class="n">normalized</span><span class="p">[</span><span class="n">id_col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_stringify_id_value</span><span class="p">)</span>
+    <span class="n">relevant</span> <span class="o">=</span> <span class="n">normalized</span><span class="p">[</span><span class="n">ann_ids</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">matrix_ids</span><span class="p">)]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">relevant</span> <span class="o">=</span> <span class="n">relevant</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+        <span class="o">**</span><span class="p">{</span>
+            <span class="n">id_col</span><span class="p">:</span> <span class="n">ann_ids</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">relevant</span><span class="o">.</span><span class="n">index</span><span class="p">],</span>
+            <span class="s2">&quot;__has_type__&quot;</span><span class="p">:</span> <span class="n">relevant</span><span class="p">[</span><span class="n">type_col</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">(),</span>
+            <span class="s2">&quot;__row_order__&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">relevant</span><span class="p">)),</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">relevant</span><span class="p">[</span><span class="s2">&quot;__first_seen__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">relevant</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">id_col</span><span class="p">)[</span><span class="s2">&quot;__row_order__&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span>
+        <span class="s2">&quot;min&quot;</span>
+    <span class="p">)</span>
+    <span class="n">relevant</span> <span class="o">=</span> <span class="n">relevant</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+        <span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;__first_seen__&quot;</span><span class="p">,</span> <span class="s2">&quot;__has_type__&quot;</span><span class="p">,</span> <span class="s2">&quot;__row_order__&quot;</span><span class="p">],</span>
+        <span class="n">ascending</span><span class="o">=</span><span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="n">id_col</span><span class="p">],</span> <span class="n">keep</span><span class="o">=</span><span class="s2">&quot;first&quot;</span><span class="p">)</span>
+
+    <span class="n">relevant</span><span class="p">[</span><span class="n">type_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">relevant</span><span class="p">[</span><span class="n">type_col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">value</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">_stringify_id_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_missing_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">else</span> <span class="n">value</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">typed</span> <span class="o">=</span> <span class="n">relevant</span><span class="p">[</span><span class="n">relevant</span><span class="p">[</span><span class="n">type_col</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">id_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">typed</span><span class="p">[</span><span class="n">id_col</span><span class="p">],</span> <span class="n">typed</span><span class="p">[</span><span class="n">type_col</span><span class="p">]))</span>
+    <span class="n">typed_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">typed</span><span class="p">[</span><span class="n">id_col</span><span class="p">])</span>
+    <span class="n">untyped_ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">relevant</span><span class="p">[</span><span class="n">id_col</span><span class="p">])</span> <span class="o">-</span> <span class="n">typed_ids</span><span class="p">)</span>
+    <span class="n">missing_ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">matrix_ids</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">relevant</span><span class="p">[</span><span class="n">id_col</span><span class="p">]))</span>
+
+    <span class="k">return</span> <span class="n">ResolvedAnnotations</span><span class="p">(</span><span class="n">relevant</span><span class="p">,</span> <span class="n">typed</span><span class="p">,</span> <span class="n">id_map</span><span class="p">,</span> <span class="n">untyped_ids</span><span class="p">,</span> <span class="n">missing_ids</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="resolve_type_order">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.resolve_type_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_type_order</span><span class="p">(</span>
+    <span class="n">typed_annotations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">type_col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">types_rule</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;label&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Order the cell types present in *typed_annotations*.&quot;&quot;&quot;</span>
+    <span class="n">present_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">cell_type</span> <span class="ow">in</span> <span class="n">typed_annotations</span><span class="p">[</span><span class="n">type_col</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">_is_missing_scalar</span><span class="p">(</span><span class="n">cell_type</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">_stringify_id_value</span><span class="p">(</span><span class="n">cell_type</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">present_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_apply_type_sorter</span><span class="p">(</span>
+        <span class="n">_resolve_type_rule</span><span class="p">(</span><span class="n">types_rule</span><span class="p">),</span> <span class="n">present_types</span><span class="p">,</span> <span class="n">typed_annotations</span><span class="p">,</span> <span class="n">type_col</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="build_ordered_neurons">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.build_ordered_neurons">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_ordered_neurons</span><span class="p">(</span>
+    <span class="n">typed_annotations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">type_col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">sorted_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">neuron_id_column</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">within</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">default</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lay the typed neurons out block by block, returning order and boundaries.&quot;&quot;&quot;</span>
+    <span class="n">sorter_for</span> <span class="o">=</span> <span class="n">_resolve_within_type_order</span><span class="p">(</span><span class="n">within</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">within</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">present_types</span> <span class="o">=</span> <span class="p">{</span><span class="n">_stringify_id_value</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">sorted_types</span><span class="p">}</span>
+        <span class="n">unused</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">_within_type_keys</span><span class="p">(</span><span class="n">within</span><span class="p">)</span> <span class="o">-</span> <span class="n">present_types</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">unused</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;order.within names </span><span class="si">%s</span><span class="s2">, which match no cell type in this matrix, &quot;</span>
+                <span class="s2">&quot;so those rules were not applied; matching is exact and &quot;</span>
+                <span class="s2">&quot;case-sensitive. Present types: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">unused</span><span class="p">,</span>
+                <span class="nb">sorted</span><span class="p">(</span><span class="n">present_types</span><span class="p">),</span>
+            <span class="p">)</span>
+
+    <span class="n">normalized_types</span> <span class="o">=</span> <span class="n">typed_annotations</span><span class="p">[</span><span class="n">type_col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_stringify_id_value</span><span class="p">)</span>
+    <span class="n">typed_annotations</span> <span class="o">=</span> <span class="n">typed_annotations</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+        <span class="o">**</span><span class="p">{</span>
+            <span class="n">type_col</span><span class="p">:</span> <span class="n">normalized_types</span><span class="p">,</span>
+            <span class="n">neuron_id_column</span><span class="p">:</span> <span class="n">typed_annotations</span><span class="p">[</span><span class="n">neuron_id_column</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+                <span class="n">_stringify_id_value</span>
+            <span class="p">),</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">ordered_neurons</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">boundaries</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">current_pos</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">c_type</span> <span class="ow">in</span> <span class="n">sorted_types</span><span class="p">:</span>
+        <span class="n">type_name</span> <span class="o">=</span> <span class="n">_stringify_id_value</span><span class="p">(</span><span class="n">c_type</span><span class="p">)</span>
+        <span class="n">type_rows</span> <span class="o">=</span> <span class="n">typed_annotations</span><span class="p">[</span><span class="n">normalized_types</span> <span class="o">==</span> <span class="n">type_name</span><span class="p">]</span>
+        <span class="n">final_group</span> <span class="o">=</span> <span class="n">_apply_within_type_sorter</span><span class="p">(</span>
+            <span class="n">sorter_for</span><span class="p">(</span><span class="n">type_name</span><span class="p">),</span> <span class="n">type_name</span><span class="p">,</span> <span class="n">type_rows</span><span class="p">,</span> <span class="n">neuron_id_column</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">final_group</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">ordered_neurons</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">final_group</span><span class="p">)</span>
+        <span class="n">boundaries</span><span class="p">[</span><span class="n">type_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">current_pos</span><span class="p">,</span> <span class="n">current_pos</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">final_group</span><span class="p">))</span>
+        <span class="n">current_pos</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">final_group</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ordered_neurons</span><span class="p">,</span> <span class="n">boundaries</span></div>
+
+
+
+<div class="viewcode-block" id="build_axis_ordering">
+<a class="viewcode-back" href="../../../api/crantpy.utils.ordering.html#crantpy.utils.ordering.build_axis_ordering">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_axis_ordering</span><span class="p">(</span>
+    <span class="n">axis_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">annotations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">id_col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">type_col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">order</span><span class="p">:</span> <span class="n">MatrixOrderLike</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AxisOrdering</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resolve annotations and lay out one matrix axis end to end.&quot;&quot;&quot;</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">as_matrix_order</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+    <span class="n">resolved</span> <span class="o">=</span> <span class="n">resolve_relevant_annotations</span><span class="p">(</span>
+        <span class="n">matrix_ids</span><span class="o">=</span><span class="n">axis_ids</span><span class="p">,</span>
+        <span class="n">annotations</span><span class="o">=</span><span class="n">annotations</span><span class="p">,</span>
+        <span class="n">id_col</span><span class="o">=</span><span class="n">id_col</span><span class="p">,</span>
+        <span class="n">type_col</span><span class="o">=</span><span class="n">type_col</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">sorted_types</span> <span class="o">=</span> <span class="n">resolve_type_order</span><span class="p">(</span>
+        <span class="n">typed_annotations</span><span class="o">=</span><span class="n">resolved</span><span class="o">.</span><span class="n">typed</span><span class="p">,</span>
+        <span class="n">type_col</span><span class="o">=</span><span class="n">type_col</span><span class="p">,</span>
+        <span class="n">types_rule</span><span class="o">=</span><span class="n">order</span><span class="o">.</span><span class="n">type_rule</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ordered_neurons</span><span class="p">,</span> <span class="n">boundaries</span> <span class="o">=</span> <span class="n">build_ordered_neurons</span><span class="p">(</span>
+        <span class="n">typed_annotations</span><span class="o">=</span><span class="n">resolved</span><span class="o">.</span><span class="n">typed</span><span class="p">,</span>
+        <span class="n">type_col</span><span class="o">=</span><span class="n">type_col</span><span class="p">,</span>
+        <span class="n">sorted_types</span><span class="o">=</span><span class="n">sorted_types</span><span class="p">,</span>
+        <span class="n">neuron_id_column</span><span class="o">=</span><span class="n">id_col</span><span class="p">,</span>
+        <span class="n">within</span><span class="o">=</span><span class="n">order</span><span class="o">.</span><span class="n">within_rules</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">order</span><span class="o">.</span><span class="n">default_rule</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">resolved</span><span class="o">.</span><span class="n">untyped_ids</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> neuron(s) present in the matrix axis have annotation rows &quot;</span>
+            <span class="s2">&quot;but missing </span><span class="si">%s</span><span class="s2">; they will appear in the matrix but are excluded &quot;</span>
+            <span class="s2">&quot;from type-level analysis: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">resolved</span><span class="o">.</span><span class="n">untyped_ids</span><span class="p">),</span>
+            <span class="n">type_col</span><span class="p">,</span>
+            <span class="p">(</span>
+                <span class="n">resolved</span><span class="o">.</span><span class="n">untyped_ids</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">resolved</span><span class="o">.</span><span class="n">untyped_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span>
+                <span class="k">else</span> <span class="n">resolved</span><span class="o">.</span><span class="n">untyped_ids</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">resolved</span><span class="o">.</span><span class="n">missing_ids</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> neuron(s) present in the matrix axis but missing from &quot;</span>
+            <span class="s2">&quot;annotations; they will appear in the matrix but are excluded &quot;</span>
+            <span class="s2">&quot;from type-level analysis: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">resolved</span><span class="o">.</span><span class="n">missing_ids</span><span class="p">),</span>
+            <span class="p">(</span>
+                <span class="n">resolved</span><span class="o">.</span><span class="n">missing_ids</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">resolved</span><span class="o">.</span><span class="n">missing_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span>
+                <span class="k">else</span> <span class="n">resolved</span><span class="o">.</span><span class="n">missing_ids</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="n">ordered_neurons</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">resolved</span><span class="o">.</span><span class="n">untyped_ids</span><span class="p">)</span>
+    <span class="n">ordered_neurons</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">resolved</span><span class="o">.</span><span class="n">missing_ids</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">AxisOrdering</span><span class="p">(</span>
+        <span class="n">ordered_neurons</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ordered_neurons</span><span class="p">),</span>
+        <span class="n">type_boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
+        <span class="n">neuron_to_type</span><span class="o">=</span><span class="n">resolved</span><span class="o">.</span><span class="n">id_map</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By CRANTb Community
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
